@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Blingus' Bardbook</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="banner">
+    <div class="banner__wrap">
+      <div class="crest" aria-hidden="true">⚔️</div>
+      <h1>Blingus' Bardbook</h1>
+      <div class="crest" aria-hidden="true">🛡️</div>
+    </div>
+    <p class="subtitle">Iconic, humorous song‑parody lines for spells, Bardic Inspiration, Vicious Mockery, and character action ideas</p>
+  </header>
+
+  <nav class="toolbar" aria-label="Controls">
+    <div class="toolbar__row">
+      <label>Section
+        <select id="sectionSelect">
+          <option value="spells">Spell Parodies</option>
+          <option value="bardic">Bardic Inspiration</option>
+          <option value="mockery">Vicious Mockery</option>
+          <option value="actions">What's Your Character Doing?</option>
+        </select>
+      </label>
+
+      <label id="categoryLabel">Category
+        <select id="categorySelect"></select>
+      </label>
+
+      <label class="toggle">
+        <input type="checkbox" id="adultToggle" />
+        <span>Show adult/risqué</span>
+      </label>
+
+      <label class="toggle">
+        <input type="checkbox" id="favoritesOnly" />
+        <span>Only favorites</span>
+      </label>
+
+      <label class="search">
+        <input id="searchInput" type="search" placeholder="Search lyrics or songs..." />
+      </label>
+
+      <button id="clearBtn" class="btn">Clear</button>
+      <button id="addEditBtn" class="btn">Add/Edit Items</button>
+    </div>
+  </nav>
+
+  <main id="content" class="content" aria-live="polite"></main>
+
+  <footer class="footer">
+    <div>Tip: Click any line to copy • Star to favorite • Use the toolbar to filter (adult/favorites/search).</div>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Edit Modal -->
+  <div id="editModal" class="modal" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
+    <div class="modal__content">
+      <div class="modal__header">
+        <h2 id="modalTitle">Add New Item</h2>
+        <button class="modal__close" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal__body">
+        <label>
+          Text
+          <textarea id="editText" rows="3" style="width: 100%; padding: 8px; border: 1px solid var(--burnt); border-radius: 6px; font-family: inherit;"></textarea>
+        </label>
+        <label id="songLabel" style="display: none;">
+          Song
+          <input type="text" id="editSong" style="width: 100%; padding: 8px; border: 1px solid var(--burnt); border-radius: 6px; font-family: inherit;" />
+        </label>
+        <label id="artistLabel" style="display: none;">
+          Artist
+          <input type="text" id="editArtist" style="width: 100%; padding: 8px; border: 1px solid var(--burnt); border-radius: 6px; font-family: inherit;" />
+        </label>
+        <label id="adultLabel" style="display: none;">
+          <input type="checkbox" id="editAdult" />
+          <span>Adult/risqué</span>
+        </label>
+      </div>
+      <div class="modal__footer">
+        <button id="saveEditBtn" class="btn">Save</button>
+        <button id="cancelEditBtn" class="btn">Cancel</button>
+        <button id="deleteEditBtn" class="btn" style="background: #c44; color: white; display: none;">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
