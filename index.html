@@ -52,6 +52,7 @@
 
       <button id="clearBtn" class="btn">Clear</button>
       <button id="addEditBtn" class="btn">Add/Edit Items</button>
+      <button id="manageGeneratorsBtn" class="btn">🎲 Manage Generators</button>
       <label id="presetLabel">Voice Preset
         <select id="presetSelect"></select>
       </label>
@@ -97,6 +98,55 @@
       </div>
       <div class="modal__footer">
         <button id="historyCloseBtn" class="btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Generator Management Modal -->
+  <div id="generatorManageModal" class="modal" role="dialog" aria-labelledby="generatorManageTitle" aria-hidden="true">
+    <div class="modal__content" style="max-width: 700px;">
+      <div class="modal__header">
+        <h2 id="generatorManageTitle">Manage Generators</h2>
+        <button class="modal__close" id="generatorManageClose" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal__body">
+        <div style="margin-bottom: 16px;">
+          <label>Generator Type
+            <select id="generatorTypeSelect" style="width: 100%; padding: 8px; border: 1px solid var(--burnt); border-radius: 6px;">
+              <option value="battleCries">⚔️ Battle Cries</option>
+              <option value="insults">🗡️ Insults</option>
+              <option value="compliments">💬 Compliments</option>
+            </select>
+          </label>
+        </div>
+        <div style="margin-bottom: 16px;">
+          <button id="addGeneratorBtn" class="btn" style="width: 100%;">➕ Add New</button>
+        </div>
+        <div id="generatorsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 400px; overflow-y: auto;"></div>
+      </div>
+      <div class="modal__footer">
+        <button id="generatorManageCloseBtn" class="btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Generator Edit Modal -->
+  <div id="generatorEditModal" class="modal" role="dialog" aria-labelledby="generatorEditTitle" aria-hidden="true">
+    <div class="modal__content" style="max-width: 600px;">
+      <div class="modal__header">
+        <h2 id="generatorEditTitle">Add Generator Item</h2>
+        <button class="modal__close" id="generatorEditClose" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal__body">
+        <label>
+          Text
+          <textarea id="generatorEditText" rows="3" style="width: 100%; padding: 8px; border: 1px solid var(--burnt); border-radius: 6px; font-family: inherit;"></textarea>
+        </label>
+      </div>
+      <div class="modal__footer">
+        <button id="saveGeneratorBtn" class="btn">Save</button>
+        <button id="cancelGeneratorBtn" class="btn">Cancel</button>
+        <button id="deleteGeneratorBtn" class="btn" style="background: #c44; color: white; display: none;">Delete</button>
       </div>
     </div>
   </div>

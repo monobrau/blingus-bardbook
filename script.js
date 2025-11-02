@@ -1509,12 +1509,27 @@
   const historyCloseBtn = $('#historyCloseBtn');
   const presetSelect = $('#presetSelect');
   const managePresetsBtn = $('#managePresetsBtn');
+  const manageGeneratorsBtn = $('#manageGeneratorsBtn');
   const presetModal = $('#presetModal');
   const presetModalTitle = $('#presetModalTitle');
   const presetModalClose = $('#presetModalClose');
   const presetCloseBtn = $('#presetCloseBtn');
   const saveCurrentPresetBtn = $('#saveCurrentPresetBtn');
   const presetsList = $('#presetsList');
+  const generatorManageModal = $('#generatorManageModal');
+  const generatorManageTitle = $('#generatorManageTitle');
+  const generatorManageClose = $('#generatorManageClose');
+  const generatorManageCloseBtn = $('#generatorManageCloseBtn');
+  const generatorTypeSelect = $('#generatorTypeSelect');
+  const generatorsList = $('#generatorsList');
+  const addGeneratorBtn = $('#addGeneratorBtn');
+  const generatorEditModal = $('#generatorEditModal');
+  const generatorEditTitle = $('#generatorEditTitle');
+  const generatorEditClose = $('#generatorEditClose');
+  const generatorEditText = $('#generatorEditText');
+  const saveGeneratorBtn = $('#saveGeneratorBtn');
+  const cancelGeneratorBtn = $('#cancelGeneratorBtn');
+  const deleteGeneratorBtn = $('#deleteGeneratorBtn');
 
   const favoritesKey = 'blingusFavoritesV1';
   const userItemsKey = 'blingusUserItemsV1';
@@ -1522,6 +1537,9 @@
   const historyKey = 'blingusHistoryV1';
   const voicePresetsKey = 'blingusVoicePresetsV1';
   const darkModeKey = 'blingusDarkModeV1';
+  const generatorsKey = 'blingusGeneratorsV1';
+  const editedDefaultsKey = 'blingusEditedDefaultsV1';
+  const deletedGeneratorDefaultsKey = 'blingusDeletedGeneratorDefaultsV1';
   
   // Load user items from localStorage
   function loadUserItems() {
@@ -1571,6 +1589,92 @@
     } catch(e) {
       console.error('Failed to save deleted defaults:', e);
     }
+  }
+
+  // Load user generators from localStorage
+  function loadUserGenerators() {
+    try {
+      const raw = localStorage.getItem(generatorsKey);
+      return raw ? JSON.parse(raw) : { battleCries: [], insults: [], compliments: [] };
+    } catch(e) {
+      console.error('Error loading generators:', e);
+      return { battleCries: [], insults: [], compliments: [] };
+    }
+  }
+
+  // Save user generators to localStorage
+  function saveUserGenerators(userGenerators) {
+    try {
+      localStorage.setItem(generatorsKey, JSON.stringify(userGenerators));
+    } catch(e) {
+      console.error('Failed to save generators:', e);
+    }
+  }
+
+  // Load edited defaults
+  function loadEditedDefaults() {
+    try {
+      const raw = localStorage.getItem(editedDefaultsKey);
+      return raw ? JSON.parse(raw) : { battleCries: {}, insults: {}, compliments: {} };
+    } catch(e) {
+      return { battleCries: {}, insults: {}, compliments: {} };
+    }
+  }
+
+  // Save edited defaults
+  function saveEditedDefaults(editedDefaults) {
+    try {
+      localStorage.setItem(editedDefaultsKey, JSON.stringify(editedDefaults));
+    } catch(e) {
+      console.error('Failed to save edited defaults:', e);
+    }
+  }
+
+  // Load deleted defaults
+  function loadDeletedGeneratorDefaults() {
+    try {
+      const raw = localStorage.getItem(deletedGeneratorDefaultsKey);
+      return raw ? JSON.parse(raw) : { battleCries: [], insults: [], compliments: [] };
+    } catch(e) {
+      return { battleCries: [], insults: [], compliments: [] };
+    }
+  }
+
+  // Save deleted defaults
+  function saveDeletedGeneratorDefaults(deletedDefaults) {
+    try {
+      localStorage.setItem(deletedGeneratorDefaultsKey, JSON.stringify(deletedDefaults));
+    } catch(e) {
+      console.error('Failed to save deleted generator defaults:', e);
+    }
+  }
+
+  // Get merged generators (defaults + user-added, respecting edits and deletions)
+  function getMergedGenerators(type) {
+    const defaults = {
+      battleCries: battleCries,
+      insults: insults,
+      compliments: compliments
+    };
+    const userAdded = loadUserGenerators();
+    const editedDefaults = loadEditedDefaults();
+    const deletedDefaults = loadDeletedGeneratorDefaults();
+    
+    // Get default items, applying edits and filtering deletions
+    const defaultItems = (defaults[type] || []).map((item, index) => {
+      const itemId = `${type}_${index}`;
+      // Check if deleted
+      if ((deletedDefaults[type] || []).includes(itemId)) {
+        return null;
+      }
+      // Check if edited
+      if (editedDefaults[type] && editedDefaults[type][itemId]) {
+        return editedDefaults[type][itemId];
+      }
+      return item;
+    }).filter(item => item !== null);
+    
+    return [...defaultItems, ...(userAdded[type] || [])];
   }
   
   // Generate unique ID for an item
@@ -2527,6 +2631,268 @@
     presetModal.setAttribute('aria-hidden', 'true');
   }
 
+  // Generator Management functions
+  let currentGeneratorType = 'battleCries';
+  let currentEditingGeneratorIndex = null;
+  let currentEditingGeneratorIsDefault = false;
+  let currentEditingGeneratorItemId = null;
+
+  function refreshGeneratorsList() {
+    const type = generatorTypeSelect.value;
+    currentGeneratorType = type;
+    const defaults = {
+      battleCries: battleCries,
+      insults: insults,
+      compliments: compliments
+    };
+    const userAdded = loadUserGenerators();
+    const editedDefaults = loadEditedDefaults();
+    const deletedDefaults = loadDeletedGeneratorDefaults();
+    
+    // Build list of all items with metadata
+    const itemsWithMeta = [];
+    
+    // Add default items (with edits and deletions applied)
+    (defaults[type] || []).forEach((item, index) => {
+      const itemId = `${type}_${index}`;
+      // Skip if deleted
+      if ((deletedDefaults[type] || []).includes(itemId)) {
+        return;
+      }
+      // Use edited version if exists, otherwise original
+      const displayText = (editedDefaults[type] && editedDefaults[type][itemId]) 
+        ? editedDefaults[type][itemId] 
+        : item;
+      itemsWithMeta.push({
+        text: displayText,
+        isDefault: true,
+        index: index,
+        itemId: itemId,
+        originalText: item
+      });
+    });
+    
+    // Add user-added items
+    (userAdded[type] || []).forEach((item, index) => {
+      itemsWithMeta.push({
+        text: item,
+        isDefault: false,
+        index: index
+      });
+    });
+
+    generatorsList.innerHTML = '';
+
+    if (itemsWithMeta.length === 0) {
+      generatorsList.innerHTML = '<div style="text-align: center; padding: 20px; opacity: 0.7;">No items yet. Add one to get started!</div>';
+      return;
+    }
+
+    const isDark = document.body.classList.contains('dark-mode');
+    const typeNames = {
+      battleCries: '⚔️ Battle Cries',
+      insults: '🗡️ Insults',
+      compliments: '💬 Compliments'
+    };
+
+    itemsWithMeta.forEach((itemMeta) => {
+      const generatorCard = document.createElement('div');
+      generatorCard.style.display = 'flex';
+      generatorCard.style.justifyContent = 'space-between';
+      generatorCard.style.alignItems = 'center';
+      generatorCard.style.padding = '12px';
+      generatorCard.style.border = '1px solid var(--burnt)';
+      generatorCard.style.borderRadius = '6px';
+      generatorCard.style.background = isDark ? '#2d2d44' : 'white';
+      generatorCard.style.gap = '8px';
+      if (!itemMeta.isDefault) {
+        generatorCard.style.borderLeft = '4px solid #2b6f3a';
+      } else if (editedDefaults[type] && editedDefaults[type][itemMeta.itemId]) {
+        generatorCard.style.borderLeft = '4px solid #4a90e2';
+      }
+
+      const generatorInfo = document.createElement('div');
+      generatorInfo.style.flex = '1';
+      generatorInfo.style.fontSize = '14px';
+      generatorInfo.textContent = itemMeta.text;
+      generatorInfo.title = itemMeta.text;
+      if (itemMeta.isDefault && editedDefaults[type] && editedDefaults[type][itemMeta.itemId]) {
+        generatorInfo.style.fontStyle = 'italic';
+        generatorInfo.title = `Edited from: ${itemMeta.originalText}`;
+      }
+
+      const buttonsDiv = document.createElement('div');
+      buttonsDiv.style.display = 'flex';
+      buttonsDiv.style.gap = '4px';
+
+      const editBtn = document.createElement('button');
+      editBtn.className = 'btn';
+      editBtn.textContent = 'Edit';
+      editBtn.style.fontSize = '12px';
+      editBtn.addEventListener('click', () => {
+        if (itemMeta.isDefault) {
+          currentEditingGeneratorIndex = itemMeta.index;
+          currentEditingGeneratorIsDefault = true;
+          currentEditingGeneratorItemId = itemMeta.itemId;
+        } else {
+          currentEditingGeneratorIndex = itemMeta.index;
+          currentEditingGeneratorIsDefault = false;
+          currentEditingGeneratorItemId = null;
+        }
+        generatorEditText.value = itemMeta.text;
+        generatorEditTitle.textContent = `Edit ${typeNames[type]} Item`;
+        deleteGeneratorBtn.style.display = '';
+        generatorEditModal.classList.add('show');
+        generatorEditModal.setAttribute('aria-hidden', 'false');
+      });
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'btn';
+      deleteBtn.textContent = 'Delete';
+      deleteBtn.style.fontSize = '12px';
+      deleteBtn.style.background = '#c44';
+      deleteBtn.style.color = 'white';
+      deleteBtn.addEventListener('click', () => {
+        if (confirm(`Delete this ${typeNames[type].toLowerCase()} item?`)) {
+          if (itemMeta.isDefault) {
+            // Delete default item
+            const deleted = loadDeletedGeneratorDefaults();
+            if (!deleted[type]) deleted[type] = [];
+            if (!deleted[type].includes(itemMeta.itemId)) {
+              deleted[type].push(itemMeta.itemId);
+            }
+            // Also remove any edits
+            const edited = loadEditedDefaults();
+            if (edited[type] && edited[type][itemMeta.itemId]) {
+              delete edited[type][itemMeta.itemId];
+              saveEditedDefaults(edited);
+            }
+            saveDeletedGeneratorDefaults(deleted);
+            showToast('Default item deleted');
+          } else {
+            // Delete user-added item
+            const userGenerators = loadUserGenerators();
+            userGenerators[type].splice(itemMeta.index, 1);
+            saveUserGenerators(userGenerators);
+            showToast('Item deleted');
+          }
+          refreshGeneratorsList();
+        }
+      });
+
+      buttonsDiv.appendChild(editBtn);
+      buttonsDiv.appendChild(deleteBtn);
+      generatorCard.appendChild(generatorInfo);
+      generatorCard.appendChild(buttonsDiv);
+      generatorsList.appendChild(generatorCard);
+    });
+  }
+
+  function showGeneratorManageModal() {
+    refreshGeneratorsList();
+    generatorManageModal.classList.add('show');
+    generatorManageModal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeGeneratorManageModal() {
+    generatorManageModal.classList.remove('show');
+    generatorManageModal.setAttribute('aria-hidden', 'true');
+  }
+
+  function openGeneratorEditModal() {
+    currentEditingGeneratorIndex = null;
+    currentEditingGeneratorIsDefault = false;
+    currentEditingGeneratorItemId = null;
+    generatorEditText.value = '';
+    const typeNames = {
+      battleCries: '⚔️ Battle Cries',
+      insults: '🗡️ Insults',
+      compliments: '💬 Compliments'
+    };
+    generatorEditTitle.textContent = `Add ${typeNames[generatorTypeSelect.value]} Item`;
+    deleteGeneratorBtn.style.display = 'none';
+    generatorEditModal.classList.add('show');
+    generatorEditModal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeGeneratorEditModal() {
+    generatorEditModal.classList.remove('show');
+    generatorEditModal.setAttribute('aria-hidden', 'true');
+    currentEditingGeneratorIndex = null;
+    currentEditingGeneratorIsDefault = false;
+    currentEditingGeneratorItemId = null;
+  }
+
+  function saveGeneratorItem() {
+    const text = generatorEditText.value.trim();
+    if (!text) {
+      showToast('Please enter text');
+      return;
+    }
+
+    const type = currentGeneratorType;
+
+    if (currentEditingGeneratorIndex !== null) {
+      if (currentEditingGeneratorIsDefault) {
+        // Editing default item - save as edited default
+        const editedDefaults = loadEditedDefaults();
+        if (!editedDefaults[type]) editedDefaults[type] = {};
+        editedDefaults[type][currentEditingGeneratorItemId] = text;
+        saveEditedDefaults(editedDefaults);
+        showToast('Default item updated');
+      } else {
+        // Editing user-added item
+        const userGenerators = loadUserGenerators();
+        userGenerators[type][currentEditingGeneratorIndex] = text;
+        saveUserGenerators(userGenerators);
+        showToast('Item updated');
+      }
+    } else {
+      // Adding new item
+      const userGenerators = loadUserGenerators();
+      if (!userGenerators[type]) {
+        userGenerators[type] = [];
+      }
+      userGenerators[type].push(text);
+      saveUserGenerators(userGenerators);
+      showToast('Item added');
+    }
+
+    refreshGeneratorsList();
+    closeGeneratorEditModal();
+  }
+
+  function deleteGeneratorItem() {
+    if (currentEditingGeneratorIndex === null) return;
+
+    if (confirm('Are you sure you want to delete this item?')) {
+      if (currentEditingGeneratorIsDefault) {
+        // Delete default item
+        const deleted = loadDeletedGeneratorDefaults();
+        if (!deleted[currentGeneratorType]) deleted[currentGeneratorType] = [];
+        if (!deleted[currentGeneratorType].includes(currentEditingGeneratorItemId)) {
+          deleted[currentGeneratorType].push(currentEditingGeneratorItemId);
+        }
+        // Also remove any edits
+        const edited = loadEditedDefaults();
+        if (edited[currentGeneratorType] && edited[currentGeneratorType][currentEditingGeneratorItemId]) {
+          delete edited[currentGeneratorType][currentEditingGeneratorItemId];
+          saveEditedDefaults(edited);
+        }
+        saveDeletedGeneratorDefaults(deleted);
+        showToast('Default item deleted');
+      } else {
+        // Delete user-added item
+        const userGenerators = loadUserGenerators();
+        userGenerators[currentGeneratorType].splice(currentEditingGeneratorIndex, 1);
+        saveUserGenerators(userGenerators);
+        showToast('Item deleted');
+      }
+      refreshGeneratorsList();
+      closeGeneratorEditModal();
+    }
+  }
+
   function copyToClipboard(text, section = null, category = null) {
     navigator.clipboard.writeText(text).then(() => {
       if (section && category) {
@@ -3029,6 +3395,9 @@
         deletedDefaults: JSON.parse(localStorage.getItem(deletedDefaultsKey) || '{}'),
         history: JSON.parse(localStorage.getItem(historyKey) || '[]'),
         presets: JSON.parse(localStorage.getItem(voicePresetsKey) || '[]'),
+        generators: JSON.parse(localStorage.getItem(generatorsKey) || '{"battleCries":[],"insults":[],"compliments":[]}'),
+        editedGeneratorDefaults: JSON.parse(localStorage.getItem(editedDefaultsKey) || '{"battleCries":{},"insults":{},"compliments":{}}'),
+        deletedGeneratorDefaults: JSON.parse(localStorage.getItem(deletedGeneratorDefaultsKey) || '{"battleCries":[],"insults":[],"compliments":[]}'),
         version: '1.0',
         timestamp: new Date().toISOString()
       };
@@ -3064,6 +3433,9 @@
             if (data.deletedDefaults) localStorage.setItem(deletedDefaultsKey, JSON.stringify(data.deletedDefaults));
             if (data.history) localStorage.setItem(historyKey, JSON.stringify(data.history));
             if (data.presets) localStorage.setItem(voicePresetsKey, JSON.stringify(data.presets));
+            if (data.generators) localStorage.setItem(generatorsKey, JSON.stringify(data.generators));
+            if (data.editedGeneratorDefaults) localStorage.setItem(editedDefaultsKey, JSON.stringify(data.editedGeneratorDefaults));
+            if (data.deletedGeneratorDefaults) localStorage.setItem(deletedGeneratorDefaultsKey, JSON.stringify(data.deletedGeneratorDefaults));
             location.reload();
           }
         } catch (error) {
@@ -3170,6 +3542,27 @@
     }
   });
 
+  // Generator Management event listeners
+  manageGeneratorsBtn.addEventListener('click', showGeneratorManageModal);
+  generatorManageCloseBtn.addEventListener('click', closeGeneratorManageModal);
+  generatorManageClose.addEventListener('click', closeGeneratorManageModal);
+  generatorManageModal.addEventListener('click', (e) => {
+    if (e.target === generatorManageModal) {
+      closeGeneratorManageModal();
+    }
+  });
+  generatorTypeSelect.addEventListener('change', refreshGeneratorsList);
+  addGeneratorBtn.addEventListener('click', openGeneratorEditModal);
+  saveGeneratorBtn.addEventListener('click', saveGeneratorItem);
+  cancelGeneratorBtn.addEventListener('click', closeGeneratorEditModal);
+  deleteGeneratorBtn.addEventListener('click', deleteGeneratorItem);
+  generatorEditClose.addEventListener('click', closeGeneratorEditModal);
+  generatorEditModal.addEventListener('click', (e) => {
+    if (e.target === generatorEditModal) {
+      closeGeneratorEditModal();
+    }
+  });
+
   // Keyboard navigation
   let selectedCardIndex = -1;
   document.addEventListener('keydown', (e) => {
@@ -3187,10 +3580,25 @@
         closeHistoryModal();
         return;
       }
+      if (presetModal.classList.contains('show')) {
+        closePresetModal();
+        return;
+      }
+      if (generatorManageModal.classList.contains('show')) {
+        closeGeneratorManageModal();
+        return;
+      }
+      if (generatorEditModal.classList.contains('show')) {
+        closeGeneratorEditModal();
+        return;
+      }
     }
     
     // Don't interfere with modal or input fields
     if (editModal.classList.contains('show') || 
+        generatorManageModal.classList.contains('show') ||
+        generatorEditModal.classList.contains('show') ||
+        presetModal.classList.contains('show') ||
         document.activeElement.tagName === 'INPUT' || 
         document.activeElement.tagName === 'TEXTAREA' ||
         document.activeElement.tagName === 'SELECT') {
