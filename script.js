@@ -3654,8 +3654,26 @@
   // Generator Management event listeners
   console.log('Setting up generator management listeners...');
   console.log('manageGeneratorsBtn:', manageGeneratorsBtn);
+  
+  // Create visible debug indicator
+  const debugInfo = document.createElement('div');
+  debugInfo.id = 'debugInfo';
+  debugInfo.style.cssText = 'position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.8); color: #0f0; padding: 10px; border-radius: 5px; font-size: 12px; z-index: 10000; max-width: 300px; display: none; font-family: monospace;';
+  document.body.appendChild(debugInfo);
+  
+  function showDebug(msg) {
+    console.log(msg);
+    debugInfo.textContent = msg;
+    debugInfo.style.display = 'block';
+    setTimeout(() => {
+      debugInfo.style.display = 'none';
+    }, 3000);
+  }
+  
   if (manageGeneratorsBtn) {
+    showDebug('✓ Button found, attaching listener...');
     manageGeneratorsBtn.addEventListener('click', (e) => {
+      showDebug('✓ Button clicked! Opening modal...');
       console.log('Manage Generators button clicked!');
       e.preventDefault();
       e.stopPropagation();
@@ -3663,18 +3681,22 @@
     });
     console.log('Event listener attached to manageGeneratorsBtn');
   } else {
+    showDebug('✗ Button NOT found via querySelector!');
     console.error('manageGeneratorsBtn not found! Check if element exists in HTML.');
     // Try to find it again
     const btn = document.getElementById('manageGeneratorsBtn');
     if (btn) {
+      showDebug('✓ Button found via getElementById, attaching...');
       console.log('Found manageGeneratorsBtn via getElementById, attaching listener...');
       btn.addEventListener('click', (e) => {
+        showDebug('✓ Button clicked (getElementById)! Opening modal...');
         console.log('Manage Generators button clicked (found via getElementById)!');
         e.preventDefault();
         e.stopPropagation();
         showGeneratorManageModal();
       });
     } else {
+      showDebug('✗ Button NOT found via getElementById either!');
       console.error('manageGeneratorsBtn still not found via getElementById!');
     }
   }
