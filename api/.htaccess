@@ -1,0 +1,3 @@
+# Allow PHP execution in this directory
+AddHandler application/x-httpd-php .php
+
