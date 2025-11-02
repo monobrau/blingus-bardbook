@@ -1477,26 +1477,6 @@
   const $ = sel => document.querySelector(sel);
   const content = $('#content');
   
-  // Create visible debug indicator early
-  const debugInfo = document.createElement('div');
-  debugInfo.id = 'debugInfo';
-  debugInfo.style.cssText = 'position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.8); color: #0f0; padding: 10px; border-radius: 5px; font-size: 12px; z-index: 10000; max-width: 300px; display: none; font-family: monospace;';
-  document.body.appendChild(debugInfo);
-  
-  function showDebug(msg) {
-    console.log('[DEBUG]', msg);
-    if (debugInfo) {
-      debugInfo.textContent = msg;
-      debugInfo.style.display = 'block';
-      setTimeout(() => {
-        if (debugInfo) {
-          debugInfo.style.display = 'none';
-        }
-      }, 5000); // Increased timeout so messages are visible longer
-    }
-  }
-  
-  showDebug('Script loaded, initializing...');
   
   // Debug helper function - can be called from console
   window.debugGenerators = function() {
@@ -3074,42 +3054,20 @@
   }
 
   function showGeneratorManageModal() {
-    showDebug('showGeneratorManageModal called');
-    console.log('showGeneratorManageModal called');
-    console.log('generatorManageModal:', generatorManageModal);
-    
     if (!generatorManageModal) {
-      showDebug('✗ Modal element NOT found!');
       console.error('generatorManageModal not found!');
       showToast('Error: Generator management modal not found');
       return;
     }
     
-    showDebug('✓ Modal found, refreshing list...');
     try {
       refreshGeneratorsList();
-      showDebug('✓ List refreshed, showing modal...');
     } catch (error) {
-      showDebug('✗ Error refreshing list: ' + error.message);
       console.error('Error refreshing generators list:', error);
     }
     
     generatorManageModal.classList.add('show');
     generatorManageModal.setAttribute('aria-hidden', 'false');
-    
-    // Verify modal is visible
-    setTimeout(() => {
-      const isVisible = generatorManageModal.classList.contains('show');
-      const computedStyle = window.getComputedStyle(generatorManageModal);
-      showDebug(`Modal visible: ${isVisible}, display: ${computedStyle.display}`);
-      console.log('Modal show class:', isVisible);
-      console.log('Modal computed display:', computedStyle.display);
-      if (!isVisible) {
-        showDebug('✗ Modal NOT showing! Check CSS.');
-      } else {
-        showDebug('✓ Modal should be visible now');
-      }
-    }, 100);
   }
 
   function closeGeneratorManageModal() {
@@ -3994,52 +3952,28 @@
   });
 
   // Generator Management event listeners
-  console.log('Setting up generator management listeners...');
-  console.log('manageGeneratorsBtn:', manageGeneratorsBtn);
-  showDebug('Setting up generator listeners...');
-  
   if (manageGeneratorsBtn) {
-    showDebug('✓ Button found, attaching listener...');
     manageGeneratorsBtn.addEventListener('click', (e) => {
-      showDebug('✓ Button clicked! Calling showGeneratorManageModal...');
-      console.log('Manage Generators button clicked!');
-      console.log('Event:', e);
-      console.log('Button element:', manageGeneratorsBtn);
       e.preventDefault();
       e.stopPropagation();
       try {
         showGeneratorManageModal();
       } catch (error) {
-        showDebug('✗ Error: ' + error.message);
         console.error('Error in showGeneratorManageModal:', error);
       }
     });
-    console.log('Event listener attached to manageGeneratorsBtn');
   } else {
-    showDebug('✗ Button NOT found via querySelector!');
-    console.error('manageGeneratorsBtn not found! Check if element exists in HTML.');
-    // Try to find it again
     const btn = document.getElementById('manageGeneratorsBtn');
     if (btn) {
-      showDebug('✓ Button found via getElementById, attaching...');
-      console.log('Found manageGeneratorsBtn via getElementById, attaching listener...');
       btn.addEventListener('click', (e) => {
-        showDebug('✓ Button clicked (getElementById)! Calling showGeneratorManageModal...');
-        console.log('Manage Generators button clicked (found via getElementById)!');
-        console.log('Event:', e);
-        console.log('Button element:', btn);
         e.preventDefault();
         e.stopPropagation();
         try {
           showGeneratorManageModal();
         } catch (error) {
-          showDebug('✗ Error: ' + error.message);
           console.error('Error in showGeneratorManageModal:', error);
         }
       });
-    } else {
-      showDebug('✗ Button NOT found via getElementById either!');
-      console.error('manageGeneratorsBtn still not found via getElementById!');
     }
   }
   if (generatorManageCloseBtn) {
