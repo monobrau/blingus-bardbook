@@ -3735,12 +3735,14 @@
   historyBtn.addEventListener('click', showHistoryModal);
 
   // Cloud Sync functionality
+  console.log('Creating sync button...');
   const syncBtn = document.createElement('button');
   syncBtn.id = 'syncBtn';
   syncBtn.className = 'btn';
   syncBtn.textContent = '☁️ Sync';
   syncBtn.style.fontSize = '14px';
   syncBtn.title = 'Sync data to/from server (works across browsers)';
+  console.log('Sync button created:', syncBtn);
   
   let syncInProgress = false;
   syncBtn.addEventListener('click', async () => {
@@ -3927,7 +3929,21 @@
   generatorRow.appendChild(syncBtn);
   generatorRow.appendChild(exportBtn);
   generatorRow.appendChild(importBtn);
-  document.querySelector('.toolbar').appendChild(generatorRow);
+  
+  const toolbar = document.querySelector('.toolbar');
+  if (!toolbar) {
+    console.error('Toolbar not found!');
+  } else {
+    console.log('Appending generatorRow to toolbar, syncBtn included');
+    toolbar.appendChild(generatorRow);
+    // Verify sync button is in DOM
+    const verifySyncBtn = document.getElementById('syncBtn');
+    if (verifySyncBtn) {
+      console.log('✓ Sync button successfully added to DOM');
+    } else {
+      console.error('✗ Sync button NOT found in DOM after append!');
+    }
+  }
 
   // History modal event listeners
   historyCloseBtn.addEventListener('click', closeHistoryModal);
