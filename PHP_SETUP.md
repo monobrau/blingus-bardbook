@@ -16,19 +16,31 @@ dpkg -l | grep php
 
 ## Step 2: Install PHP-FPM
 
+### For Ubuntu Server 24.04:
+```bash
+# Update package list
+sudo apt update
+
+# Install PHP-FPM and required extensions
+sudo apt install php-fpm php-cli php-json
+
+# Check which PHP version was installed
+php -v
+
+# Enable and start PHP-FPM (service name depends on PHP version)
+# For PHP 8.3 (default on Ubuntu 24.04):
+sudo systemctl enable php8.3-fpm
+sudo systemctl start php8.3-fpm
+
+# Or check which version:
+systemctl list-units | grep php-fpm
+```
+
 ### For Fedora/RHEL/CentOS:
 ```bash
 sudo dnf install php-fpm php-json
 sudo systemctl enable php-fpm
 sudo systemctl start php-fpm
-```
-
-### For Debian/Ubuntu:
-```bash
-sudo apt-get update
-sudo apt-get install php-fpm php-json
-sudo systemctl enable php8.1-fpm  # adjust version
-sudo systemctl start php8.1-fpm
 ```
 
 ## Step 3: Find PHP-FPM Socket
@@ -47,11 +59,17 @@ ls -la /run/php/
 sudo find /etc -name "*php*fpm*.conf" 2>/dev/null
 ```
 
-Common socket paths:
-- `/var/run/php-fpm/php-fpm.sock`
-- `/var/run/php/php-fpm.sock`
-- `/run/php/php8.1-fpm.sock`
+Common socket paths (Ubuntu 24.04):
+- `/run/php/php8.3-fpm.sock` (most common on Ubuntu 24.04)
+- `/var/run/php/php8.3-fpm.sock`
 - Or TCP: `127.0.0.1:9000`
+
+To find your exact socket:
+```bash
+# Check PHP-FPM config
+sudo grep "listen" /etc/php/8.3/fpm/pool.d/www.conf
+# Should show: listen = /run/php/php8.3-fpm.sock
+```
 
 ## Step 4: Configure Nginx
 
@@ -61,10 +79,10 @@ sudo nano /etc/nginx/sites-available/blingus.knospe.org
 # or wherever your site config is
 ```
 
-Add this location block (adjust socket path):
+Add this location block (Ubuntu 24.04 default socket):
 ```nginx
 location ~ \.php$ {
-    fastcgi_pass unix:/var/run/php-fpm/php-fpm.sock;  # Adjust path!
+    fastcgi_pass unix:/run/php/php8.3-fpm.sock;  # Ubuntu 24.04 default
     fastcgi_index index.php;
     fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
     include fastcgi_params;
@@ -73,6 +91,8 @@ location ~ \.php$ {
     fastcgi_read_timeout 300;
 }
 ```
+
+**Important:** Adjust `php8.3` to match your installed PHP version if different.
 
 ## Step 5: Test and Reload
 
