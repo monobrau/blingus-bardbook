@@ -1584,26 +1584,28 @@
   const editedDefaultsKey = 'blingusEditedDefaultsV1';
   const deletedGeneratorDefaultsKey = 'blingusDeletedGeneratorDefaultsV1';
   
-  // File-based storage using File System Access API
+  // File-based storage - auto-detect server vs local
   let dataDirectoryHandle = null;
   const DATA_FILENAME = 'blingus-data.json';
   const DATA_DIR_NAME = 'data';
+  const API_ENDPOINT = '/api/blingus-data.php';
   
-  // Check if File System Access API is supported
-  // Note: Requires Chromium-based browser (Chrome, Edge, Brave) and HTTPS (or localhost)
+  // Detect if running on a web server (not localhost)
+  const isLocalhost = window.location.hostname === 'localhost' || 
+                     window.location.hostname === '127.0.0.1' ||
+                     window.location.protocol === 'file:';
+  const isOnServer = !isLocalhost && (window.location.protocol === 'http:' || window.location.protocol === 'https:');
+  
+  // Check if File System Access API is supported (for local use)
   const fileSystemSupported = 'showDirectoryPicker' in window;
-  console.log('File System Access API supported:', fileSystemSupported);
-  console.log('Browser:', navigator.userAgent);
-  console.log('Protocol:', window.location.protocol);
-  console.log('Hostname:', window.location.hostname);
   
-  // Additional check for Brave browser
-  if (navigator.brave && navigator.brave.isBrave) {
-    console.log('Brave browser detected');
-    navigator.brave.isBrave().then(isBrave => {
-      console.log('Confirmed Brave browser:', isBrave);
-    });
-  }
+  console.log('Storage mode detection:', {
+    isLocalhost,
+    isOnServer,
+    protocol: window.location.protocol,
+    hostname: window.location.hostname,
+    fileSystemSupported
+  });
   
   // Initialize file storage - try to load saved directory handle
   async function initFileStorage() {
