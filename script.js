@@ -2638,6 +2638,14 @@
   let currentEditingGeneratorItemId = null;
 
   function refreshGeneratorsList() {
+    if (!generatorTypeSelect) {
+      console.error('generatorTypeSelect not found!');
+      return;
+    }
+    if (!generatorsList) {
+      console.error('generatorsList not found!');
+      return;
+    }
     const type = generatorTypeSelect.value;
     currentGeneratorType = type;
     const defaults = {
@@ -2789,17 +2797,37 @@
   }
 
   function showGeneratorManageModal() {
+    if (!generatorManageModal) {
+      console.error('generatorManageModal not found!');
+      showToast('Error: Generator management modal not found');
+      return;
+    }
     refreshGeneratorsList();
     generatorManageModal.classList.add('show');
     generatorManageModal.setAttribute('aria-hidden', 'false');
   }
 
   function closeGeneratorManageModal() {
+    if (!generatorManageModal) {
+      console.error('generatorManageModal not found in closeGeneratorManageModal!');
+      return;
+    }
     generatorManageModal.classList.remove('show');
     generatorManageModal.setAttribute('aria-hidden', 'true');
   }
 
   function openGeneratorEditModal() {
+    if (!generatorEditModal || !generatorEditText || !generatorEditTitle || !generatorTypeSelect || !deleteGeneratorBtn) {
+      console.error('Missing required elements for openGeneratorEditModal:', {
+        generatorEditModal: !!generatorEditModal,
+        generatorEditText: !!generatorEditText,
+        generatorEditTitle: !!generatorEditTitle,
+        generatorTypeSelect: !!generatorTypeSelect,
+        deleteGeneratorBtn: !!deleteGeneratorBtn
+      });
+      showToast('Error: Generator edit modal elements not found');
+      return;
+    }
     currentEditingGeneratorIndex = null;
     currentEditingGeneratorIsDefault = false;
     currentEditingGeneratorItemId = null;
@@ -2816,6 +2844,10 @@
   }
 
   function closeGeneratorEditModal() {
+    if (!generatorEditModal) {
+      console.error('generatorEditModal not found in closeGeneratorEditModal!');
+      return;
+    }
     generatorEditModal.classList.remove('show');
     generatorEditModal.setAttribute('aria-hidden', 'true');
     currentEditingGeneratorIndex = null;
@@ -3620,25 +3652,70 @@
   });
 
   // Generator Management event listeners
-  manageGeneratorsBtn.addEventListener('click', showGeneratorManageModal);
-  generatorManageCloseBtn.addEventListener('click', closeGeneratorManageModal);
-  generatorManageClose.addEventListener('click', closeGeneratorManageModal);
-  generatorManageModal.addEventListener('click', (e) => {
-    if (e.target === generatorManageModal) {
-      closeGeneratorManageModal();
+  console.log('Setting up generator management listeners...');
+  console.log('manageGeneratorsBtn:', manageGeneratorsBtn);
+  if (manageGeneratorsBtn) {
+    manageGeneratorsBtn.addEventListener('click', (e) => {
+      console.log('Manage Generators button clicked!');
+      e.preventDefault();
+      e.stopPropagation();
+      showGeneratorManageModal();
+    });
+    console.log('Event listener attached to manageGeneratorsBtn');
+  } else {
+    console.error('manageGeneratorsBtn not found! Check if element exists in HTML.');
+    // Try to find it again
+    const btn = document.getElementById('manageGeneratorsBtn');
+    if (btn) {
+      console.log('Found manageGeneratorsBtn via getElementById, attaching listener...');
+      btn.addEventListener('click', (e) => {
+        console.log('Manage Generators button clicked (found via getElementById)!');
+        e.preventDefault();
+        e.stopPropagation();
+        showGeneratorManageModal();
+      });
+    } else {
+      console.error('manageGeneratorsBtn still not found via getElementById!');
     }
-  });
-  generatorTypeSelect.addEventListener('change', refreshGeneratorsList);
-  addGeneratorBtn.addEventListener('click', openGeneratorEditModal);
-  saveGeneratorBtn.addEventListener('click', saveGeneratorItem);
-  cancelGeneratorBtn.addEventListener('click', closeGeneratorEditModal);
-  deleteGeneratorBtn.addEventListener('click', deleteGeneratorItem);
-  generatorEditClose.addEventListener('click', closeGeneratorEditModal);
-  generatorEditModal.addEventListener('click', (e) => {
-    if (e.target === generatorEditModal) {
-      closeGeneratorEditModal();
-    }
-  });
+  }
+  if (generatorManageCloseBtn) {
+    generatorManageCloseBtn.addEventListener('click', closeGeneratorManageModal);
+  }
+  if (generatorManageClose) {
+    generatorManageClose.addEventListener('click', closeGeneratorManageModal);
+  }
+  if (generatorManageModal) {
+    generatorManageModal.addEventListener('click', (e) => {
+      if (e.target === generatorManageModal) {
+        closeGeneratorManageModal();
+      }
+    });
+  }
+  if (generatorTypeSelect) {
+    generatorTypeSelect.addEventListener('change', refreshGeneratorsList);
+  }
+  if (addGeneratorBtn) {
+    addGeneratorBtn.addEventListener('click', openGeneratorEditModal);
+  }
+  if (saveGeneratorBtn) {
+    saveGeneratorBtn.addEventListener('click', saveGeneratorItem);
+  }
+  if (cancelGeneratorBtn) {
+    cancelGeneratorBtn.addEventListener('click', closeGeneratorEditModal);
+  }
+  if (deleteGeneratorBtn) {
+    deleteGeneratorBtn.addEventListener('click', deleteGeneratorItem);
+  }
+  if (generatorEditClose) {
+    generatorEditClose.addEventListener('click', closeGeneratorEditModal);
+  }
+  if (generatorEditModal) {
+    generatorEditModal.addEventListener('click', (e) => {
+      if (e.target === generatorEditModal) {
+        closeGeneratorEditModal();
+      }
+    });
+  }
 
   // Keyboard navigation
   let selectedCardIndex = -1;
@@ -3661,21 +3738,21 @@
         closePresetModal();
         return;
       }
-      if (generatorManageModal.classList.contains('show')) {
+      if (generatorManageModal && generatorManageModal.classList.contains('show')) {
         closeGeneratorManageModal();
         return;
       }
-      if (generatorEditModal.classList.contains('show')) {
+      if (generatorEditModal && generatorEditModal.classList.contains('show')) {
         closeGeneratorEditModal();
         return;
       }
     }
     
     // Don't interfere with modal or input fields
-    if (editModal.classList.contains('show') || 
-        generatorManageModal.classList.contains('show') ||
-        generatorEditModal.classList.contains('show') ||
-        presetModal.classList.contains('show') ||
+    if ((editModal && editModal.classList.contains('show')) || 
+        (generatorManageModal && generatorManageModal.classList.contains('show')) ||
+        (generatorEditModal && generatorEditModal.classList.contains('show')) ||
+        (presetModal && presetModal.classList.contains('show')) ||
         document.activeElement.tagName === 'INPUT' || 
         document.activeElement.tagName === 'TEXTAREA' ||
         document.activeElement.tagName === 'SELECT') {
