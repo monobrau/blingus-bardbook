@@ -1655,8 +1655,15 @@
   function loadDeletedGeneratorDefaults() {
     try {
       const raw = localStorage.getItem(deletedGeneratorDefaultsKey);
-      return raw ? JSON.parse(raw) : { battleCries: [], insults: [], compliments: [] };
+      const result = raw ? JSON.parse(raw) : { battleCries: [], insults: [], compliments: [] };
+      // Ensure all types exist
+      if (!result.battleCries) result.battleCries = [];
+      if (!result.insults) result.insults = [];
+      if (!result.compliments) result.compliments = [];
+      console.log('loadDeletedGeneratorDefaults:', result);
+      return result;
     } catch(e) {
+      console.error('Error loading deleted generator defaults:', e);
       return { battleCries: [], insults: [], compliments: [] };
     }
   }
@@ -1681,11 +1688,16 @@
     const editedDefaults = loadEditedDefaults();
     const deletedDefaults = loadDeletedGeneratorDefaults();
     
+    console.log('getMergedGenerators for', type);
+    console.log('Deleted defaults:', deletedDefaults[type]);
+    console.log('User added:', userAdded[type]);
+    
     // Get default items, applying edits and filtering deletions
     const defaultItems = (defaults[type] || []).map((item, index) => {
       const itemId = `${type}_${index}`;
       // Check if deleted
       if ((deletedDefaults[type] || []).includes(itemId)) {
+        console.log('Filtering out deleted item:', itemId, item);
         return null;
       }
       // Check if edited
@@ -1695,7 +1707,9 @@
       return item;
     }).filter(item => item !== null);
     
-    return [...defaultItems, ...(userAdded[type] || [])];
+    const merged = [...defaultItems, ...(userAdded[type] || [])];
+    console.log('Merged list length:', merged.length, 'Default items:', defaultItems.length, 'User added:', (userAdded[type] || []).length);
+    return merged;
   }
   
   // Generate unique ID for an item
@@ -2797,6 +2811,8 @@
               saveEditedDefaults(edited);
             }
             saveDeletedGeneratorDefaults(deleted);
+            console.log('Deleted default item (from manage modal):', itemMeta.itemId);
+            console.log('Deleted list for', type, ':', deleted[type]);
             showToast('Default item deleted');
           } else {
             // Delete user-added item
@@ -2961,12 +2977,15 @@
           saveEditedDefaults(edited);
         }
         saveDeletedGeneratorDefaults(deleted);
+        console.log('Deleted default item:', currentEditingGeneratorItemId);
+        console.log('Deleted list for', currentGeneratorType, ':', deleted[currentGeneratorType]);
         showToast('Default item deleted');
       } else {
         // Delete user-added item
         const userGenerators = loadUserGenerators();
         userGenerators[currentGeneratorType].splice(currentEditingGeneratorIndex, 1);
         saveUserGenerators(userGenerators);
+        console.log('Deleted user-added item at index:', currentEditingGeneratorIndex);
         showToast('Item deleted');
       }
       refreshGeneratorsList();
