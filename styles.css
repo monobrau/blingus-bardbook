@@ -73,6 +73,12 @@ select, input[type="search"] {
   transition: all 0.3s ease;
 }
 
+.card:focus {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+  background: #fff2d4;
+}
+
 .card:hover { box-shadow: 0 4px 10px var(--shadow); }
 .card__meta { font-size: 12px; opacity: .75; margin-top: 6px; }
 .card__chip { display: inline-block; font-size: 11px; padding: 2px 6px; border-radius: 999px; border: 1px solid var(--accent); color: var(--accent); background: #fff2ea; margin-right: 6px; }

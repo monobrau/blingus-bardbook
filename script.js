@@ -1,9 +1,9 @@
 (function(){
   const spells = {
     'Druidcraft': [
-      {t:"Here comes the sprout, doo-doo-doo—little leaf, it's all right; bask in the glow and grow on sight.", s:"Here Comes the Sun", a:"The Beatles"},
+      {t:"Here comes the sprout, doo-doo-doo-doo—little leaf, it's all right; bask in the glow, grow in the light.", s:"Here Comes the Sun", a:"The Beatles"},
       {t:"I bless the rains in this room—tiny monsoon on cue; bloom crew coming through.", s:"Africa", a:"Toto"},
-      {t:"I'm walking on sunshine—so are my seedlings; don't it feel good when pollen starts dealing.", s:"Walking on Sunshine", a:"Katrina and the Waves"},
+      {t:"I'm walking on sunshine—so are my seedlings; don't it feel good when nature starts healing.", s:"Walking on Sunshine", a:"Katrina and the Waves"},
       {t:"Country roads, take these spores—to the place they belong; roots hum along to the travelin' song.", s:"Take Me Home, Country Roads", a:"John Denver"},
       {t:"Good vibrations—pollinations; bees RSVP and hype the stations.", s:"Good Vibrations", a:"The Beach Boys"},
       {t:"What a wonderful world—buds unfurled; happy little leaves wave hello to the world.", s:"What a Wonderful World", a:"Louis Armstrong"},
@@ -14,20 +14,20 @@
       {t:"Ice, ice, baby—chill that drink; frost on the rim with a wink.", s:"Ice Ice Baby", a:"Vanilla Ice"},
       {t:"Another one bites the dust—crumbs be gone; shine is on, in glam we trust.", s:"Another One Bites the Dust", a:"Queen"},
       {t:"Pour some sugar on me—just a dash; flavor unlock, chef's kiss splash.", s:"Pour Some Sugar on Me", a:"Def Leppard"},
-      {t:"Beat it—grime, beat it; cape so clean you can't believe it.", s:"Beat It", a:"Michael Jackson"},
+      {t:"Beat it—grime, beat it; make it clean, you can't conceive it.", s:"Beat It", a:"Michael Jackson"},
       {t:"Smooth operator—polish and preen; leaving the scene like a glossy magazine.", s:"Smooth Operator", a:"Sade"},
-      {t:"Don't stop me now—I'm having such a clean time; tidy so prime it borders on sublime.", s:"Don't Stop Me Now", a:"Queen"}
+      {t:"Don't stop me now—I'm having such a clean time; tidy so prime, cleaning's sublime.", s:"Don't Stop Me Now", a:"Queen"}
     ],
     'Vicious Mockery': [
       {t:"You're so vain, you probably think this spell's about you—and you're right; that ego's heavy, good night.", s:"You're So Vain", a:"Carly Simon"},
       {t:"U can't touch this—accuracy, dignity, competence; all on the 'no' list, hence.", s:"U Can't Touch This", a:"MC Hammer"},
-      {t:"Smells like teen spirit—aim like it too; here we are now, miss you through.", s:"Smells Like Teen Spirit", a:"Nirvana"},
-      {t:"Every breath you take, your hands will shake; cardio for pride with each mistake.", s:"Every Breath You Take", a:"The Police"},
+      {t:"Smells like teen spirit—aim like it too; here we are now, entertain you.", s:"Smells Like Teen Spirit", a:"Nirvana"},
+      {t:"Every breath you take, your hands will shake; every move you make, another mistake.", s:"Every Breath You Take", a:"The Police"},
       {t:"I get knocked down, but you stay down—gravity loves you.", s:"Tubthumping", a:"Chumbawamba"},
       {t:"Never gonna give you up—on roasting you; crowd sings along while you boo-hoo.", s:"Never Gonna Give You Up", a:"Rick Astley"},
-      {t:"Under pressure—your rolls confess; crumble in style, fail with finesse.", s:"Under Pressure", a:"Queen & David Bowie"},
+      {t:"Under pressure—your rolls express; crumble in style, fail with finesse.", s:"Under Pressure", a:"Queen & David Bowie"},
       {t:"Oops!... I did it again—missed, that is; your aim's a trend I can't defend.", s:"Oops!... I Did It Again", a:"Britney Spears"},
-      {t:"Bad Romance—with accuracy; your shots commit to monogamy with failure.", s:"Bad Romance", a:"Lady Gaga"},
+      {t:"Bad Romance—with accuracy; your aim's a tragedy, failure's your specialty.", s:"Bad Romance", a:"Lady Gaga"},
       {t:"Even Mystra's Weave rejects you—and she's pretty forgiving.", s:"Forgotten Realms Lore", a:"Mockery"},
       {t:"Elminster called—he wants his apprentice back; something about 'basic competence.'", s:"Forgotten Realms Lore", a:"Mockery"}
     ],
@@ -41,15 +41,15 @@
       {t:"Even Kelemvor's scales tip against you—and he's impartial.", s:"Forgotten Realms Lore", a:"Mockery"}
     ],
     'Command': [
-      {t:"Stop! In the name of love—then turn around; walk away, off my battleground.", s:"Stop! In the Name of Love", a:"The Supremes"},
+      {t:"Stop! In the name of love—then turn around; walk away, leave this battleground.", s:"Stop! In the Name of Love", a:"The Supremes"},
       {t:"Go your own way—specifically away; heel-toe shuffle, obey.", s:"Go Your Own Way", a:"Fleetwood Mac"},
-      {t:"Hit the road, Jack—and don't you come back; bounce track to the outback.", s:"Hit the Road Jack", a:"Ray Charles"},
+      {t:"Hit the road, Jack—and don't you come back; hit the track, don't look back.", s:"Hit the Road Jack", a:"Ray Charles"},
       {t:"Walk this way—away; this path ain't your runway.", s:"Walk This Way", a:"Aerosmith"},
       {t:"Jump—might as well jump… into prone; gravity's calling on the stone.", s:"Jump", a:"Van Halen"},
       {t:"The Harpers would be proud—if they weren't busy ignoring you.", s:"Forgotten Realms Lore", a:"Mockery"}
     ],
     'Faerie Fire': [
-      {t:"I can see clearly now—the glow is on; stealth clocked out, cover gone.", s:"I Can See Clearly Now", a:"Johnny Nash"},
+      {t:"I can see clearly now—the glow is on; stealth clocked out, stealth is gone.", s:"I Can See Clearly Now", a:"Johnny Nash"},
       {t:"Every breath you take—we'll be watching you—because you're lit up too.", s:"Every Breath You Take", a:"The Police"},
       {t:"Mr. Brightside—now you're outlined; tutorial highlight, perfectly timed.", s:"Mr. Brightside", a:"The Killers"},
       {t:"Purple haze all around—the sneak is found; neon truth on battleground.", s:"Purple Haze", a:"Jimi Hendrix"},
@@ -62,14 +62,69 @@
       {t:"I will survive—as long as I know how to heal, you'll thrive; that's the vibe.", s:"I Will Survive", a:"Gloria Gaynor"},
       {t:"Here I go again—lifting friends up again; chorus of life, amen.", s:"Here I Go Again", a:"Whitesnake"},
       {t:"With a little help from my words—you'll get by; hearts sync, heads high.", s:"With a Little Help from My Friends", a:"The Beatles"},
-      {t:"Beat it—death, beat it; pulse on the two and four—believe it.", s:"Beat It", a:"Michael Jackson"},
+      {t:"Beat it—death, beat it; pulse on the two and four, believe it.", s:"Beat It", a:"Michael Jackson"},
       {t:"Stayin' alive—ah, ah, ah, ah—stayin' alive; HP dive—canceled, you thrive.", s:"Stayin' Alive", a:"Bee Gees"},
       {t:"Stronger—what doesn't kill you makes you stronger; healing power, no longer a goner.", s:"Stronger", a:"Kanye West"},
-      {t:"I'm still standing—yeah, yeah, yeah; stand tall, heal all, no delay.", s:"I'm Still Standing", a:"Elton John"},
+      {t:"I'm still standing—yeah, yeah, yeah; stand tall, heal all, better each day.", s:"I'm Still Standing", a:"Elton John"},
       {t:"Rise up—back on your feet; healing complete, defeat deleted.", s:"Rise Up", a:"Andra Day"},
       {t:"Even Ilmater approves—and he's seen worse.", s:"Forgotten Realms Lore", a:"Mockery"}
     ]
   };
+
+  // Generators for Blingus' personality
+  const battleCries = [
+    "Let's see what this chaos brings!",
+    "Time to make some noise!",
+    "The road calls, and I answer!",
+    "Bo would be proud of this one!",
+    "All right, let's dance!",
+    "Smoke and mirrors, here we go!",
+    "The horizon's calling—time to answer!",
+    "Chaos, meet my lute!",
+    "Wanderlust strikes again!",
+    "For Bo, for Zybilna, for the road!",
+    "Watch this—it's gonna be a show!",
+    "Another story in the making!",
+    "Time to turn the page!",
+    "Let's see what trouble we can find!",
+    "The road never ends, but you might!"
+  ];
+
+  const insults = [
+    "You're about as useful as a one-winged fairy in a hurricane.",
+    "Your aim's so bad, even Vadania would cringe.",
+    "I've seen smarter goblins—and I speak Goblin.",
+    "You make Brawn's past trauma look like a tea party.",
+    "Even Puck wouldn't hug you—and he hugs mimics.",
+    "Your strategy has less planning than my last 'grab cigarettes' trip.",
+    "You're the reason Bo taught me not to count on anyone.",
+    "I've left marriages faster than you can land a hit.",
+    "Your combat skills are like my attention span—nonexistent.",
+    "You're so bad at this, even my smoke rings have better aim.",
+    "If you were a road, I'd leave you behind in a heartbeat.",
+    "Your performance makes my half-finished songs look like masterpieces.",
+    "I've been more committed to things I walked away from.",
+    "You're the villain equivalent of a detour sign—annoying but harmless.",
+    "Even the Midnight Carnival would reject you—and they let in everyone."
+  ];
+
+  const compliments = [
+    "Not bad—almost as good as one of my songs.",
+    "You're doing great—for someone who isn't me.",
+    "That was... actually pretty good. I'm shocked too.",
+    "Nice work! Reminds me of why I stick around sometimes.",
+    "You're almost making me reconsider my 'don't count on anyone' philosophy.",
+    "That was solid—like a good pack of cigarettes.",
+    "You've got potential—unlike most people I've met.",
+    "Not terrible! Which is high praise from me.",
+    "You're growing on me—like a persistent weed.",
+    "That was decent—and I don't say that often.",
+    "You're making this journey almost worthwhile.",
+    "Nice! Almost as impressive as my lute skills.",
+    "You're doing better than expected—which says something.",
+    "That wasn't bad—considering your starting point.",
+    "You're proving me wrong—and I hate that, but respect it."
+  ];
 
   const adultSpells = {
     'Druidcraft': [
@@ -1370,6 +1425,8 @@
   const favoritesKey = 'blingusFavoritesV1';
   const userItemsKey = 'blingusUserItemsV1';
   const deletedDefaultsKey = 'blingusDeletedDefaultsV1';
+  const historyKey = 'blingusHistoryV1';
+  const voicePresetsKey = 'blingusVoicePresetsV1';
   
   // Load user items from localStorage
   function loadUserItems() {
@@ -1717,9 +1774,138 @@
     console.log(`render: final list length=${list.length} for ${section}`);
     
     content.innerHTML = '';
+    
+    // Add random button at the top (uses full baseList, not filtered)
+    if (baseList.length > 0) {
+      const randomCard = document.createElement('article');
+      randomCard.className = 'card';
+      randomCard.style.background = 'linear-gradient(135deg, #f7e7c4 0%, #fff9eb 100%)';
+      randomCard.style.border = '2px solid var(--accent)';
+      
+      const randomBtn = document.createElement('button');
+      randomBtn.className = 'btn';
+      randomBtn.style.width = '100%';
+      randomBtn.style.padding = '16px';
+      randomBtn.style.fontSize = '18px';
+      randomBtn.style.fontWeight = 'bold';
+      randomBtn.textContent = '🎲 Feeling Chaotic? 🎲';
+      randomBtn.addEventListener('click', () => {
+        const randomItem = baseList[Math.floor(Math.random() * baseList.length)];
+        
+        // Check if the selected item is in the filtered results
+        const isInFiltered = list.some(x => {
+          if (typeof x === 'string') return x === randomItem;
+          if (typeof randomItem === 'string') return false;
+          return x.t === randomItem.t && x.s === randomItem.s && x.a === randomItem.a;
+        });
+        
+        // Find and highlight the selected item card if it's visible
+        const allCards = content.querySelectorAll('.card:not(.random-card)');
+        let selectedCard = null;
+        for (const card of allCards) {
+          const textDiv = card.querySelector('div:not(.card__meta)');
+          if (textDiv) {
+            const cardText = typeof randomItem === 'string' ? randomItem : randomItem.t;
+            if (textDiv.textContent.includes(cardText)) {
+              selectedCard = card;
+              break;
+            }
+          }
+        }
+        
+        if (selectedCard) {
+          // Remove previous highlights
+          allCards.forEach(c => c.classList.remove('highlighted'));
+          
+          // Highlight the selected card
+          selectedCard.classList.add('highlighted');
+          
+          // Scroll to the card
+          selectedCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          
+          // Remove highlight after 5 seconds
+          setTimeout(() => {
+            selectedCard.classList.remove('highlighted');
+          }, 5000);
+          
+          const displayText = typeof randomItem === 'string' ? randomItem : randomItem.t;
+          showToast(`Random: ${displayText.substring(0, 50)}...`);
+        } else if (!isInFiltered) {
+          // Selected item is filtered out - show a longer toast message
+          const displayText = typeof randomItem === 'string' ? randomItem : randomItem.t;
+          showToast(`Random: ${displayText.substring(0, 50)}... (not in current filter)`);
+        } else {
+          const displayText = typeof randomItem === 'string' ? randomItem : randomItem.t;
+          showToast(`Random: ${displayText.substring(0, 50)}...`);
+        }
+        
+        // Copy to clipboard
+        if (typeof randomItem === 'string') {
+          copyToClipboard(randomItem, section, cat);
+        } else {
+          copyLine(randomItem);
+        }
+      });
+      
+      const randomHint = document.createElement('div');
+      randomHint.style.marginTop = '8px';
+      randomHint.style.fontSize = '14px';
+      randomHint.style.opacity = '0.7';
+      randomHint.style.textAlign = 'center';
+      randomHint.textContent = 'Click to get a random line and copy it!';
+      
+      randomCard.classList.add('random-card');
+      randomCard.appendChild(randomBtn);
+      randomCard.appendChild(randomHint);
+      content.appendChild(randomCard);
+    }
+    
+    // Add history section before items
+    const history = loadHistory();
+    if (history.length > 0) {
+      const historyCard = document.createElement('article');
+      historyCard.className = 'card history-card';
+      historyCard.style.background = 'linear-gradient(135deg, #e8f4f8 0%, #f0f8ff 100%)';
+      historyCard.style.border = '2px solid #4a90e2';
+      historyCard.style.marginBottom = '16px';
+      
+      const historyTitle = document.createElement('div');
+      historyTitle.style.fontWeight = 'bold';
+      historyTitle.style.marginBottom = '8px';
+      historyTitle.textContent = '📜 Recently Used (Click to copy)';
+      
+      historyCard.appendChild(historyTitle);
+      
+      const historyList = document.createElement('div');
+      historyList.style.display = 'flex';
+      historyList.style.flexDirection = 'column';
+      historyList.style.gap = '4px';
+      
+      history.slice(0, 5).forEach(entry => {
+        const historyItem = document.createElement('button');
+        historyItem.style.textAlign = 'left';
+        historyItem.style.padding = '8px';
+        historyItem.style.border = '1px solid #ccc';
+        historyItem.style.borderRadius = '4px';
+        historyItem.style.cursor = 'pointer';
+        historyItem.style.background = 'white';
+        historyItem.style.fontSize = '13px';
+        historyItem.textContent = entry.text.length > 60 ? entry.text.substring(0, 60) + '...' : entry.text;
+        historyItem.title = entry.text;
+        historyItem.addEventListener('click', () => {
+          copyToClipboard(entry.text, entry.section, entry.category);
+        });
+        historyList.appendChild(historyItem);
+      });
+      
+      historyCard.appendChild(historyList);
+      content.appendChild(historyCard);
+    }
+    
     for (const item of list) {
       const card = document.createElement('article');
       card.className = 'card';
+      card.tabIndex = 0; // Make focusable for keyboard navigation
       const favBtn = document.createElement('button');
       favBtn.className = 'card__fav';
       const favOn = isFav(item);
@@ -2034,8 +2220,40 @@
     }
   }
 
-  function copyToClipboard(text) {
+  // History tracking functions
+  function loadHistory() {
+    try {
+      const raw = localStorage.getItem(historyKey);
+      return raw ? JSON.parse(raw) : [];
+    } catch(e) {
+      return [];
+    }
+  }
+
+  function saveHistory(history) {
+    try {
+      const trimmed = history.slice(0, 10); // Keep only last 10
+      localStorage.setItem(historyKey, JSON.stringify(trimmed));
+    } catch(e) {
+      console.error('Failed to save history:', e);
+    }
+  }
+
+  function addToHistory(text, section, category) {
+    const history = loadHistory();
+    const entry = { text, section, category, timestamp: Date.now() };
+    // Remove duplicates (same text)
+    const filtered = history.filter(h => h.text !== text);
+    // Add to front
+    filtered.unshift(entry);
+    saveHistory(filtered);
+  }
+
+  function copyToClipboard(text, section = null, category = null) {
     navigator.clipboard.writeText(text).then(() => {
+      if (section && category) {
+        addToHistory(text, section, category);
+      }
       showToast('Copied to clipboard');
     }).catch(() => {
       showToast('Copy failed');
@@ -2044,7 +2262,11 @@
 
   async function copyLine(item) {
     try {
-      await navigator.clipboard.writeText(`${item.t} (Song: ${item.s} — ${item.a})`);
+      const section = sectionSelect.value;
+      const category = categorySelect.value;
+      const text = section === 'actions' ? item : `${item.t} (Song: ${item.s} — ${item.a})`;
+      await navigator.clipboard.writeText(text);
+      addToHistory(text, section, category);
       showToast('Copied to clipboard');
     } catch (e) {
       showToast('Copy failed');
@@ -2417,10 +2639,146 @@
     }
   });
   
-  // Close modal on Escape key
+  // Generator buttons
+  const generatorRow = document.createElement('div');
+  generatorRow.className = 'toolbar__row';
+  generatorRow.style.marginTop = '8px';
+  generatorRow.style.gap = '8px';
+  generatorRow.style.flexWrap = 'wrap';
+
+  const battleCryBtn = document.createElement('button');
+  battleCryBtn.id = 'battleCryBtn';
+  battleCryBtn.className = 'btn';
+  battleCryBtn.textContent = '⚔️ Battle Cry';
+  battleCryBtn.style.fontSize = '14px';
+  battleCryBtn.addEventListener('click', () => {
+    const cry = battleCries[Math.floor(Math.random() * battleCries.length)];
+    copyToClipboard(cry);
+    showToast(`Battle Cry: ${cry}`);
+  });
+
+  const insultBtn = document.createElement('button');
+  insultBtn.id = 'insultBtn';
+  insultBtn.className = 'btn';
+  insultBtn.textContent = '🗡️ Insult';
+  insultBtn.style.fontSize = '14px';
+  insultBtn.addEventListener('click', () => {
+    const insult = insults[Math.floor(Math.random() * insults.length)];
+    copyToClipboard(insult);
+    showToast(`Insult: ${insult.substring(0, 50)}...`);
+  });
+
+  const complimentBtn = document.createElement('button');
+  complimentBtn.id = 'complimentBtn';
+  complimentBtn.className = 'btn';
+  complimentBtn.textContent = '💬 Compliment';
+  complimentBtn.style.fontSize = '14px';
+  complimentBtn.addEventListener('click', () => {
+    const compliment = compliments[Math.floor(Math.random() * compliments.length)];
+    copyToClipboard(compliment);
+    showToast(`Compliment: ${compliment.substring(0, 50)}...`);
+  });
+
+  // Export/Import functionality
+  const exportBtn = document.createElement('button');
+  exportBtn.id = 'exportBtn';
+  exportBtn.className = 'btn';
+  exportBtn.textContent = '📥 Export';
+  exportBtn.style.fontSize = '14px';
+  exportBtn.addEventListener('click', () => {
+    const data = {
+      favorites: JSON.parse(localStorage.getItem(favoritesKey) || '[]'),
+      userItems: JSON.parse(localStorage.getItem(userItemsKey) || '{}'),
+      deletedDefaults: JSON.parse(localStorage.getItem(deletedDefaultsKey) || '{}'),
+      history: JSON.parse(localStorage.getItem(historyKey) || '[]'),
+      version: '1.0',
+      timestamp: new Date().toISOString()
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `blingus-bardbook-export-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Data exported!');
+  });
+
+  const importBtn = document.createElement('button');
+  importBtn.id = 'importBtn';
+  importBtn.className = 'btn';
+  importBtn.textContent = '📤 Import';
+  importBtn.style.fontSize = '14px';
+  importBtn.addEventListener('click', () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json';
+    input.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const data = JSON.parse(event.target.result);
+          if (confirm('This will overwrite your current data. Continue?')) {
+            if (data.favorites) localStorage.setItem(favoritesKey, JSON.stringify(data.favorites));
+            if (data.userItems) localStorage.setItem(userItemsKey, JSON.stringify(data.userItems));
+            if (data.deletedDefaults) localStorage.setItem(deletedDefaultsKey, JSON.stringify(data.deletedDefaults));
+            if (data.history) localStorage.setItem(historyKey, JSON.stringify(data.history));
+            location.reload();
+          }
+        } catch (error) {
+          showToast('Import failed: Invalid file');
+        }
+      };
+      reader.readAsText(file);
+    });
+    input.click();
+  });
+
+  generatorRow.appendChild(battleCryBtn);
+  generatorRow.appendChild(insultBtn);
+  generatorRow.appendChild(complimentBtn);
+  generatorRow.appendChild(exportBtn);
+  generatorRow.appendChild(importBtn);
+  document.querySelector('.toolbar').appendChild(generatorRow);
+
+  // Keyboard navigation
+  let selectedCardIndex = -1;
   document.addEventListener('keydown', (e) => {
+    // Handle Escape key for modal
     if (e.key === 'Escape' && editModal.classList.contains('show')) {
       closeEditModal();
+      return;
+    }
+    
+    // Don't interfere with modal or input fields
+    if (editModal.classList.contains('show') || 
+        document.activeElement.tagName === 'INPUT' || 
+        document.activeElement.tagName === 'TEXTAREA' ||
+        document.activeElement.tagName === 'SELECT') {
+      return;
+    }
+
+    const cards = Array.from(content.querySelectorAll('.card:not(.random-card):not(.history-card)'));
+    
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      selectedCardIndex = Math.min(selectedCardIndex + 1, cards.length - 1);
+      if (cards[selectedCardIndex]) {
+        cards[selectedCardIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        cards[selectedCardIndex].focus();
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      selectedCardIndex = Math.max(selectedCardIndex - 1, 0);
+      if (cards[selectedCardIndex]) {
+        cards[selectedCardIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        cards[selectedCardIndex].focus();
+      }
+    } else if (e.key === 'Enter' && selectedCardIndex >= 0 && cards[selectedCardIndex]) {
+      e.preventDefault();
+      cards[selectedCardIndex].click();
     }
   });
 
