@@ -1604,6 +1604,213 @@
   const editedDefaultsKey = 'blingusEditedDefaultsV1';
   const deletedGeneratorDefaultsKey = 'blingusDeletedGeneratorDefaultsV1';
   
+  // File-based storage using File System Access API
+  let dataDirectoryHandle = null;
+  const DATA_FILENAME = 'blingus-data.json';
+  const DATA_DIR_NAME = 'data';
+  
+  // Check if File System Access API is supported
+  const fileSystemSupported = 'showDirectoryPicker' in window;
+  
+  // Initialize file storage - prompt user to select data directory
+  async function initFileStorage() {
+    if (!fileSystemSupported) {
+      console.log('File System Access API not supported, using localStorage');
+      return false;
+    }
+    
+    try {
+      // Try to get saved directory handle from IndexedDB
+      const savedHandle = await getSavedDirectoryHandle();
+      if (savedHandle) {
+        dataDirectoryHandle = savedHandle;
+        showToast('✓ File storage initialized');
+        return true;
+      }
+      
+      // If no saved handle, prompt user to select directory
+      return await promptForDataDirectory();
+    } catch (error) {
+      console.error('Error initializing file storage:', error);
+      return false;
+    }
+  }
+  
+  // Prompt user to select data directory
+  async function promptForDataDirectory() {
+    try {
+      const handle = await window.showDirectoryPicker({
+        mode: 'readwrite',
+        startIn: 'documents'
+      });
+      
+      // Check if 'data' subdirectory exists, create if not
+      try {
+        dataDirectoryHandle = await handle.getDirectoryHandle(DATA_DIR_NAME, { create: true });
+      } catch (e) {
+        // If we can't create subdirectory, use the selected directory directly
+        dataDirectoryHandle = handle;
+      }
+      
+      // Save handle for future use
+      await saveDirectoryHandle(dataDirectoryHandle);
+      showToast('✓ Data directory selected');
+      return true;
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        console.error('Error selecting directory:', error);
+      }
+      return false;
+    }
+  }
+  
+  // Save directory handle to IndexedDB
+  async function saveDirectoryHandle(handle) {
+    try {
+      const db = await openDB();
+      const transaction = db.transaction(['handles'], 'readwrite');
+      const store = transaction.objectStore('handles');
+      await store.put({ id: 'dataDir', handle: handle });
+    } catch (error) {
+      console.error('Error saving directory handle:', error);
+    }
+  }
+  
+  // Get saved directory handle from IndexedDB
+  async function getSavedDirectoryHandle() {
+    try {
+      const db = await openDB();
+      const transaction = db.transaction(['handles'], 'readonly');
+      const store = transaction.objectStore('handles');
+      const result = await store.get('dataDir');
+      return result ? result.handle : null;
+    } catch (error) {
+      console.error('Error getting directory handle:', error);
+      return null;
+    }
+  }
+  
+  // Open IndexedDB for storing file handles
+  function openDB() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open('blingusFileStorage', 1);
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result);
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains('handles')) {
+          db.createObjectStore('handles', { keyPath: 'id' });
+        }
+      };
+    });
+  }
+  
+  // Get all user data
+  function getAllUserData() {
+    return {
+      favorites: JSON.parse(localStorage.getItem(favoritesKey) || '[]'),
+      userItems: JSON.parse(localStorage.getItem(userItemsKey) || '{}'),
+      deletedDefaults: JSON.parse(localStorage.getItem(deletedDefaultsKey) || '{}'),
+      history: JSON.parse(localStorage.getItem(historyKey) || '[]'),
+      voicePresets: JSON.parse(localStorage.getItem(voicePresetsKey) || '[]'),
+      generators: JSON.parse(localStorage.getItem(generatorsKey) || '{"battleCries":[],"insults":[],"compliments":[]}'),
+      editedGeneratorDefaults: JSON.parse(localStorage.getItem(editedDefaultsKey) || '{"battleCries":{},"insults":{},"compliments":{}}'),
+      deletedGeneratorDefaults: JSON.parse(localStorage.getItem(deletedGeneratorDefaultsKey) || '{"battleCries":[],"insults":[],"compliments":[]}'),
+      darkMode: localStorage.getItem(darkModeKey) === 'true',
+      version: '1.3',
+      timestamp: new Date().toISOString()
+    };
+  }
+  
+  // Save data to file
+  async function saveDataToFile() {
+    if (!dataDirectoryHandle) {
+      // Fallback to localStorage (already happens automatically)
+      return false;
+    }
+    
+    try {
+      const data = getAllUserData();
+      const json = JSON.stringify(data, null, 2);
+      
+      // Get or create the data file
+      const fileHandle = await dataDirectoryHandle.getFileHandle(DATA_FILENAME, { create: true });
+      const writable = await fileHandle.createWritable();
+      await writable.write(json);
+      await writable.close();
+      
+      console.log('✓ Data saved to file');
+      return true;
+    } catch (error) {
+      console.error('Error saving to file:', error);
+      // If permission lost, try to reinitialize
+      if (error.name === 'NotAllowedError' || error.name === 'NotFoundError') {
+        dataDirectoryHandle = null;
+        await initFileStorage();
+      }
+      return false;
+    }
+  }
+  
+  // Load data from file
+  async function loadDataFromFile() {
+    if (!dataDirectoryHandle) {
+      return false;
+    }
+    
+    try {
+      const fileHandle = await dataDirectoryHandle.getFileHandle(DATA_FILENAME);
+      const file = await fileHandle.getFile();
+      const text = await file.text();
+      const data = JSON.parse(text);
+      
+      // Apply loaded data to localStorage
+      if (data.favorites !== undefined) localStorage.setItem(favoritesKey, JSON.stringify(data.favorites));
+      if (data.userItems !== undefined) localStorage.setItem(userItemsKey, JSON.stringify(data.userItems));
+      if (data.deletedDefaults !== undefined) localStorage.setItem(deletedDefaultsKey, JSON.stringify(data.deletedDefaults));
+      if (data.history !== undefined) localStorage.setItem(historyKey, JSON.stringify(data.history));
+      if (data.voicePresets !== undefined) localStorage.setItem(voicePresetsKey, JSON.stringify(data.voicePresets));
+      if (data.generators !== undefined) {
+        // Normalize generators structure
+        let generators = data.generators;
+        if (typeof generators === 'object' && generators !== null) {
+          generators = {
+            battleCries: Array.isArray(generators.battleCries) ? generators.battleCries : [],
+            insults: Array.isArray(generators.insults) ? generators.insults : [],
+            compliments: Array.isArray(generators.compliments) ? generators.compliments : []
+          };
+        } else {
+          generators = { battleCries: [], insults: [], compliments: [] };
+        }
+        localStorage.setItem(generatorsKey, JSON.stringify(generators));
+      }
+      if (data.editedGeneratorDefaults !== undefined) localStorage.setItem(editedDefaultsKey, JSON.stringify(data.editedGeneratorDefaults));
+      if (data.deletedGeneratorDefaults !== undefined) localStorage.setItem(deletedGeneratorDefaultsKey, JSON.stringify(data.deletedGeneratorDefaults));
+      if (data.darkMode !== undefined) localStorage.setItem(darkModeKey, data.darkMode ? 'true' : 'false');
+      
+      console.log('✓ Data loaded from file');
+      return true;
+    } catch (error) {
+      if (error.name === 'NotFoundError') {
+        console.log('No data file found, using localStorage');
+      } else {
+        console.error('Error loading from file:', error);
+      }
+      return false;
+    }
+  }
+  
+  // Debounced auto-save to file
+  let fileSaveTimeout = null;
+  function scheduleFileSave() {
+    if (!dataDirectoryHandle) return;
+    
+    if (fileSaveTimeout) clearTimeout(fileSaveTimeout);
+    fileSaveTimeout = setTimeout(() => {
+      saveDataToFile();
+    }, 1000); // Wait 1 second after last change
+  }
+  
   // Load user items from localStorage
   function loadUserItems() {
     try {
@@ -1640,6 +1847,7 @@
   function saveUserItems(userItems) {
     try {
       localStorage.setItem(userItemsKey, JSON.stringify(userItems));
+      scheduleFileSave();
     } catch(e) {
       console.error('Failed to save user items:', e);
     }
@@ -1649,6 +1857,7 @@
   function saveDeletedDefaults(deletedDefaults) {
     try {
       localStorage.setItem(deletedDefaultsKey, JSON.stringify(deletedDefaults));
+      scheduleFileSave();
     } catch(e) {
       console.error('Failed to save deleted defaults:', e);
     }
@@ -1687,6 +1896,7 @@
   function saveUserGenerators(userGenerators) {
     try {
       localStorage.setItem(generatorsKey, JSON.stringify(userGenerators));
+      scheduleFileSave();
     } catch(e) {
       console.error('Failed to save generators:', e);
     }
@@ -1706,6 +1916,7 @@
   function saveEditedDefaults(editedDefaults) {
     try {
       localStorage.setItem(editedDefaultsKey, JSON.stringify(editedDefaults));
+      scheduleFileSave();
     } catch(e) {
       console.error('Failed to save edited defaults:', e);
     }
@@ -1732,6 +1943,7 @@
   function saveDeletedGeneratorDefaults(deletedDefaults) {
     try {
       localStorage.setItem(deletedGeneratorDefaultsKey, JSON.stringify(deletedDefaults));
+      scheduleFileSave();
     } catch(e) {
       console.error('Failed to save deleted generator defaults:', e);
     }
@@ -1924,7 +2136,10 @@
     catch(e){ return new Set(); }
   }
   function saveFavorites(){
-    try { localStorage.setItem(favoritesKey, JSON.stringify([...favorites])); } catch(e){}
+    try { 
+      localStorage.setItem(favoritesKey, JSON.stringify([...favorites]));
+      scheduleFileSave();
+    } catch(e){}
   }
   let favorites = loadFavorites();
   function isFav(item){ return favorites.has(makeId(item)); }
@@ -2532,6 +2747,7 @@
     try {
       const trimmed = history.slice(0, 10); // Keep only last 10
       localStorage.setItem(historyKey, JSON.stringify(trimmed));
+      scheduleFileSave();
     } catch(e) {
       console.error('Failed to save history:', e);
     }
@@ -2561,6 +2777,7 @@
   function savePresets(presets) {
     try {
       localStorage.setItem(voicePresetsKey, JSON.stringify(presets));
+      scheduleFileSave();
     } catch(e) {
       console.error('Failed to save presets:', e);
       showToast('Failed to save preset');
@@ -3440,6 +3657,8 @@
   
   darkModeToggle.addEventListener('change', (e) => {
     applyDarkMode(e.target.checked);
+    localStorage.setItem(darkModeKey, e.target.checked ? 'true' : 'false');
+    scheduleFileSave();
     // Re-render to update card backgrounds that use inline styles
     const section = sectionSelect.value;
     if (section === 'actions') {
@@ -3773,10 +3992,30 @@
   historyBtn.style.fontSize = '14px';
   historyBtn.addEventListener('click', showHistoryModal);
 
+  // File storage button
+  const fileStorageBtn = document.createElement('button');
+  fileStorageBtn.id = 'fileStorageBtn';
+  fileStorageBtn.className = 'btn';
+  fileStorageBtn.textContent = fileSystemSupported ? '📁 Select Data Folder' : '📁 File Storage (N/A)';
+  fileStorageBtn.style.fontSize = '14px';
+  fileStorageBtn.title = fileSystemSupported 
+    ? 'Select a folder to store data files (will create a "data" subdirectory)' 
+    : 'File System Access API not supported in this browser';
+  fileStorageBtn.disabled = !fileSystemSupported;
+  fileStorageBtn.addEventListener('click', async () => {
+    const success = await promptForDataDirectory();
+    if (success) {
+      // Save current data to file
+      await saveDataToFile();
+      showToast('✓ Data directory set and data saved');
+    }
+  });
+
   generatorRow.appendChild(battleCryBtn);
   generatorRow.appendChild(insultBtn);
   generatorRow.appendChild(complimentBtn);
   generatorRow.appendChild(historyBtn);
+  generatorRow.appendChild(fileStorageBtn);
   generatorRow.appendChild(exportBtn);
   generatorRow.appendChild(importBtn);
   document.querySelector('.toolbar').appendChild(generatorRow);
@@ -3969,6 +4208,28 @@
 
   // Initialize on page load
   console.log('Initializing...');
+  
+  // Initialize file storage and load data
+  (async function initializeFileStorage() {
+    const initialized = await initFileStorage();
+    if (initialized) {
+      // Try to load data from file
+      const loaded = await loadDataFromFile();
+      if (loaded) {
+        // Reload favorites and other data from localStorage (which was updated by loadDataFromFile)
+        favorites = loadFavorites();
+        // Trigger a re-render to show loaded data
+        setTimeout(() => {
+          const section = sectionSelect.value;
+          if (section === 'actions') {
+            renderActions();
+          } else {
+            render();
+          }
+        }, 100);
+      }
+    }
+  })();
   
   // Ensure section select has a value
   if (!sectionSelect.value && sectionSelect.options.length > 0) {
