@@ -1612,6 +1612,34 @@
     }
   }
   
+  // Prompt user to select data directory
+  async function promptForDataDirectory() {
+    try {
+      const handle = await window.showDirectoryPicker({
+        mode: 'readwrite',
+        startIn: 'documents'
+      });
+      
+      // Check if 'data' subdirectory exists, create if not
+      try {
+        dataDirectoryHandle = await handle.getDirectoryHandle(DATA_DIR_NAME, { create: true });
+      } catch (e) {
+        // If we can't create subdirectory, use the selected directory directly
+        dataDirectoryHandle = handle;
+      }
+      
+      // Save handle for future use
+      await saveDirectoryHandle(dataDirectoryHandle);
+      showToast('✓ Data directory selected');
+      return true;
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        console.error('Error selecting directory:', error);
+      }
+      return false;
+    }
+  }
+  
   // Save directory handle to IndexedDB
   async function saveDirectoryHandle(handle) {
     try {
@@ -3909,10 +3937,30 @@
   historyBtn.style.fontSize = '14px';
   historyBtn.addEventListener('click', showHistoryModal);
 
+  // File storage button
+  const fileStorageBtn = document.createElement('button');
+  fileStorageBtn.id = 'fileStorageBtn';
+  fileStorageBtn.className = 'btn';
+  fileStorageBtn.textContent = fileSystemSupported ? '📁 Select Data Folder' : '📁 File Storage (N/A)';
+  fileStorageBtn.style.fontSize = '14px';
+  fileStorageBtn.title = fileSystemSupported 
+    ? 'Select a folder to store data files (will create a "data" subdirectory)' 
+    : 'File System Access API not supported in this browser';
+  fileStorageBtn.disabled = !fileSystemSupported;
+  fileStorageBtn.addEventListener('click', async () => {
+    const success = await promptForDataDirectory();
+    if (success) {
+      // Save current data to file
+      await saveDataToFile();
+      showToast('✓ Data directory set and data saved');
+    }
+  });
+
   generatorRow.appendChild(battleCryBtn);
   generatorRow.appendChild(insultBtn);
   generatorRow.appendChild(complimentBtn);
   generatorRow.appendChild(historyBtn);
+  generatorRow.appendChild(fileStorageBtn);
   generatorRow.appendChild(exportBtn);
   generatorRow.appendChild(importBtn);
   document.querySelector('.toolbar').appendChild(generatorRow);
