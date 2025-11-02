@@ -3885,22 +3885,6 @@
     setTimeout(() => location.reload(), 500);
   }
   
-  // Auto-load from server on page load
-  (async function autoLoadFromServer() {
-    try {
-      const response = await fetch('/api/blingus-sync.php?action=load');
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success && result.data) {
-          mergeDataFromServer(result.data);
-        }
-      }
-    } catch (e) {
-      // Silent fail - server may not be configured
-      console.log('Auto-load from server failed (server may not be configured)');
-    }
-  })();
-  
   // Hook into save functions to trigger auto-sync
   const originalSaveFunctions = {
     saveFavorites: saveFavorites,
@@ -3945,6 +3929,22 @@
     }
   }
 
+  // Auto-load from server on page load (after all functions are defined)
+  (async function autoLoadFromServer() {
+    try {
+      const response = await fetch('/api/blingus-sync.php?action=load');
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data) {
+          mergeDataFromServer(result.data);
+        }
+      }
+    } catch (e) {
+      // Silent fail - server may not be configured
+      console.log('Auto-load from server failed (server may not be configured)');
+    }
+  })();
+  
   // History modal event listeners
   historyCloseBtn.addEventListener('click', closeHistoryModal);
   historyModalClose.addEventListener('click', closeHistoryModal);
