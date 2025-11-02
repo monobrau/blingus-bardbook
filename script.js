@@ -1527,7 +1527,7 @@
       keys.forEach(key => localStorage.removeItem(key));
       debugLog('✓ Cleared all Blingus data');
       showToast('All data cleared. Reloading...');
-      setTimeout(() => location.reload(), 1000);
+      setTimeout(() => location.reload(), RELOAD_DELAY_MS);
     }
   };
   
@@ -1586,6 +1586,49 @@
   const cancelGeneratorBtn = $('#cancelGeneratorBtn');
   const deleteGeneratorBtn = $('#deleteGeneratorBtn');
 
+  // Constants
+  const MAX_HISTORY_ITEMS = 10;
+  const AUTO_SAVE_DEBOUNCE_MS = 500;
+  const AUTO_SAVE_TOAST_INTERVAL_MS = 10000;
+  const AUTO_SAVE_TOAST_DURATION_MS = 1500;
+  const RELOAD_DELAY_MS = 1000;
+  const TOAST_DURATION_MS = 5000;
+  const MAX_DELETED_DEFAULTS = 1000; // Safety threshold for corruption detection
+  
+  // Centralized error handler
+  function handleError(context, error, userMessage = null) {
+    console.error(`[${context}]`, error);
+    if (userMessage) {
+      showToast(userMessage);
+    } else if (error.message) {
+      showToast(`Error: ${error.message}`);
+    }
+  }
+  
+  // Common merge logic helper: merges defaults with user items, filtering deletions and applying edits
+  function mergeItems(defaultItems, userItems, deletedIds, editedDefaults, getIdFn) {
+    // Filter out deleted items and apply edits
+    const filteredDefaults = defaultItems.map((item, index) => {
+      const itemId = getIdFn(item, index);
+      // Check if deleted
+      if (deletedIds.includes(itemId)) {
+        debugLog('Filtering out deleted item:', itemId, item);
+        return null;
+      }
+      // Check if edited
+      if (editedDefaults && editedDefaults[itemId]) {
+        return editedDefaults[itemId];
+      }
+      return item;
+    }).filter(item => item !== null);
+    
+    // Ensure userItems is an array
+    const userArray = Array.isArray(userItems) ? userItems : [];
+    
+    return [...filteredDefaults, ...userArray];
+  }
+  
+  // localStorage keys
   const favoritesKey = 'blingusFavoritesV1';
   const userItemsKey = 'blingusUserItemsV1';
   const deletedDefaultsKey = 'blingusDeletedDefaultsV1';
@@ -1958,8 +2001,8 @@
             if (success) {
               // Only show toast occasionally (every 10 seconds max) to avoid spam
               const now = Date.now();
-              if (now - lastAutoSaveToast > 10000) {
-                showToast('💾 Auto-saved', 1500);
+              if (now - lastAutoSaveToast > AUTO_SAVE_TOAST_INTERVAL_MS) {
+                showToast('💾 Auto-saved', AUTO_SAVE_TOAST_DURATION_MS);
                 lastAutoSaveToast = now;
               }
             }
@@ -1973,7 +2016,7 @@
       } else if (dataDirectoryHandle) {
         saveDataToFile();
       }
-    }, 500); // Wait 500ms after last change for faster feedback
+    }, AUTO_SAVE_DEBOUNCE_MS); // Wait after last change for faster feedback
   }
   
   // Load user items from localStorage
@@ -2014,7 +2057,7 @@
       localStorage.setItem(userItemsKey, JSON.stringify(userItems));
       scheduleFileSave();
     } catch(e) {
-      console.error('Failed to save user items:', e);
+      handleError('saveUserItems', e, 'Failed to save user items');
     }
   }
   
@@ -2024,7 +2067,7 @@
       localStorage.setItem(deletedDefaultsKey, JSON.stringify(deletedDefaults));
       scheduleFileSave();
     } catch(e) {
-      console.error('Failed to save deleted defaults:', e);
+      handleError('saveDeletedDefaults', e, 'Failed to save deleted defaults');
     }
   }
 
@@ -2129,27 +2172,18 @@
     debugLog('Deleted defaults:', deletedDefaults[type]);
     debugLog('User added:', userAdded[type]);
     
-    // Get default items, applying edits and filtering deletions
-    const defaultItems = (defaults[type] || []).map((item, index) => {
-      const itemId = `${type}_${index}`;
-      // Check if deleted
-      if ((deletedDefaults[type] || []).includes(itemId)) {
-        debugLog('Filtering out deleted item:', itemId, item);
-        return null;
-      }
-      // Check if edited
-      if (editedDefaults[type] && editedDefaults[type][itemId]) {
-        return editedDefaults[type][itemId];
-      }
-      return item;
-    }).filter(item => item !== null);
+    // Use common merge logic
+    const getIdFn = (item, index) => `${type}_${index}`;
+    const merged = mergeItems(
+      defaults[type] || [],
+      userAdded[type] || [],
+      deletedDefaults[type] || [],
+      editedDefaults[type],
+      getIdFn
+    );
     
-    // Ensure userAdded[type] is an array
-    const userItems = Array.isArray(userAdded[type]) ? userAdded[type] : [];
-    
-    const merged = [...defaultItems, ...userItems];
-    debugLog('Merged list length:', merged.length, 'Default items:', defaultItems.length, 'User added:', userItems.length);
-    debugLog('User added items:', userItems);
+    debugLog('Merged list length:', merged.length);
+    debugLog('User added items:', userAdded[type]);
     return merged;
   }
   
@@ -2192,7 +2226,7 @@
     return sum;
   }, 0);
   
-  if (totalDeleted > 1000) {
+  if (totalDeleted > MAX_DELETED_DEFAULTS) {
     console.warn(`Found excessive deleted defaults (${totalDeleted} entries). Resetting.`);
     needsReset = true;
   }
@@ -2231,47 +2265,52 @@
       }
     }
     
-    const filteredList = defaultList.filter(item => {
-      const itemId = getItemId(section, item);
-      const isDeleted = deletedIds.includes(itemId);
-      if (isDeleted) {
-        debugLog(`Filtering out deleted item: ${itemId}`);
-      }
-      return !isDeleted;
-    });
-    
-    // Safety check: if all items are filtered out but we have defaults, something is wrong
-    if (filteredList.length === 0 && defaultList.length > 0) {
-      if (deletedIds.length > 0) {
+    // Safety check: if all items would be filtered out but we have defaults, something is wrong
+    if (deletedIds.length > 0 && defaultList.length > 0) {
+      const tempFiltered = defaultList.filter(item => {
+        const itemId = getItemId(section, item);
+        return !deletedIds.includes(itemId);
+      });
+      
+      if (tempFiltered.length === 0) {
         console.warn(`Warning: All ${defaultList.length} items filtered out for ${section}/${category} with ${deletedIds.length} deleted IDs. Clearing deleted IDs for this category.`);
         // Clear the deleted IDs for this category to prevent data corruption
         if (deletedDefaults[section] && deletedDefaults[section][category]) {
           delete deletedDefaults[section][category];
           saveDeletedDefaults(deletedDefaults);
         }
+        // Return full list after clearing deletions
+        const userList = userItems[section]?.[category] || [];
+        debugLog(`Returning full list after clearing deletions: ${defaultList.length} defaults + ${userList.length} user items`);
+        return [...defaultList, ...userList];
       }
-      // Return the full default list since we cleared the deletions or there were none
-      const userList = userItems[section]?.[category] || [];
-      debugLog(`Returning full list after clearing deletions: ${defaultList.length} defaults + ${userList.length} user items`);
-      return section === 'actions' ? [...defaultList, ...userList] : [...defaultList, ...userList];
     }
     
-    const userList = userItems[section]?.[category] || [];
-    const result = section === 'actions' ? [...filteredList, ...userList] : [...filteredList, ...userList];
-    debugLog(`getMergedData result: ${section}/${category} - Returning ${result.length} items (${filteredList.length} filtered defaults + ${userList.length} user)`);
-    return result;
+    // Use common merge logic (no edited defaults for regular sections)
+    const getIdFn = (item, index) => getItemId(section, item);
+    const merged = mergeItems(
+      defaultList,
+      userItems[section]?.[category] || [],
+      deletedIds,
+      null, // Edited defaults not used for regular sections (only generators)
+      getIdFn
+    );
+    
+    debugLog(`getMergedData result: ${section}/${category} - Returning ${merged.length} items`);
+    return merged;
   }
   
   // Get adult spells merged, filtering out deleted defaults
   function getMergedAdultSpells(category) {
-    const defaultList = (adultSpells[category] || []).filter(item => {
-      const itemId = getItemId('spells', item);
-      const deletedIds = deletedDefaults.adultSpells?.[category] || [];
-      return !deletedIds.includes(itemId);
-    });
-    
-    const userList = userItems.adultSpells?.[category] || [];
-    return [...defaultList, ...userList];
+    const deletedIds = deletedDefaults.adultSpells?.[category] || [];
+    const getIdFn = (item, index) => getItemId('spells', item);
+    return mergeItems(
+      adultSpells[category] || [],
+      userItems.adultSpells?.[category] || [],
+      deletedIds,
+      null, // Edited defaults not used for adult spells
+      getIdFn
+    );
   }
   
   // Check if item is user-added
@@ -2543,7 +2582,7 @@
           // Remove highlight after 5 seconds
           setTimeout(() => {
             selectedCard.classList.remove('highlighted');
-          }, 5000);
+          }, TOAST_DURATION_MS);
           
           const displayText = typeof randomItem === 'string' ? randomItem : randomItem.t;
           showToast(`Random: ${displayText.substring(0, 50)}...`);
@@ -2785,7 +2824,7 @@
           // Remove highlight after 5 seconds
           setTimeout(() => {
             selectedCard.classList.remove('highlighted');
-          }, 5000);
+          }, TOAST_DURATION_MS);
           
           showToast(`Random: ${randomAction}`);
         } else if (!isInFiltered) {
@@ -2910,11 +2949,11 @@
 
   function saveHistory(history) {
     try {
-      const trimmed = history.slice(0, 10); // Keep only last 10
+      const trimmed = history.slice(0, MAX_HISTORY_ITEMS);
       localStorage.setItem(historyKey, JSON.stringify(trimmed));
       scheduleFileSave();
     } catch(e) {
-      console.error('Failed to save history:', e);
+      handleError('saveHistory', e, 'Failed to save history');
     }
   }
 
@@ -4070,7 +4109,7 @@
               : 'No data found to import.';
             showToast(message);
             if (importedCount > 0) {
-              setTimeout(() => location.reload(), 500);
+              setTimeout(() => location.reload(), AUTO_SAVE_DEBOUNCE_MS);
             }
           }
         } catch (error) {
