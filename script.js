@@ -16,7 +16,8 @@
       {t:"Pour some sugar on me—just a dash; flavor unlock, chef's kiss splash.", s:"Pour Some Sugar on Me", a:"Def Leppard"},
       {t:"Beat it—grime, beat it; make it clean, you can't conceive it.", s:"Beat It", a:"Michael Jackson"},
       {t:"Smooth operator—polish and preen; leaving the scene like a glossy magazine.", s:"Smooth Operator", a:"Sade"},
-      {t:"Don't stop me now—I'm having such a clean time; tidy so prime, cleaning's sublime.", s:"Don't Stop Me Now", a:"Queen"}
+      {t:"Don't stop me now—I'm having such a clean time; tidy so prime, cleaning's sublime.", s:"Don't Stop Me Now", a:"Queen"},
+      {t:"Brass monkey—that funky monkey; chill the drink, clink the clink, get funky.", s:"Brass Monkey", a:"Beastie Boys"}
     ],
     'Vicious Mockery': [
       {t:"You're so vain, you probably think this spell's about you—and you're right; that ego's heavy, good night.", s:"You're So Vain", a:"Carly Simon"},
@@ -28,6 +29,7 @@
       {t:"Under pressure—your rolls express; crumble in style, fail with finesse.", s:"Under Pressure", a:"Queen & David Bowie"},
       {t:"Oops!... I did it again—missed, that is; your aim's a trend I can't defend.", s:"Oops!... I Did It Again", a:"Britney Spears"},
       {t:"Bad Romance—with accuracy; your aim's a tragedy, failure's your specialty.", s:"Bad Romance", a:"Lady Gaga"},
+      {t:"Behind blue eyes, your failure cries—no one knows what it's like to be the mocked guy.", s:"Behind Blue Eyes", a:"The Who"},
       {t:"Even Mystra's Weave rejects you—and she's pretty forgiving.", s:"Forgotten Realms Lore", a:"Mockery"},
       {t:"Elminster called—he wants his apprentice back; something about 'basic competence.'", s:"Forgotten Realms Lore", a:"Mockery"}
     ],
@@ -38,6 +40,7 @@
       {t:"Livin' on a prayer—whiffin' on a prayer; fate says 'no', beware.", s:"Livin' on a Prayer", a:"Bon Jovi"},
       {t:"Bad moon rising—bad rolls rising; stay indoors, luck's downsizing.", s:"Bad Moon Rising", a:"Creedence Clearwater Revival"},
       {t:"Nothing else matters—except these debuffs; sad trombone plus cuffs.", s:"Nothing Else Matters", a:"Metallica"},
+      {t:"Behind blue eyes, the penalty lies—no one knows what it's like to roll with these dice.", s:"Behind Blue Eyes", a:"The Who"},
       {t:"Even Kelemvor's scales tip against you—and he's impartial.", s:"Forgotten Realms Lore", a:"Mockery"}
     ],
     'Command': [
@@ -54,6 +57,8 @@
       {t:"Mr. Brightside—now you're outlined; tutorial highlight, perfectly timed.", s:"Mr. Brightside", a:"The Killers"},
       {t:"Purple haze all around—the sneak is found; neon truth on battleground.", s:"Purple Haze", a:"Jimi Hendrix"},
       {t:"Sweet dreams are made of beams—outline schemes; target gleams.", s:"Sweet Dreams (Are Made of This)", a:"Eurythmics"},
+      {t:"Black hole sun—won't you come, darkness covers all; stealth undone, run.", s:"Black Hole Sun", a:"Soundgarden"},
+      {t:"Who wants honey—as long as there's some money; float on up, magic's funny.", s:"Cherub Rock", a:"Smashing Pumpkins"},
       {t:"Even Drizzt couldn't hide from this—and he's pretty good at hiding.", s:"Forgotten Realms Lore", a:"Mockery"}
     ],
     'Healing Word': [
@@ -67,6 +72,7 @@
       {t:"Stronger—what doesn't kill you makes you stronger; healing power, no longer a goner.", s:"Stronger", a:"Kanye West"},
       {t:"I'm still standing—yeah, yeah, yeah; stand tall, heal all, better each day.", s:"I'm Still Standing", a:"Elton John"},
       {t:"Rise up—back on your feet; healing complete, defeat deleted.", s:"Rise Up", a:"Andra Day"},
+      {t:"If everything could ever feel this real forever—HP restored, never sever.", s:"Everlong", a:"Foo Fighters"},
       {t:"Even Ilmater approves—and he's seen worse.", s:"Forgotten Realms Lore", a:"Mockery"}
     ]
   };
@@ -87,7 +93,22 @@
     "Another story in the making!",
     "Time to turn the page!",
     "Let's see what trouble we can find!",
-    "The road never ends, but you might!"
+    "The road never ends, but you might!",
+    "Feywild energy, Material Plane problems!",
+    "I've wandered realms for less!",
+    "The Carnival taught me better than this!",
+    "Time to write a new verse!",
+    "Like a smoke ring—here and gone!",
+    "Prismeer's got nothing on this!",
+    "For every road I've left behind!",
+    "Time to make Zybilna proud—wherever she is!",
+    "The Feywild's wild, but I'm wilder!",
+    "Another crossroads, another chance!",
+    "Let's make this a song worth remembering!",
+    "Bo's watching—better make it good!",
+    "The Midnight Carnival's got nothing on us!",
+    "Time to show why fairies shouldn't be underestimated!",
+    "Another chapter, another battle, another story!"
   ];
 
   const insults = [
@@ -105,7 +126,30 @@
     "Your performance makes my half-finished songs look like masterpieces.",
     "I've been more committed to things I walked away from.",
     "You're the villain equivalent of a detour sign—annoying but harmless.",
-    "Even the Midnight Carnival would reject you—and they let in everyone."
+    "Even the Midnight Carnival would reject you—and they let in everyone.",
+    "You fight like a confused displacer beast—and not the friendly kind!",
+    "Your tactics are like my family life—nonexistent and quickly forgotten.",
+    "I've seen more competence from a lost traveler asking for directions.",
+    "You're about as threatening as a peaceful glade in the High Forest.",
+    "Even Mr. Witch and Mr. Light would find you disappointing.",
+    "Your combat form is like my commitment—shaky at best.",
+    "I've negotiated with swan boatwomen who were more reasonable than you.",
+    "You're the reason fey contracts have fine print—utterly unreliable.",
+    "Your aim's worse than a fairy trying to hit a moving target while drunk.",
+    "I've seen better strategy from a pack of blink dogs playing tag.",
+    "You're like Prismeer's silence—confusing and slightly concerning.",
+    "Even the Misplacer Beast finds your attempts pathetic—and it's playful!",
+    "Your performance makes wandering aimlessly seem like a solid plan.",
+    "I've seen more coordination from a carnival carousel breaking down.",
+    "You're about as effective as trying to find Zybilna with no clues—which is actually what we're doing.",
+    "Your skills are like my last relationship—briefly promising, quickly abandoned.",
+    "Even a random portal to the Feywild makes more sense than your tactics.",
+    "You fight like you're trying to navigate the Material Plane without a map—aimlessly and with style, but zero effectiveness.",
+    "I've seen more threatening things in a peaceful tavern—and I've seen a lot.",
+    "Your combat prowess is like my sense of direction—wildly inconsistent.",
+    "Even Bo's limp was more reliable than your accuracy.",
+    "You're like a half-remembered tale—vague, confusing, and quickly dismissed.",
+    "I've seen smarter decisions from someone choosing which road to walk—and that's saying something."
   ];
 
   const compliments = [
@@ -123,7 +167,32 @@
     "Nice! Almost as impressive as my lute skills.",
     "You're doing better than expected—which says something.",
     "That wasn't bad—considering your starting point.",
-    "You're proving me wrong—and I hate that, but respect it."
+    "You're proving me wrong—and I hate that, but respect it.",
+    "Okay, fine—that was actually impressive. Don't let it go to your head.",
+    "You've earned a place in my 'people I haven't abandoned yet' list—congrats.",
+    "That move would make Bo nod approvingly—and he's hard to impress.",
+    "Not bad for a non-bard. Almost makes me want to write a song about it.",
+    "You're actually competent—which is rarer than finding Zybilna right now.",
+    "That was solid enough I might actually remember it later—high praise.",
+    "You fight like someone who's seen real battles—unlike most folks I've met.",
+    "That was... actually strategic. Who taught you that?",
+    "You're making me look good by association—I appreciate that.",
+    "That deserves a round of applause—if I wasn't holding my lute.",
+    "You're proving that sometimes, counting on people isn't the worst idea.",
+    "That was almost as smooth as my best exit strategy—almost.",
+    "You're doing better than I expected—and my expectations were... let's say low.",
+    "That was competent enough to make me pause my wanderlust—briefly.",
+    "You're earning your place in this story—and I don't say that lightly.",
+    "That deserves to be remembered—unlike most things I encounter.",
+    "You're actually contributing—which is more than I can say for most.",
+    "That was good enough I might stick around for the next chapter.",
+    "You're proving useful—a rare trait in my experience.",
+    "That deserves a toast—if I had something other than my cigarette.",
+    "You're making this adventure worth the road we traveled to get here.",
+    "That was impressive—like a well-played tune, smooth and effective.",
+    "You're actually making me glad I didn't wander off—yet.",
+    "That deserves respect—and I don't give that out easily.",
+    "You're proving that this party thing might have merit after all."
   ];
 
   const adultSpells = {
@@ -174,7 +243,9 @@
       {t:"Back in black—blade on track; raise the riff, make it crack.", s:"Back in Black", a:"AC/DC"},
       {t:"Sweet child o' mine—sweet crit o' time; line up the sight and shine.", s:"Sweet Child O' Mine", a:"Guns N' Roses"},
       {t:"Boom boom pow—extra oomph now; numbers bow, damage show.", s:"Boom Boom Pow", a:"The Black Eyed Peas"},
-      {t:"T.N.T.—I'm dynamite; stack the dice, light the night.", s:"T.N.T.", a:"AC/DC"}
+      {t:"T.N.T.—I'm dynamite; stack the dice, light the night.", s:"T.N.T.", a:"AC/DC"},
+      {t:"No sleep til Brooklyn—no rest til this hit; swing the blade, don't quit, make it fit.", s:"No Sleep Til Brooklyn", a:"Beastie Boys"},
+      {t:"I love rock and roll—put another coin in, baby; swing and strike, hit the groove, maybe.", s:"I Love Rock 'n' Roll", a:"Joan Jett"}
     ],
     'Saving Throws': [
       {t:"I will survive—first I was afraid; now I'm fine, unafraid.", s:"I Will Survive", a:"Gloria Gaynor"},
@@ -244,7 +315,10 @@
       {t:"Let's dance—this party starts now; first swing, take a bow.", s:"Let's Dance", a:"David Bowie"},
       {t:"Billie Jean—light on my feet; step to the front, bring heat.", s:"Billie Jean", a:"Michael Jackson"},
       {t:"Gimme shelter—nah, give me turn one; battle's begun.", s:"Gimme Shelter", a:"The Rolling Stones"},
-      {t:"You really got me—spooled and primed; I'm on time.", s:"You Really Got Me", a:"Van Halen"}
+      {t:"You really got me—spooled and primed; I'm on time.", s:"You Really Got Me", a:"Van Halen"},
+      {t:"Brass monkey—funky and spry; jump the line, get mine, here's why.", s:"Brass Monkey", a:"Beastie Boys"},
+      {t:"No sleep til Brooklyn—first to the fray; action starts now, no delay, let's play.", s:"No Sleep Til Brooklyn", a:"Beastie Boys"},
+      {t:"25 or 6 to 4—waiting for the turn; clock strikes now, action's earned, here we go.", s:"25 or 6 to 4", a:"Chicago"}
     ],
     'Combat Inspiration — Damage': [
       {t:"Shot through the heart—and you're to blame; bonus pain, write my name.", s:"You Give Love a Bad Name", a:"Bon Jovi"},
@@ -256,7 +330,9 @@
       {t:"Welcome to the jungle—damage that rumbles; health bar crumbles.", s:"Welcome to the Jungle", a:"Guns N' Roses"},
       {t:"Back in black—hit like a track; add that whack.", s:"Back in Black", a:"AC/DC"},
       {t:"Pour some sugar on me—sweeten the smack; damage stack.", s:"Pour Some Sugar on Me", a:"Def Leppard"},
-      {t:"Bad to the bone—bad to their hit points; bonus zone.", s:"Bad to the Bone", a:"George Thorogood & The Destroyers"}
+      {t:"Bad to the bone—bad to their hit points; bonus zone.", s:"Bad to the Bone", a:"George Thorogood & The Destroyers"},
+      {t:"I wanna rock and roll all night—and party every day; bonus dice, fight the fight, we play.", s:"Rock and Roll All Nite", a:"Kiss"},
+      {t:"What is it? It's epic—damage drops, health bar flips it; big hit, can't miss it.", s:"Epic", a:"Faith No More"}
     ],
     'Combat Inspiration — AC/Defense': [
       {t:"U can't touch this—hammer time; denied that crime.", s:"U Can't Touch This", a:"MC Hammer"},
@@ -1431,6 +1507,14 @@
   const historyList = $('#historyList');
   const historyModalClose = $('#historyModalClose');
   const historyCloseBtn = $('#historyCloseBtn');
+  const presetSelect = $('#presetSelect');
+  const managePresetsBtn = $('#managePresetsBtn');
+  const presetModal = $('#presetModal');
+  const presetModalTitle = $('#presetModalTitle');
+  const presetModalClose = $('#presetModalClose');
+  const presetCloseBtn = $('#presetCloseBtn');
+  const saveCurrentPresetBtn = $('#saveCurrentPresetBtn');
+  const presetsList = $('#presetsList');
 
   const favoritesKey = 'blingusFavoritesV1';
   const userItemsKey = 'blingusUserItemsV1';
@@ -2260,6 +2344,189 @@
     saveHistory(filtered);
   }
 
+  // Voice Preset functions
+  function loadPresets() {
+    try {
+      const raw = localStorage.getItem(voicePresetsKey);
+      return raw ? JSON.parse(raw) : [];
+    } catch(e) {
+      console.error('Error loading presets:', e);
+      return [];
+    }
+  }
+
+  function savePresets(presets) {
+    try {
+      localStorage.setItem(voicePresetsKey, JSON.stringify(presets));
+    } catch(e) {
+      console.error('Failed to save presets:', e);
+      showToast('Failed to save preset');
+    }
+  }
+
+  function getCurrentState() {
+    return {
+      section: sectionSelect.value,
+      category: categorySelect.value,
+      adultToggle: adultToggle.checked,
+      favoritesOnly: favoritesOnly ? favoritesOnly.checked : false,
+      search: searchInput.value.trim(),
+      name: '', // Will be set by user
+      timestamp: Date.now()
+    };
+  }
+
+  function applyPreset(preset) {
+    if (preset.section) {
+      sectionSelect.value = preset.section;
+      buildCategories();
+    }
+    if (preset.category && categorySelect.options.length > 0) {
+      // Wait a moment for categories to build
+      setTimeout(() => {
+        categorySelect.value = preset.category;
+        if (preset.adultToggle !== undefined) adultToggle.checked = preset.adultToggle;
+        if (preset.favoritesOnly !== undefined && favoritesOnly) {
+          favoritesOnly.checked = preset.favoritesOnly;
+        }
+        if (preset.search !== undefined) searchInput.value = preset.search;
+        render();
+      }, 50);
+    } else {
+      if (preset.adultToggle !== undefined) adultToggle.checked = preset.adultToggle;
+      if (preset.favoritesOnly !== undefined && favoritesOnly) {
+        favoritesOnly.checked = preset.favoritesOnly;
+      }
+      if (preset.search !== undefined) searchInput.value = preset.search;
+      render();
+    }
+    showToast(`Applied preset: ${preset.name}`);
+  }
+
+  function saveCurrentStateAsPreset() {
+    const name = prompt('Enter a name for this preset:');
+    if (!name || !name.trim()) return;
+
+    const currentState = getCurrentState();
+    currentState.name = name.trim();
+
+    const presets = loadPresets();
+    // Check if name already exists
+    const existingIndex = presets.findIndex(p => p.name === currentState.name);
+    if (existingIndex >= 0) {
+      if (!confirm(`A preset named "${currentState.name}" already exists. Overwrite it?`)) {
+        return;
+      }
+      presets[existingIndex] = currentState;
+    } else {
+      presets.push(currentState);
+    }
+
+    savePresets(presets);
+    updatePresetSelect();
+    showToast(`Preset "${currentState.name}" saved!`);
+    refreshPresetsList();
+  }
+
+  function updatePresetSelect() {
+    const presets = loadPresets();
+    presetSelect.innerHTML = '<option value="">-- Select Preset --</option>';
+    
+    presets.forEach((preset, index) => {
+      const opt = document.createElement('option');
+      opt.value = index.toString();
+      opt.textContent = preset.name;
+      presetSelect.appendChild(opt);
+    });
+  }
+
+  function refreshPresetsList() {
+    const presets = loadPresets();
+    presetsList.innerHTML = '';
+
+    if (presets.length === 0) {
+      presetsList.innerHTML = '<div style="text-align: center; padding: 20px; opacity: 0.7;">No presets saved yet. Save your current state to create one!</div>';
+      return;
+    }
+
+    const isDark = document.body.classList.contains('dark-mode');
+    presets.forEach((preset, index) => {
+      const presetCard = document.createElement('div');
+      presetCard.style.display = 'flex';
+      presetCard.style.justifyContent = 'space-between';
+      presetCard.style.alignItems = 'center';
+      presetCard.style.padding = '12px';
+      presetCard.style.border = '1px solid var(--burnt)';
+      presetCard.style.borderRadius = '6px';
+      presetCard.style.background = isDark ? '#2d2d44' : 'white';
+      presetCard.style.gap = '8px';
+
+      const presetInfo = document.createElement('div');
+      presetInfo.style.flex = '1';
+      const nameDiv = document.createElement('div');
+      nameDiv.style.fontWeight = 'bold';
+      nameDiv.style.marginBottom = '4px';
+      nameDiv.textContent = preset.name;
+      const detailsDiv = document.createElement('div');
+      detailsDiv.style.fontSize = '12px';
+      detailsDiv.style.opacity = '0.8';
+      const sectionName = preset.section === 'spells' ? 'Spell Parodies' :
+                         preset.section === 'bardic' ? 'Bardic Inspiration' :
+                         preset.section === 'mockery' ? 'Vicious Mockery' :
+                         preset.section === 'actions' ? 'Character Actions' : preset.section;
+      detailsDiv.textContent = `${sectionName} • ${preset.category || 'Any'}${preset.search ? ` • Search: "${preset.search}"` : ''}`;
+      presetInfo.appendChild(nameDiv);
+      presetInfo.appendChild(detailsDiv);
+
+      const buttonsDiv = document.createElement('div');
+      buttonsDiv.style.display = 'flex';
+      buttonsDiv.style.gap = '4px';
+
+      const applyBtn = document.createElement('button');
+      applyBtn.className = 'btn';
+      applyBtn.textContent = 'Apply';
+      applyBtn.style.fontSize = '12px';
+      applyBtn.addEventListener('click', () => {
+        applyPreset(preset);
+        closePresetModal();
+      });
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'btn';
+      deleteBtn.textContent = 'Delete';
+      deleteBtn.style.fontSize = '12px';
+      deleteBtn.style.background = '#c44';
+      deleteBtn.style.color = 'white';
+      deleteBtn.addEventListener('click', () => {
+        if (confirm(`Delete preset "${preset.name}"?`)) {
+          const presets = loadPresets();
+          presets.splice(index, 1);
+          savePresets(presets);
+          updatePresetSelect();
+          refreshPresetsList();
+          showToast('Preset deleted');
+        }
+      });
+
+      buttonsDiv.appendChild(applyBtn);
+      buttonsDiv.appendChild(deleteBtn);
+      presetCard.appendChild(presetInfo);
+      presetCard.appendChild(buttonsDiv);
+      presetsList.appendChild(presetCard);
+    });
+  }
+
+  function showPresetModal() {
+    refreshPresetsList();
+    presetModal.classList.add('show');
+    presetModal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closePresetModal() {
+    presetModal.classList.remove('show');
+    presetModal.setAttribute('aria-hidden', 'true');
+  }
+
   function copyToClipboard(text, section = null, category = null) {
     navigator.clipboard.writeText(text).then(() => {
       if (section && category) {
@@ -2643,6 +2910,13 @@
   
   darkModeToggle.addEventListener('change', (e) => {
     applyDarkMode(e.target.checked);
+    // Re-render to update card backgrounds that use inline styles
+    const section = sectionSelect.value;
+    if (section === 'actions') {
+      renderActions();
+    } else {
+      render();
+    }
   });
   searchInput.addEventListener('input', render);
   clearBtn.addEventListener('click', () => { searchInput.value = ''; render(); });
@@ -2749,14 +3023,15 @@
   exportBtn.textContent = '📥 Export';
   exportBtn.style.fontSize = '14px';
   exportBtn.addEventListener('click', () => {
-    const data = {
-      favorites: JSON.parse(localStorage.getItem(favoritesKey) || '[]'),
-      userItems: JSON.parse(localStorage.getItem(userItemsKey) || '{}'),
-      deletedDefaults: JSON.parse(localStorage.getItem(deletedDefaultsKey) || '{}'),
-      history: JSON.parse(localStorage.getItem(historyKey) || '[]'),
-      version: '1.0',
-      timestamp: new Date().toISOString()
-    };
+      const data = {
+        favorites: JSON.parse(localStorage.getItem(favoritesKey) || '[]'),
+        userItems: JSON.parse(localStorage.getItem(userItemsKey) || '{}'),
+        deletedDefaults: JSON.parse(localStorage.getItem(deletedDefaultsKey) || '{}'),
+        history: JSON.parse(localStorage.getItem(historyKey) || '[]'),
+        presets: JSON.parse(localStorage.getItem(voicePresetsKey) || '[]'),
+        version: '1.0',
+        timestamp: new Date().toISOString()
+      };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -2788,6 +3063,7 @@
             if (data.userItems) localStorage.setItem(userItemsKey, JSON.stringify(data.userItems));
             if (data.deletedDefaults) localStorage.setItem(deletedDefaultsKey, JSON.stringify(data.deletedDefaults));
             if (data.history) localStorage.setItem(historyKey, JSON.stringify(data.history));
+            if (data.presets) localStorage.setItem(voicePresetsKey, JSON.stringify(data.presets));
             location.reload();
           }
         } catch (error) {
@@ -2869,6 +3145,31 @@
     }
   });
 
+  // Voice Preset event listeners
+  presetSelect.addEventListener('change', (e) => {
+    if (e.target.value !== '') {
+      const presets = loadPresets();
+      const presetIndex = parseInt(e.target.value);
+      if (presets[presetIndex]) {
+        applyPreset(presets[presetIndex]);
+      }
+      // Reset select after applying
+      setTimeout(() => {
+        presetSelect.value = '';
+      }, 100);
+    }
+  });
+
+  managePresetsBtn.addEventListener('click', showPresetModal);
+  saveCurrentPresetBtn.addEventListener('click', saveCurrentStateAsPreset);
+  presetCloseBtn.addEventListener('click', closePresetModal);
+  presetModalClose.addEventListener('click', closePresetModal);
+  presetModal.addEventListener('click', (e) => {
+    if (e.target === presetModal) {
+      closePresetModal();
+    }
+  });
+
   // Keyboard navigation
   let selectedCardIndex = -1;
   document.addEventListener('keydown', (e) => {
@@ -2938,6 +3239,9 @@
     categorySelect.selectedIndex = 0;
     console.log(`Initial category selected: ${categorySelect.value}`);
   }
+  
+  // Initialize preset select
+  updatePresetSelect();
   
   console.log('Initial render...');
   try {

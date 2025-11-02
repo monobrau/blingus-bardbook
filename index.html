@@ -52,6 +52,10 @@
 
       <button id="clearBtn" class="btn">Clear</button>
       <button id="addEditBtn" class="btn">Add/Edit Items</button>
+      <label id="presetLabel">Voice Preset
+        <select id="presetSelect"></select>
+      </label>
+      <button id="managePresetsBtn" class="btn">⚙️ Manage Presets</button>
     </div>
   </nav>
 
@@ -93,6 +97,25 @@
       </div>
       <div class="modal__footer">
         <button id="historyCloseBtn" class="btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Voice Preset Modal -->
+  <div id="presetModal" class="modal" role="dialog" aria-labelledby="presetModalTitle" aria-hidden="true">
+    <div class="modal__content" style="max-width: 600px;">
+      <div class="modal__header">
+        <h2 id="presetModalTitle">Manage Voice Presets</h2>
+        <button class="modal__close" id="presetModalClose" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal__body">
+        <div style="margin-bottom: 16px;">
+          <button id="saveCurrentPresetBtn" class="btn" style="width: 100%; margin-bottom: 8px;">💾 Save Current State as Preset</button>
+        </div>
+        <div id="presetsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 400px; overflow-y: auto;"></div>
+      </div>
+      <div class="modal__footer">
+        <button id="presetCloseBtn" class="btn">Close</button>
       </div>
     </div>
   </div>
