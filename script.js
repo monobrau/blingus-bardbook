@@ -4037,10 +4037,13 @@
   fileStorageBtn.className = 'btn';
   
   if (isOnServer) {
-    // On server: show server storage status
-    fileStorageBtn.textContent = '💾 Server Storage';
+    // On server: show server storage status with PHP indicator
+    fileStorageBtn.textContent = '💾 PHP Server Storage';
     fileStorageBtn.style.fontSize = '14px';
-    fileStorageBtn.title = 'Data is automatically saved to server';
+    fileStorageBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+    fileStorageBtn.style.color = 'white';
+    fileStorageBtn.style.border = 'none';
+    fileStorageBtn.title = 'Data is automatically saved to server using PHP API';
     fileStorageBtn.disabled = false;
     fileStorageBtn.addEventListener('click', async () => {
       const success = await saveDataToServer();
@@ -4050,6 +4053,16 @@
         showToast('✗ Failed to save to server');
       }
     });
+    
+    // Add server storage status indicator to footer
+    const footer = document.querySelector('.footer');
+    if (footer) {
+      const storageStatus = document.createElement('div');
+      storageStatus.id = 'storageStatus';
+      storageStatus.style.cssText = 'margin-top: 8px; font-size: 12px; color: var(--burnt); opacity: 0.8; display: flex; align-items: center; gap: 6px;';
+      storageStatus.innerHTML = '<span style="color: #667eea;">🔷</span> <strong>Server Storage Active:</strong> Data saved to server via PHP API';
+      footer.appendChild(storageStatus);
+    }
   } else {
     // Local: use File System Access API
     fileStorageBtn.textContent = fileSystemSupported ? '📁 Select Data Folder' : '📁 File Storage (N/A)';
