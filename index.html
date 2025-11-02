@@ -41,6 +41,11 @@
         <span>Only favorites</span>
       </label>
 
+      <label class="toggle">
+        <input type="checkbox" id="darkModeToggle" />
+        <span>🌙 Dark mode</span>
+      </label>
+
       <label class="search">
         <input id="searchInput" type="search" placeholder="Search lyrics or songs..." />
       </label>
@@ -58,6 +63,39 @@
   </footer>
 
   <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Generator Display Modal -->
+  <div id="generatorModal" class="modal" role="dialog" aria-labelledby="generatorTitle" aria-hidden="true">
+    <div class="modal__content" style="max-width: 600px;">
+      <div class="modal__header">
+        <h2 id="generatorTitle">Generated Text</h2>
+        <button class="modal__close" id="generatorModalClose" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal__body">
+        <div id="generatorText" style="padding: 16px; font-size: 18px; line-height: 1.6; min-height: 60px; border: 2px solid var(--accent); border-radius: 6px; margin-bottom: 12px;"></div>
+        <div style="display: flex; gap: 8px; justify-content: flex-end;">
+          <button id="generatorCopyBtn" class="btn">Copy</button>
+          <button id="generatorCloseBtn" class="btn">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- History Modal -->
+  <div id="historyModal" class="modal" role="dialog" aria-labelledby="historyTitle" aria-hidden="true">
+    <div class="modal__content" style="max-width: 700px;">
+      <div class="modal__header">
+        <h2 id="historyTitle">📜 Recently Used</h2>
+        <button class="modal__close" id="historyModalClose" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal__body">
+        <div id="historyList" style="display: flex; flex-direction: column; gap: 8px; max-height: 60vh; overflow-y: auto;"></div>
+      </div>
+      <div class="modal__footer">
+        <button id="historyCloseBtn" class="btn">Close</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Edit Modal -->
   <div id="editModal" class="modal" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">

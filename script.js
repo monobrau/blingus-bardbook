@@ -1421,12 +1421,23 @@
   const artistLabel = $('#artistLabel');
   const adultLabel = $('#adultLabel');
   const modalClose = editModal.querySelector('.modal__close');
+  const generatorModal = $('#generatorModal');
+  const generatorTitle = $('#generatorTitle');
+  const generatorText = $('#generatorText');
+  const generatorCopyBtn = $('#generatorCopyBtn');
+  const generatorCloseBtn = $('#generatorCloseBtn');
+  const generatorModalClose = $('#generatorModalClose');
+  const historyModal = $('#historyModal');
+  const historyList = $('#historyList');
+  const historyModalClose = $('#historyModalClose');
+  const historyCloseBtn = $('#historyCloseBtn');
 
   const favoritesKey = 'blingusFavoritesV1';
   const userItemsKey = 'blingusUserItemsV1';
   const deletedDefaultsKey = 'blingusDeletedDefaultsV1';
   const historyKey = 'blingusHistoryV1';
   const voicePresetsKey = 'blingusVoicePresetsV1';
+  const darkModeKey = 'blingusDarkModeV1';
   
   // Load user items from localStorage
   function loadUserItems() {
@@ -1649,13 +1660,37 @@
   function buildCategories() {
     categorySelect.innerHTML = '';
     const section = sectionSelect.value;
-    const cats = section === 'spells' ? Object.keys(spells)
-      : section === 'bardic' ? Object.keys(bardic)
-      : section === 'actions' ? Object.keys(characterActions)
-      : Object.keys(mockery);
+    
+    // Safety check - ensure section is valid
+    if (!section) {
+      console.warn('buildCategories: No section selected');
+      return;
+    }
+    
+    let cats = [];
+    try {
+      if (section === 'spells') {
+        cats = typeof spells !== 'undefined' && spells ? Object.keys(spells) : [];
+      } else if (section === 'bardic') {
+        cats = typeof bardic !== 'undefined' && bardic ? Object.keys(bardic) : [];
+      } else if (section === 'actions') {
+        cats = typeof characterActions !== 'undefined' && characterActions ? Object.keys(characterActions) : [];
+      } else {
+        cats = typeof mockery !== 'undefined' && mockery ? Object.keys(mockery) : [];
+      }
+    } catch (error) {
+      console.error('Error building categories:', error);
+      cats = [];
+    }
+    
     for (const c of cats) {
       const opt = document.createElement('option');
       opt.value = c; opt.textContent = c; categorySelect.appendChild(opt);
+    }
+    
+    // If no categories found, add a message
+    if (cats.length === 0) {
+      console.warn(`buildCategories: No categories found for section: ${section}`);
     }
   }
 
@@ -1708,6 +1743,15 @@
     if (!cat) {
       console.warn('No category selected');
       content.innerHTML = '<div class="card">Please select a category</div>';
+      // Try to build categories if they're missing
+      if (categorySelect.options.length === 0) {
+        buildCategories();
+        if (categorySelect.options.length > 0) {
+          categorySelect.selectedIndex = 0;
+          // Re-render with the first category
+          setTimeout(() => render(), 100);
+        }
+      }
       return;
     }
     
@@ -1739,6 +1783,11 @@
         return !deletedIds.includes(itemId);
       });
       baseList = mockeryList;
+    }
+    
+    // Ensure baseList is always an array
+    if (!Array.isArray(baseList)) {
+      baseList = [];
     }
     
     // Add user items
@@ -1779,7 +1828,8 @@
     if (baseList.length > 0) {
       const randomCard = document.createElement('article');
       randomCard.className = 'card';
-      randomCard.style.background = 'linear-gradient(135deg, #f7e7c4 0%, #fff9eb 100%)';
+      const isDark = document.body.classList.contains('dark-mode');
+      randomCard.style.background = isDark ? 'linear-gradient(135deg, #3d3d5e 0%, #2d2d44 100%)' : 'linear-gradient(135deg, #f7e7c4 0%, #fff9eb 100%)';
       randomCard.style.border = '2px solid var(--accent)';
       
       const randomBtn = document.createElement('button');
@@ -1860,47 +1910,6 @@
       content.appendChild(randomCard);
     }
     
-    // Add history section before items
-    const history = loadHistory();
-    if (history.length > 0) {
-      const historyCard = document.createElement('article');
-      historyCard.className = 'card history-card';
-      historyCard.style.background = 'linear-gradient(135deg, #e8f4f8 0%, #f0f8ff 100%)';
-      historyCard.style.border = '2px solid #4a90e2';
-      historyCard.style.marginBottom = '16px';
-      
-      const historyTitle = document.createElement('div');
-      historyTitle.style.fontWeight = 'bold';
-      historyTitle.style.marginBottom = '8px';
-      historyTitle.textContent = '📜 Recently Used (Click to copy)';
-      
-      historyCard.appendChild(historyTitle);
-      
-      const historyList = document.createElement('div');
-      historyList.style.display = 'flex';
-      historyList.style.flexDirection = 'column';
-      historyList.style.gap = '4px';
-      
-      history.slice(0, 5).forEach(entry => {
-        const historyItem = document.createElement('button');
-        historyItem.style.textAlign = 'left';
-        historyItem.style.padding = '8px';
-        historyItem.style.border = '1px solid #ccc';
-        historyItem.style.borderRadius = '4px';
-        historyItem.style.cursor = 'pointer';
-        historyItem.style.background = 'white';
-        historyItem.style.fontSize = '13px';
-        historyItem.textContent = entry.text.length > 60 ? entry.text.substring(0, 60) + '...' : entry.text;
-        historyItem.title = entry.text;
-        historyItem.addEventListener('click', () => {
-          copyToClipboard(entry.text, entry.section, entry.category);
-        });
-        historyList.appendChild(historyItem);
-      });
-      
-      historyCard.appendChild(historyList);
-      content.appendChild(historyCard);
-    }
     
     for (const item of list) {
       const card = document.createElement('article');
@@ -2001,13 +2010,14 @@
       editBtn.style.cssText = '';
       
       // Visual indicator for user-added items
+      const isDark = document.body.classList.contains('dark-mode');
       if (isUserAdded) {
         card.style.borderLeft = '4px solid #2b6f3a';
-        card.style.background = '#f0f8f0';
+        card.style.background = isDark ? '#2d3d2d' : '#f0f8f0';
       } else if (isDefaultItem && !isDeletedDefault) {
         // Default items get a blue border
         card.style.borderLeft = '4px solid #4a90e2';
-        card.style.background = '#f0f4f8';
+        card.style.background = isDark ? '#2d3d4d' : '#f0f4f8';
       }
       
       editBtn.addEventListener('click', (e) => {
@@ -2173,12 +2183,13 @@
       editBtn.style.cssText = '';
       
       // Visual indicator
+      const isDarkActions = document.body.classList.contains('dark-mode');
       if (isUserAdded) {
         card.style.borderLeft = '4px solid #2b6f3a';
-        card.style.background = '#f0f8f0';
+        card.style.background = isDarkActions ? '#2d3d2d' : '#f0f8f0';
       } else if (isDefaultItem && !isDeletedDefault) {
         card.style.borderLeft = '4px solid #4a90e2';
-        card.style.background = '#f0f4f8';
+        card.style.background = isDarkActions ? '#2d3d4d' : '#f0f4f8';
       }
       
       editBtn.addEventListener('click', (e) => {
@@ -2611,6 +2622,28 @@
   categorySelect.addEventListener('change', render);
   adultToggle.addEventListener('change', render);
   if (favoritesOnly) favoritesOnly.addEventListener('change', render);
+  
+  // Dark mode toggle
+  const darkModeToggle = $('#darkModeToggle');
+  function applyDarkMode(enabled) {
+    if (enabled) {
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+    }
+    localStorage.setItem(darkModeKey, enabled ? 'true' : 'false');
+  }
+  
+  // Load dark mode preference
+  const savedDarkMode = localStorage.getItem(darkModeKey) === 'true';
+  if (savedDarkMode) {
+    darkModeToggle.checked = true;
+    applyDarkMode(true);
+  }
+  
+  darkModeToggle.addEventListener('change', (e) => {
+    applyDarkMode(e.target.checked);
+  });
   searchInput.addEventListener('input', render);
   clearBtn.addEventListener('click', () => { searchInput.value = ''; render(); });
 
@@ -2646,6 +2679,22 @@
   generatorRow.style.gap = '8px';
   generatorRow.style.flexWrap = 'wrap';
 
+  // Generator modal functions
+  function showGeneratorModal(title, text) {
+    generatorTitle.textContent = title;
+    generatorText.textContent = text;
+    generatorModal.classList.add('show');
+    generatorModal.setAttribute('aria-hidden', 'false');
+    
+    // Store text for copy button
+    generatorCopyBtn.dataset.textToCopy = text;
+  }
+
+  function closeGeneratorModal() {
+    generatorModal.classList.remove('show');
+    generatorModal.setAttribute('aria-hidden', 'true');
+  }
+
   const battleCryBtn = document.createElement('button');
   battleCryBtn.id = 'battleCryBtn';
   battleCryBtn.className = 'btn';
@@ -2653,8 +2702,7 @@
   battleCryBtn.style.fontSize = '14px';
   battleCryBtn.addEventListener('click', () => {
     const cry = battleCries[Math.floor(Math.random() * battleCries.length)];
-    copyToClipboard(cry);
-    showToast(`Battle Cry: ${cry}`);
+    showGeneratorModal('⚔️ Battle Cry', cry);
   });
 
   const insultBtn = document.createElement('button');
@@ -2664,8 +2712,7 @@
   insultBtn.style.fontSize = '14px';
   insultBtn.addEventListener('click', () => {
     const insult = insults[Math.floor(Math.random() * insults.length)];
-    copyToClipboard(insult);
-    showToast(`Insult: ${insult.substring(0, 50)}...`);
+    showGeneratorModal('🗡️ Insult', insult);
   });
 
   const complimentBtn = document.createElement('button');
@@ -2675,8 +2722,24 @@
   complimentBtn.style.fontSize = '14px';
   complimentBtn.addEventListener('click', () => {
     const compliment = compliments[Math.floor(Math.random() * compliments.length)];
-    copyToClipboard(compliment);
-    showToast(`Compliment: ${compliment.substring(0, 50)}...`);
+    showGeneratorModal('💬 Compliment', compliment);
+  });
+
+  // Generator modal event listeners
+  generatorCopyBtn.addEventListener('click', () => {
+    const text = generatorCopyBtn.dataset.textToCopy;
+    if (text) {
+      copyToClipboard(text);
+      showToast('Copied to clipboard!');
+    }
+  });
+
+  generatorCloseBtn.addEventListener('click', closeGeneratorModal);
+  generatorModalClose.addEventListener('click', closeGeneratorModal);
+  generatorModal.addEventListener('click', (e) => {
+    if (e.target === generatorModal) {
+      closeGeneratorModal();
+    }
   });
 
   // Export/Import functionality
@@ -2736,20 +2799,93 @@
     input.click();
   });
 
+  // History modal functions
+  function showHistoryModal() {
+    const history = loadHistory();
+    historyList.innerHTML = '';
+    
+    if (history.length === 0) {
+      historyList.innerHTML = '<div style="text-align: center; padding: 20px; opacity: 0.7;">No recently used items yet. Copy some items to see them here!</div>';
+    } else {
+      const isDark = document.body.classList.contains('dark-mode');
+      history.forEach(entry => {
+        const historyItem = document.createElement('button');
+        historyItem.style.textAlign = 'left';
+        historyItem.style.padding = '12px';
+        historyItem.style.border = '1px solid var(--burnt)';
+        historyItem.style.borderRadius = '6px';
+        historyItem.style.cursor = 'pointer';
+        historyItem.style.background = isDark ? '#3d3d5e' : 'white';
+        historyItem.style.color = 'var(--ink)';
+        historyItem.style.fontSize = '14px';
+        historyItem.style.width = '100%';
+        historyItem.style.transition = 'background 0.2s ease';
+        historyItem.textContent = entry.text;
+        historyItem.title = `Section: ${entry.section || 'N/A'}, Category: ${entry.category || 'N/A'}`;
+        historyItem.addEventListener('click', () => {
+          copyToClipboard(entry.text, entry.section, entry.category);
+          showToast('Copied to clipboard!');
+        });
+        historyItem.addEventListener('mouseenter', () => {
+          historyItem.style.background = isDark ? '#4d4d6e' : '#f0f0f0';
+        });
+        historyItem.addEventListener('mouseleave', () => {
+          historyItem.style.background = isDark ? '#3d3d5e' : 'white';
+        });
+        historyList.appendChild(historyItem);
+      });
+    }
+    
+    historyModal.classList.add('show');
+    historyModal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeHistoryModal() {
+    historyModal.classList.remove('show');
+    historyModal.setAttribute('aria-hidden', 'true');
+  }
+
+  const historyBtn = document.createElement('button');
+  historyBtn.id = 'historyBtn';
+  historyBtn.className = 'btn';
+  historyBtn.textContent = '📜 Recently Used';
+  historyBtn.style.fontSize = '14px';
+  historyBtn.addEventListener('click', showHistoryModal);
+
   generatorRow.appendChild(battleCryBtn);
   generatorRow.appendChild(insultBtn);
   generatorRow.appendChild(complimentBtn);
+  generatorRow.appendChild(historyBtn);
   generatorRow.appendChild(exportBtn);
   generatorRow.appendChild(importBtn);
   document.querySelector('.toolbar').appendChild(generatorRow);
 
+  // History modal event listeners
+  historyCloseBtn.addEventListener('click', closeHistoryModal);
+  historyModalClose.addEventListener('click', closeHistoryModal);
+  historyModal.addEventListener('click', (e) => {
+    if (e.target === historyModal) {
+      closeHistoryModal();
+    }
+  });
+
   // Keyboard navigation
   let selectedCardIndex = -1;
   document.addEventListener('keydown', (e) => {
-    // Handle Escape key for modal
-    if (e.key === 'Escape' && editModal.classList.contains('show')) {
-      closeEditModal();
-      return;
+    // Handle Escape key for modals
+    if (e.key === 'Escape') {
+      if (editModal.classList.contains('show')) {
+        closeEditModal();
+        return;
+      }
+      if (generatorModal.classList.contains('show')) {
+        closeGeneratorModal();
+        return;
+      }
+      if (historyModal.classList.contains('show')) {
+        closeHistoryModal();
+        return;
+      }
     }
     
     // Don't interfere with modal or input fields
@@ -2784,7 +2920,18 @@
 
   // Initialize on page load
   console.log('Initializing...');
-  buildCategories();
+  
+  // Ensure section select has a value
+  if (!sectionSelect.value && sectionSelect.options.length > 0) {
+    sectionSelect.selectedIndex = 0;
+    console.log(`Initial section selected: ${sectionSelect.value}`);
+  }
+  
+  try {
+    buildCategories();
+  } catch (error) {
+    console.error('Error in buildCategories during init:', error);
+  }
   
   // Ensure a category is selected
   if (categorySelect.options.length > 0 && !categorySelect.value) {
@@ -2793,7 +2940,12 @@
   }
   
   console.log('Initial render...');
-  render();
+  try {
+    render();
+  } catch (error) {
+    console.error('Error in render during init:', error);
+    content.innerHTML = '<div class="card">Error loading content. Please refresh the page.</div>';
+  }
   
   console.log('Initialization complete');
 })();
