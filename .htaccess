@@ -1,0 +1,22 @@
+# Disable caching for HTML, CSS, and JS files
+<IfModule mod_headers.c>
+    # HTML files
+    <FilesMatch "\.(html|htm)$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </FilesMatch>
+    
+    # CSS and JS files
+    <FilesMatch "\.(css|js)$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </FilesMatch>
+</IfModule>
+
+# Enable PHP execution
+<IfModule mod_php.c>
+    AddHandler application/x-httpd-php .php
+</IfModule>
+
