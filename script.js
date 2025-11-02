@@ -1591,6 +1591,9 @@
   
   // Check if File System Access API is supported
   const fileSystemSupported = 'showDirectoryPicker' in window;
+  console.log('File System Access API supported:', fileSystemSupported);
+  console.log('Browser:', navigator.userAgent);
+  console.log('Protocol:', window.location.protocol);
   
   // Initialize file storage - try to load saved directory handle
   async function initFileStorage() {
@@ -3945,16 +3948,22 @@
   fileStorageBtn.style.fontSize = '14px';
   fileStorageBtn.title = fileSystemSupported 
     ? 'Select a folder to store data files (will create a "data" subdirectory)' 
-    : 'File System Access API not supported in this browser';
+    : 'File System Access API not supported. Requires Chrome/Edge (Chromium) and HTTPS or localhost.';
   fileStorageBtn.disabled = !fileSystemSupported;
-  fileStorageBtn.addEventListener('click', async () => {
-    const success = await promptForDataDirectory();
-    if (success) {
-      // Save current data to file
-      await saveDataToFile();
-      showToast('✓ Data directory set and data saved');
-    }
-  });
+  if (!fileSystemSupported) {
+    fileStorageBtn.addEventListener('click', () => {
+      showToast('File System Access API not available. Requires Chrome/Edge browser and HTTPS (or localhost).');
+    });
+  } else {
+    fileStorageBtn.addEventListener('click', async () => {
+      const success = await promptForDataDirectory();
+      if (success) {
+        // Save current data to file
+        await saveDataToFile();
+        showToast('✓ Data directory set and data saved');
+      }
+    });
+  }
 
   generatorRow.appendChild(battleCryBtn);
   generatorRow.appendChild(insultBtn);
