@@ -46,19 +46,38 @@ Each suggestion includes the appropriate D&D 5e skill or tool proficiency.
 
 ## 🎯 Key Features
 
+### Core Functionality
 - **🎲 Feeling Chaotic?** - Random selection button on all sections for quick inspiration
-- **📜 Recently Used** - History tracker showing your last 10 copied items (modal popup)
-- **⚔️ Battle Cry Generator** - 30 Blingus-themed battle cries with Feywild references
-- **🗡️ Insult Generator** - 37 sharp-tongued insults referencing Forgotten Realms lore
-- **💬 Compliment Generator** - 40 backhanded compliments (reluctant approval style)
-- **🎙️ Voice Presets** - Save and switch between different filter/selection configurations
+- **📜 Recently Used** - History tracker showing your last 10 copied items (accessible via modal popup)
 - **⭐ Favorites** - Star items for quick access
 - **🔍 Search** - Filter by lyrics, song name, or artist
-- **✏️ Add/Edit/Delete** - Customize with your own content
 - **🌙 Dark Mode** - Toggle between light and dark themes
-- **📥 Export/Import** - Backup and share your data (favorites, custom items, presets, history)
 - **⌨️ Keyboard Navigation** - Arrow keys to navigate cards, Enter to copy
 - **🔞 Adult Content Toggle** - For those raunchier sessions
+
+### Generators
+- **⚔️ Battle Cry Generator** - 30+ Blingus-themed battle cries with Feywild references
+- **🗡️ Insult Generator** - 37+ sharp-tongued insults referencing Forgotten Realms lore
+- **💬 Compliment Generator** - 40+ backhanded compliments (reluctant approval style)
+- **🎲 Manage Generators** - Add, edit, or delete generator items (including editing/deleting defaults)
+- Generators display in a modal popup so you can see the text before copying
+
+### Customization
+- **✏️ Add/Edit/Delete Items** - Customize spells, bardic inspiration, mockery, and actions
+- **✏️ Edit/Delete Defaults** - Modify or hide default items without deleting them permanently
+- **🎙️ Voice Presets** - Save and switch between different filter/selection configurations
+- All customizations persist across sessions
+
+### Data Management
+- **📥 Export/Import** - Complete backup including ALL default content plus all customizations
+  - Export includes: default spells, actions, bardic, mockery, generators PLUS favorites, custom items, edits, deletions, presets, history
+  - Import restores everything with confirmation prompt
+- **💾 Server Storage** (Automatic Detection)
+  - When running on a web server with PHP: automatically saves to server-side JSON file
+  - When running locally: uses File System Access API (Chrome/Edge) or falls back to localStorage
+  - **Auto-save**: Changes automatically saved to server ~500ms after you stop editing
+  - Visual feedback: Shows "💾 Auto-saved" notification (limited to avoid spam)
+  - Cross-device sync: Access your data from any device/browser
 
 ## 📖 Examples
 
@@ -74,7 +93,16 @@ Each suggestion includes the appropriate D&D 5e skill or tool proficiency.
 
 ## 🚀 Usage
 
+### Local Usage
 Simply open `index.html` in your web browser. All functionality is client-side using JavaScript and localStorage for persistence.
+
+### Server Deployment
+For server-side storage with automatic sync:
+1. Deploy to a web server with PHP (PHP-FPM recommended)
+2. Ensure the `/data/` directory exists and is writable
+3. Configure Nginx/Apache to execute PHP files (see `NGINX_CONFIG.md` and `PHP_SETUP.md`)
+4. The app automatically detects server environment and uses PHP storage
+5. Changes auto-save ~500ms after you stop editing
 
 ### Voice Presets
 1. Configure your view (section, category, filters, search)
@@ -82,9 +110,35 @@ Simply open `index.html` in your web browser. All functionality is client-side u
 3. Name your preset
 4. Later, select it from the dropdown or open the modal and click "Apply"
 
+### Managing Generators
+1. Click "🎲 Manage Generators" button
+2. Select generator type (Battle Cries, Insults, Compliments)
+3. Click "➕ Add New" to add custom items
+4. Click any item to edit it
+5. Default items can be edited or deleted (editing hides original, adds edited version)
+
+### Editing/Deleting Default Items
+1. Click "Add/Edit Items" button
+2. Click any item card to edit it
+3. To delete: Edit and click "Delete" button
+4. Edited defaults are hidden and replaced with your version
+5. Changes persist across sessions
+
 ### Export/Import
-- **Export**: Saves all your data (favorites, custom items, deleted defaults, history, presets) as a JSON file
+- **Export**: Saves complete dataset including ALL default content (spells, actions, bardic, mockery, generators) PLUS all customizations (favorites, custom items, edits, deletions, presets, history)
 - **Import**: Restores everything from a previous export (with confirmation prompt)
+- **Auto-save**: On servers, changes are automatically saved (no manual save needed)
+
+## 🛠️ Technical Details
+
+### Storage Options
+- **LocalStorage**: Default fallback for all browsers
+- **File System Access API**: Used when available (Chrome/Edge on localhost/HTTPS)
+- **Server-side JSON**: Automatic when running on web server with PHP
+- **Automatic Detection**: App detects environment and uses appropriate storage method
+
+### Server Setup
+See `NGINX_CONFIG.md` and `PHP_SETUP.md` for detailed server configuration instructions.
 
 ## 📝 Categories
 
@@ -103,6 +157,25 @@ This bardbook is tailored for **Blingus, the Wayfarer Fairy Bard**—a wanderlus
 - A sharp, sarcastic wit with reluctant approval style
 
 All generators and content reflect Blingus' personality, backstory, and the Forgotten Realms setting.
+
+## 📋 Change Log
+
+### Latest Features
+- **Automatic Server Saving**: Changes auto-save to server ~500ms after editing stops
+- **Complete Export**: Export now includes all default content for full backup
+- **Generator Management UI**: Add/edit/delete battle cries, insults, and compliments
+- **Edit Default Items**: Modify or hide default items without losing them
+- **Server Storage Detection**: Automatically uses PHP storage when on web server
+- **Visual Feedback**: Toast notifications for auto-save status
+
+### Previous Updates
+- Recently Used history moved to modal popup
+- Generator text displays in popup before copying
+- Dark mode support with proper contrast
+- Keyboard navigation (arrow keys, Enter to copy)
+- Voice presets system
+- Battle cry, insult, and compliment generators
+- "Feeling Chaotic?" button on all sections
 
 ---
 
