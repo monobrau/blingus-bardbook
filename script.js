@@ -1652,12 +1652,22 @@
       
       if (response.ok) {
         const result = await response.json();
-        return result.success;
+        if (result.success) {
+          return true;
+        } else {
+          console.error('Server returned error:', result.error || result.message);
+          throw new Error(result.error || result.message || 'Unknown server error');
+        }
+      } else {
+        const errorText = await response.text();
+        console.error('HTTP error:', response.status, response.statusText, errorText);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      return false;
     } catch (error) {
       console.error('Error saving to server:', error);
-      return false;
+      console.error('API endpoint:', API_ENDPOINT);
+      console.error('Full URL:', window.location.origin + API_ENDPOINT);
+      throw error; // Re-throw to show actual error message
     }
   }
   
@@ -4046,11 +4056,13 @@
     fileStorageBtn.title = 'Data is automatically saved to server using PHP API';
     fileStorageBtn.disabled = false;
     fileStorageBtn.addEventListener('click', async () => {
-      const success = await saveDataToServer();
-      if (success) {
+      try {
+        await saveDataToServer();
         showToast('✓ Data saved to server');
-      } else {
-        showToast('✗ Failed to save to server');
+      } catch (error) {
+        const errorMsg = error.message || 'Unknown error';
+        console.error('Save failed:', errorMsg);
+        showToast(`✗ Failed to save: ${errorMsg}`);
       }
     });
     
@@ -4059,7 +4071,7 @@
     if (footer) {
       const storageStatus = document.createElement('div');
       storageStatus.id = 'storageStatus';
-      storageStatus.style.cssText = 'margin-top: 8px; font-size: 12px; color: var(--burnt); opacity: 0.8; display: flex; align-items: center; gap: 6px;';
+      storageStatus.style.cssText = 'margin-top: 8px; font-size: 12px; color: var(--burnt); opacity: 0.8; display: flex; align-items: center; justify-content: center; gap: 6px; text-align: center;';
       storageStatus.innerHTML = '<span style="color: #667eea;">🔷</span> <strong>Server Storage Active:</strong> Data saved to server via PHP API';
       footer.appendChild(storageStatus);
     }
