@@ -2807,6 +2807,8 @@
     }
     
     debugLog(`renderActions: final filteredActions=${filteredActions.length}, will render ${filteredActions.length} cards`);
+    debugLog(`renderActions: content element exists:`, !!content);
+    debugLog(`renderActions: content.innerHTML length before clear:`, content.innerHTML.length);
     
     content.innerHTML = '';
     
