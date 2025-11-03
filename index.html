@@ -20,7 +20,8 @@
   </header>
 
   <nav class="toolbar" aria-label="Controls">
-    <div class="toolbar__row">
+    <!-- Primary Controls Row -->
+    <div class="toolbar__row toolbar__row--primary">
       <label>Section
         <select id="sectionSelect">
           <option value="spells">Spell Parodies</option>
@@ -33,6 +34,12 @@
       <label id="categoryLabel">Category
         <select id="categorySelect"></select>
       </label>
+
+      <label class="search">
+        <input id="searchInput" type="search" placeholder="Search all lyrics, songs, artists, or actions..." />
+      </label>
+
+      <div class="toolbar__spacer"></div>
 
       <label class="toggle">
         <input type="checkbox" id="adultToggle" />
@@ -48,20 +55,25 @@
         <input type="checkbox" id="darkModeToggle" />
         <span>🌙 Dark mode</span>
       </label>
+    </div>
 
-      <label class="search">
-        <input id="searchInput" type="search" placeholder="Search all lyrics, songs, artists, or actions..." />
-      </label>
-
-      <button id="clearBtn" class="btn">Clear</button>
-      <button id="clearCacheBtn" class="btn" style="display: none;" title="Force reload and clear browser cache">🔄 Clear Cache</button>
+    <!-- Action Buttons Row -->
+    <div class="toolbar__row toolbar__row--actions">
+      <button id="clearBtn" class="btn btn--secondary">Clear</button>
+      <button id="clearCacheBtn" class="btn btn--secondary btn--cache" title="Force reload and clear browser cache">🔄 Clear Cache</button>
       <button id="addEditBtn" class="btn">Add/Edit Items</button>
       <button id="manageGeneratorsBtn" class="btn">🎲 Manage Generators</button>
+      <button id="managePresetsBtn" class="btn">⚙️ Manage Presets</button>
+      
+      <div class="toolbar__spacer"></div>
+
       <label id="presetLabel">Voice Preset
         <select id="presetSelect"></select>
       </label>
-      <button id="managePresetsBtn" class="btn">⚙️ Manage Presets</button>
     </div>
+
+    <!-- Generator Row (dynamically added) -->
+    <div class="toolbar__row toolbar__row--generators"></div>
   </nav>
 
   <main id="content" class="content" aria-live="polite"></main>

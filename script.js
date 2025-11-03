@@ -4230,7 +4230,7 @@
   // Clear cache button - only show on web server
   const clearCacheBtn = $('#clearCacheBtn');
   if (clearCacheBtn && isOnServer) {
-    clearCacheBtn.style.display = 'inline-block';
+    clearCacheBtn.classList.remove('btn--cache');
     clearCacheBtn.addEventListener('click', () => {
       // Force a hard reload with cache-busting
       const url = new URL(window.location.href);
@@ -4244,8 +4244,6 @@
       // Force reload
       window.location.href = url.toString();
     });
-  } else if (clearCacheBtn) {
-    clearCacheBtn.style.display = 'none';
   }
 
   // Modal event listeners
@@ -4273,12 +4271,8 @@
     }
   });
   
-  // Generator buttons
-  const generatorRow = document.createElement('div');
-  generatorRow.className = 'toolbar__row';
-  generatorRow.style.marginTop = '8px';
-  generatorRow.style.gap = '8px';
-  generatorRow.style.flexWrap = 'wrap';
+  // Generator buttons row (use existing element from HTML)
+  const generatorRow = document.querySelector('.toolbar__row--generators');
 
   // Generator modal functions
   function showGeneratorModal(title, text) {
@@ -4300,7 +4294,6 @@
   battleCryBtn.id = 'battleCryBtn';
   battleCryBtn.className = 'btn';
   battleCryBtn.textContent = '⚔️ Battle Cry';
-  battleCryBtn.style.fontSize = '14px';
   battleCryBtn.addEventListener('click', () => {
     const mergedCries = getMergedGenerators('battleCries');
     if (mergedCries.length === 0) {
@@ -4315,7 +4308,6 @@
   insultBtn.id = 'insultBtn';
   insultBtn.className = 'btn';
   insultBtn.textContent = '🗡️ Insult';
-  insultBtn.style.fontSize = '14px';
   insultBtn.addEventListener('click', () => {
     const mergedInsults = getMergedGenerators('insults');
     if (mergedInsults.length === 0) {
@@ -4330,7 +4322,6 @@
   complimentBtn.id = 'complimentBtn';
   complimentBtn.className = 'btn';
   complimentBtn.textContent = '💬 Compliment';
-  complimentBtn.style.fontSize = '14px';
   complimentBtn.addEventListener('click', () => {
     const mergedCompliments = getMergedGenerators('compliments');
     if (mergedCompliments.length === 0) {
@@ -4363,7 +4354,6 @@
   exportBtn.id = 'exportBtn';
   exportBtn.className = 'btn';
   exportBtn.textContent = '📥 Export';
-  exportBtn.style.fontSize = '14px';
   exportBtn.addEventListener('click', () => {
       // Export COMPLETE dataset including all defaults and user customizations
       const data = {
@@ -4417,7 +4407,6 @@
   importBtn.id = 'importBtn';
   importBtn.className = 'btn';
   importBtn.textContent = '📤 Import';
-  importBtn.style.fontSize = '14px';
   importBtn.addEventListener('click', () => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -4567,7 +4556,6 @@
   historyBtn.id = 'historyBtn';
   historyBtn.className = 'btn';
   historyBtn.textContent = '📜 Recently Used';
-  historyBtn.style.fontSize = '14px';
   historyBtn.addEventListener('click', showHistoryModal);
 
   // File storage button - behavior depends on server vs local
@@ -4578,10 +4566,7 @@
   if (isOnServer) {
     // On server: show server storage status with PHP indicator
     fileStorageBtn.textContent = '💾 PHP Server Storage';
-    fileStorageBtn.style.fontSize = '14px';
-    fileStorageBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-    fileStorageBtn.style.color = 'white';
-    fileStorageBtn.style.border = 'none';
+    fileStorageBtn.className = 'btn btn--server';
     fileStorageBtn.title = 'Data is automatically saved to server using PHP API';
     fileStorageBtn.disabled = false;
     fileStorageBtn.addEventListener('click', async () => {
@@ -4607,7 +4592,6 @@
   } else {
     // Local: use File System Access API
     fileStorageBtn.textContent = fileSystemSupported ? '📁 Select Data Folder' : '📁 File Storage (N/A)';
-    fileStorageBtn.style.fontSize = '14px';
     fileStorageBtn.title = fileSystemSupported 
       ? 'Select a folder to store data files (will create a "data" subdirectory)' 
       : 'File System Access API not supported. Requires Chrome/Edge/Brave (Chromium) and HTTPS or localhost. Firefox/Safari not supported.';
