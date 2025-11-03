@@ -2773,17 +2773,34 @@
   function renderActions() {
     const q = (searchInput.value || '').trim().toLowerCase();
     const cat = categorySelect.value;
-    let actions = characterActions[cat] || [];
-    let filteredActions = actions;
+    
+    if (!cat) {
+      console.warn('No category selected for actions');
+      content.innerHTML = '<div class="card">Please select a category</div>';
+      return;
+    }
+    
+    // Get merged actions (defaults + user items, excluding deleted)
+    const fullActions = getMergedData('actions', cat);
+    const defaults = characterActions[cat] || [];
+    let filteredActions = fullActions;
     
     if (q) {
-      filteredActions = actions.filter(a => a.toLowerCase().includes(q));
+      filteredActions = fullActions.filter(a => a.toLowerCase().includes(q));
+    }
+    
+    // Apply favorites filter if enabled
+    if (favoritesOnly && favoritesOnly.checked) {
+      filteredActions = filteredActions.filter(action => {
+        const itemId = getItemId('actions', action);
+        return favorites.has(itemId);
+      });
     }
     
     content.innerHTML = '';
     
     // Add random button at the top (uses full list, not filtered)
-    if (actions.length > 0) {
+    if (fullActions.length > 0) {
       const randomCard = document.createElement('article');
       randomCard.className = 'card';
       randomCard.style.background = 'linear-gradient(135deg, #f7e7c4 0%, #fff9eb 100%)';
@@ -2797,7 +2814,7 @@
       randomBtn.style.fontWeight = 'bold';
       randomBtn.textContent = '🎲 Feeling Chaotic? 🎲';
       randomBtn.addEventListener('click', () => {
-        const randomAction = actions[Math.floor(Math.random() * actions.length)];
+        const randomAction = fullActions[Math.floor(Math.random() * fullActions.length)];
         
         // Check if the selected action is in the filtered results
         const isInFiltered = filteredActions.includes(randomAction);
