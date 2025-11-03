@@ -2958,8 +2958,11 @@
       card.appendChild(p);
       card.appendChild(meta);
       content.appendChild(card);
+      debugLog(`renderActions: Appended card ${i + 1}/${filteredActions.length} for action: ${action.substring(0, 50)}...`);
     }
-
+    
+    debugLog(`renderActions: Loop complete, appended ${filteredActions.length} cards to content`);
+    
     if (!filteredActions.length) {
       const empty = document.createElement('div');
       empty.className = 'card';
