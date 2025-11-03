@@ -65,12 +65,11 @@ Each suggestion includes the appropriate D&D 5e skill or tool proficiency.
 ### Customization
 - **✏️ Add/Edit/Delete Items** - Customize spells, bardic inspiration, mockery, and actions
 - **✏️ Edit/Delete Defaults** - Modify or hide default items without deleting them permanently
-- **🎙️ Voice Presets** - Save and switch between different filter/selection configurations
 - All customizations persist across sessions
 
 ### Data Management
 - **📥 Export/Import** - Complete backup including ALL default content plus all customizations
-  - Export includes: default spells, actions, bardic, mockery, generators PLUS favorites, custom items, edits, deletions, presets, history
+  - Export includes: default spells, actions, bardic, mockery, generators PLUS favorites, custom items, edits, deletions, history
   - Import restores everything with confirmation prompt
 - **💾 Server Storage** (Automatic Detection)
   - When running on a web server with PHP: automatically saves to server-side JSON file
@@ -101,14 +100,9 @@ For server-side storage with automatic sync:
 1. Deploy to a web server with PHP (PHP-FPM recommended)
 2. Ensure the `/data/` directory exists and is writable
 3. Configure Nginx/Apache to execute PHP files (see `NGINX_CONFIG.md` and `PHP_SETUP.md`)
-4. The app automatically detects server environment and uses PHP storage
-5. Changes auto-save ~500ms after you stop editing
-
-### Voice Presets
-1. Configure your view (section, category, filters, search)
-2. Click "⚙️ Manage Presets" → "💾 Save Current State as Preset"
-3. Name your preset
-4. Later, select it from the dropdown or open the modal and click "Apply"
+4. Update Nginx config to prefer `index.php` over `index.html` for auto-versioning
+5. The app automatically detects server environment and uses PHP storage
+6. Changes auto-save ~500ms after you stop editing
 
 ### Managing Generators
 1. Click "🎲 Manage Generators" button
@@ -125,7 +119,7 @@ For server-side storage with automatic sync:
 5. Changes persist across sessions
 
 ### Export/Import
-- **Export**: Saves complete dataset including ALL default content (spells, actions, bardic, mockery, generators) PLUS all customizations (favorites, custom items, edits, deletions, presets, history)
+- **Export**: Saves complete dataset including ALL default content (spells, actions, bardic, mockery, generators) PLUS all customizations (favorites, custom items, edits, deletions, history)
 - **Import**: Restores everything from a previous export (with confirmation prompt)
 - **Auto-save**: On servers, changes are automatically saved (no manual save needed)
 
@@ -136,9 +130,10 @@ For server-side storage with automatic sync:
 - **File System Access API**: Used when available (Chrome/Edge on localhost/HTTPS)
 - **Server-side JSON**: Automatic when running on web server with PHP
 - **Automatic Detection**: App detects environment and uses appropriate storage method
+- **Auto-Versioning**: On servers, `index.php` automatically generates cache-busting version numbers based on file modification times
 
 ### Server Setup
-See `NGINX_CONFIG.md` and `PHP_SETUP.md` for detailed server configuration instructions.
+See `NGINX_CONFIG.md`, `PHP_SETUP.md`, and `AUTO_VERSIONING.md` for detailed server configuration instructions.
 
 ## 📝 Categories
 
@@ -161,6 +156,10 @@ All generators and content reflect Blingus' personality, backstory, and the Forg
 ## 📋 Change Log
 
 ### Latest Features
+- **Auto-Versioning Cache-Busting**: `index.php` automatically generates version numbers based on file modification times (no manual version bumping needed)
+- **🔄 Clear Cache Button**: Force reload button for web server deployments (only visible on server)
+- **Toolbar Reorganization**: Improved layout with Clear button next to search, separate checkbox row
+- **Global Search**: Search now searches across ALL sections and categories, not just the active one
 - **Automatic Server Saving**: Changes auto-save to server ~500ms after editing stops
 - **Complete Export**: Export now includes all default content for full backup
 - **Generator Management UI**: Add/edit/delete battle cries, insults, and compliments
@@ -173,7 +172,6 @@ All generators and content reflect Blingus' personality, backstory, and the Forg
 - Generator text displays in popup before copying
 - Dark mode support with proper contrast
 - Keyboard navigation (arrow keys, Enter to copy)
-- Voice presets system
 - Battle cry, insult, and compliment generators
 - "Feeling Chaotic?" button on all sections
 
