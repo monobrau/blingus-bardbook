@@ -2808,12 +2808,15 @@
     
     debugLog(`renderActions: final filteredActions=${filteredActions.length}, will render ${filteredActions.length} cards`);
     debugLog(`renderActions: content element exists:`, !!content);
-    debugLog(`renderActions: content.innerHTML length before clear:`, content.innerHTML.length);
+    debugLog(`renderActions: Sample filteredActions (first 3):`, filteredActions.slice(0, 3));
     
     content.innerHTML = '';
     
+    debugLog(`renderActions: content.innerHTML cleared`);
+    
     // Add random button at the top (uses full list, not filtered)
     if (fullActions.length > 0) {
+      debugLog(`renderActions: Adding random button, fullActions.length=${fullActions.length}`);
       const randomCard = document.createElement('article');
       randomCard.className = 'card';
       randomCard.style.background = 'linear-gradient(135deg, #f7e7c4 0%, #fff9eb 100%)';
