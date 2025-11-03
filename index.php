@@ -1,0 +1,240 @@
+<?php
+/**
+ * Auto-versioning index.php
+ * Automatically generates cache-busting versions based on file modification times
+ */
+
+// Get version numbers based on file modification times
+$scriptJs = __DIR__ . '/script.js';
+$stylesCss = __DIR__ . '/styles.css';
+
+$scriptVersion = file_exists($scriptJs) ? filemtime($scriptJs) : time();
+$stylesVersion = file_exists($stylesCss) ? filemtime($stylesCss) : time();
+?>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Blingus' Bardbook</title>
+  <link rel="stylesheet" href="styles.css?v=<?php echo $stylesVersion; ?>" />
+</head>
+<body>
+  <header class="banner">
+    <div class="banner__wrap">
+      <div class="crest" aria-hidden="true">⚔️</div>
+      <h1>Blingus' Bardbook</h1>
+      <div class="crest" aria-hidden="true">🛡️</div>
+    </div>
+    <p class="subtitle">Iconic, humorous song‑parody lines for spells, Bardic Inspiration, Vicious Mockery, and character action ideas</p>
+  </header>
+
+  <nav class="toolbar" aria-label="Controls">
+    <div class="toolbar__container">
+      <!-- Primary Controls Row -->
+      <div class="toolbar__row toolbar__row--primary">
+      <label>Section
+        <select id="sectionSelect">
+          <option value="spells">Spell Parodies</option>
+          <option value="bardic">Bardic Inspiration</option>
+          <option value="mockery">Vicious Mockery</option>
+          <option value="actions">What's Your Character Doing?</option>
+        </select>
+      </label>
+
+      <label id="categoryLabel">Category
+        <select id="categorySelect"></select>
+      </label>
+
+      <label class="search">
+        <input id="searchInput" type="search" placeholder="Search all lyrics, songs, artists, or actions..." />
+      </label>
+
+      <div class="toolbar__spacer"></div>
+
+      <label class="toggle">
+        <input type="checkbox" id="adultToggle" />
+        <span>Show adult/risqué</span>
+      </label>
+
+      <label class="toggle">
+        <input type="checkbox" id="favoritesOnly" />
+        <span>Only favorites</span>
+      </label>
+
+      <label class="toggle">
+        <input type="checkbox" id="darkModeToggle" />
+        <span>🌙 Dark mode</span>
+      </label>
+      </div>
+
+      <!-- Action Buttons Row -->
+      <div class="toolbar__row toolbar__row--actions">
+      <button id="clearBtn" class="btn btn--secondary">Clear</button>
+      <button id="clearCacheBtn" class="btn btn--secondary btn--cache" title="Force reload and clear browser cache">🔄 Clear Cache</button>
+      <button id="addEditBtn" class="btn">Add/Edit Items</button>
+      <button id="manageGeneratorsBtn" class="btn">🎲 Manage Generators</button>
+      <button id="managePresetsBtn" class="btn">⚙️ Manage Presets</button>
+      
+      <div class="toolbar__spacer"></div>
+
+      <label id="presetLabel">Voice Preset
+        <select id="presetSelect"></select>
+      </label>
+      </div>
+
+      <!-- Generator Row (dynamically added) -->
+      <div class="toolbar__row toolbar__row--generators"></div>
+    </div>
+  </nav>
+
+  <main id="content" class="content" aria-live="polite"></main>
+
+  <footer class="footer">
+    <div>Tip: Click any line to copy • Star to favorite • Use the toolbar to filter (adult/favorites/search).</div>
+    <div style="margin-top: 8px; font-size: 14px;">⌨️ Keyboard: Arrow keys to navigate, Enter to copy</div>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Generator Display Modal -->
+  <div id="generatorModal" class="modal" role="dialog" aria-labelledby="generatorTitle" aria-hidden="true">
+    <div class="modal__content" style="max-width: 600px;">
+      <div class="modal__header">
+        <h2 id="generatorTitle">Generated Text</h2>
+        <button class="modal__close" id="generatorModalClose" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal__body">
+        <div id="generatorText" style="padding: 16px; font-size: 18px; line-height: 1.6; min-height: 60px; border: 2px solid var(--accent); border-radius: 6px; margin-bottom: 12px;"></div>
+        <div style="display: flex; gap: 8px; justify-content: flex-end;">
+          <button id="generatorCopyBtn" class="btn">Copy</button>
+          <button id="generatorCloseBtn" class="btn">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- History Modal -->
+  <div id="historyModal" class="modal" role="dialog" aria-labelledby="historyTitle" aria-hidden="true">
+    <div class="modal__content" style="max-width: 700px;">
+      <div class="modal__header">
+        <h2 id="historyTitle">📜 Recently Used</h2>
+        <button class="modal__close" id="historyModalClose" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal__body">
+        <div id="historyList" style="display: flex; flex-direction: column; gap: 8px; max-height: 60vh; overflow-y: auto;"></div>
+      </div>
+      <div class="modal__footer">
+        <button id="historyCloseBtn" class="btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Generator Management Modal -->
+  <div id="generatorManageModal" class="modal" role="dialog" aria-labelledby="generatorManageTitle" aria-hidden="true">
+    <div class="modal__content" style="max-width: 700px;">
+      <div class="modal__header">
+        <h2 id="generatorManageTitle">Manage Generators</h2>
+        <button class="modal__close" id="generatorManageClose" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal__body">
+        <div style="margin-bottom: 16px;">
+          <label>Generator Type
+            <select id="generatorTypeSelect" style="width: 100%; padding: 8px; border: 1px solid var(--burnt); border-radius: 6px;">
+              <option value="battleCries">⚔️ Battle Cries</option>
+              <option value="insults">🗡️ Insults</option>
+              <option value="compliments">💬 Compliments</option>
+            </select>
+          </label>
+        </div>
+        <div style="margin-bottom: 16px;">
+          <button id="addGeneratorBtn" class="btn" style="width: 100%;">➕ Add New</button>
+        </div>
+        <div id="generatorsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 400px; overflow-y: auto;"></div>
+      </div>
+      <div class="modal__footer">
+        <button id="generatorManageCloseBtn" class="btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Generator Edit Modal -->
+  <div id="generatorEditModal" class="modal" role="dialog" aria-labelledby="generatorEditTitle" aria-hidden="true">
+    <div class="modal__content" style="max-width: 600px;">
+      <div class="modal__header">
+        <h2 id="generatorEditTitle">Add Generator Item</h2>
+        <button class="modal__close" id="generatorEditClose" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal__body">
+        <label>
+          Text
+          <textarea id="generatorEditText" rows="3" style="width: 100%; padding: 8px; border: 1px solid var(--burnt); border-radius: 6px; font-family: inherit;"></textarea>
+        </label>
+      </div>
+      <div class="modal__footer">
+        <button id="saveGeneratorBtn" class="btn">Save</button>
+        <button id="cancelGeneratorBtn" class="btn">Cancel</button>
+        <button id="deleteGeneratorBtn" class="btn" style="background: #c44; color: white; display: none;">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Voice Preset Modal -->
+  <div id="presetModal" class="modal" role="dialog" aria-labelledby="presetModalTitle" aria-hidden="true">
+    <div class="modal__content" style="max-width: 600px;">
+      <div class="modal__header">
+        <h2 id="presetModalTitle">Manage Voice Presets</h2>
+        <button class="modal__close" id="presetModalClose" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal__body">
+        <div style="margin-bottom: 16px;">
+          <button id="saveCurrentPresetBtn" class="btn" style="width: 100%; margin-bottom: 8px;">💾 Save Current State as Preset</button>
+        </div>
+        <div id="presetsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 400px; overflow-y: auto;"></div>
+      </div>
+      <div class="modal__footer">
+        <button id="presetCloseBtn" class="btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div id="editModal" class="modal" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
+    <div class="modal__content">
+      <div class="modal__header">
+        <h2 id="modalTitle">Add New Item</h2>
+        <button class="modal__close" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal__body">
+        <label>
+          Text
+          <textarea id="editText" rows="3" style="width: 100%; padding: 8px; border: 1px solid var(--burnt); border-radius: 6px; font-family: inherit;"></textarea>
+        </label>
+        <label id="songLabel" style="display: none;">
+          Song
+          <input type="text" id="editSong" style="width: 100%; padding: 8px; border: 1px solid var(--burnt); border-radius: 6px; font-family: inherit;" />
+        </label>
+        <label id="artistLabel" style="display: none;">
+          Artist
+          <input type="text" id="editArtist" style="width: 100%; padding: 8px; border: 1px solid var(--burnt); border-radius: 6px; font-family: inherit;" />
+        </label>
+        <label id="adultLabel" style="display: none;">
+          <input type="checkbox" id="editAdult" />
+          <span>Adult/risqué</span>
+        </label>
+      </div>
+      <div class="modal__footer">
+        <button id="saveEditBtn" class="btn">Save</button>
+        <button id="cancelEditBtn" class="btn">Cancel</button>
+        <button id="deleteEditBtn" class="btn" style="background: #c44; color: white; display: none;">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js?v=<?php echo $scriptVersion; ?>"></script>
+</body>
+</html>
+

@@ -38,6 +38,13 @@ server {
         }
     }
 
+    # Static files - cache CSS/JS with version query params
+    location ~ \.(css|js)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        # Version query params (?v=timestamp) will bust cache automatically
+    }
+
     # Static files
     location / {
         try_files $uri $uri/ =404;
