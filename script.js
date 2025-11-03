@@ -1484,7 +1484,7 @@
     ]
   };
 
-  const $ = sel => document.querySelector(sel);
+  const $ = (sel, root = document) => root.querySelector(sel);
   const content = $('#content');
   
   
@@ -1534,7 +1534,7 @@
   const sectionSelect = $('#sectionSelect');
   const categorySelect = $('#categorySelect');
   const adultToggle = $('#adultToggle');
-  const favoritesOnly = document.querySelector('#favoritesOnly');
+  const favoritesOnly = $('#favoritesOnly');
   const searchInput = $('#searchInput');
   const clearBtn = $('#clearBtn');
   const toast = $('#toast');
@@ -1551,7 +1551,7 @@
   const songLabel = $('#songLabel');
   const artistLabel = $('#artistLabel');
   const adultLabel = $('#adultLabel');
-  const modalClose = editModal.querySelector('.modal__close');
+  const modalClose = $('.modal__close', editModal);
   const generatorModal = $('#generatorModal');
   const generatorTitle = $('#generatorTitle');
   const generatorText = $('#generatorText');
@@ -1594,6 +1594,9 @@
   const RELOAD_DELAY_MS = 1000;
   const TOAST_DURATION_MS = 5000;
   const MAX_DELETED_DEFAULTS = 1000; // Safety threshold for corruption detection
+  const ERROR_TOAST_DURATION_MS = 3000; // Longer duration for error messages
+  const TOAST_AUTO_HIDE_DURATION_MS = 1200; // Duration before auto-hiding toast
+  const RENDER_DELAY_MS = 100; // Delay for re-rendering after DOM changes
   
   // Centralized error handler
   function handleError(context, error, userMessage = null) {
@@ -2008,7 +2011,7 @@
             }
           } catch (error) {
             console.error('Auto-save failed:', error);
-            showToast('⚠️ Auto-save failed', 3000);
+            showToast('⚠️ Auto-save failed', ERROR_TOAST_DURATION_MS);
           } finally {
             isSavingToServer = false;
           }
@@ -2455,7 +2458,7 @@
         if (categorySelect.options.length > 0) {
           categorySelect.selectedIndex = 0;
           // Re-render with the first category
-          setTimeout(() => render(), 100);
+          setTimeout(() => render(), RENDER_DELAY_MS);
         }
       }
       return;
@@ -3485,7 +3488,7 @@
     toast.textContent = msg;
     toast.classList.add('show');
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toast.classList.remove('show'), 1200);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), TOAST_AUTO_HIDE_DURATION_MS);
   }
 
   // Modal functions
@@ -4200,7 +4203,7 @@
     });
     
     // Add server storage status indicator to footer
-    const footer = document.querySelector('.footer');
+    const footer = $('.footer');
     if (footer) {
       const storageStatus = document.createElement('div');
       storageStatus.id = 'storageStatus';
@@ -4252,7 +4255,7 @@
   generatorRow.appendChild(fileStorageBtn);
   generatorRow.appendChild(exportBtn);
   generatorRow.appendChild(importBtn);
-  document.querySelector('.toolbar').appendChild(generatorRow);
+  $('.toolbar').appendChild(generatorRow);
 
   // History modal event listeners
   historyCloseBtn.addEventListener('click', closeHistoryModal);
