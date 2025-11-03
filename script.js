@@ -2435,18 +2435,339 @@
     }
   }
 
+  // Global search across all sections and categories
+  function renderGlobalSearch(q) {
+    debugLog(`renderGlobalSearch: searching for "${q}"`);
+    
+    const allResults = [];
+    
+    // Search spells (all categories)
+    const spellCategories = Object.keys(spells || {});
+    for (const cat of spellCategories) {
+      const spellList = getMergedData('spells', cat);
+      const filtered = spellList.filter(item => {
+        return item.t.toLowerCase().includes(q) || 
+               (item.s && item.s.toLowerCase().includes(q)) || 
+               (item.a && item.a.toLowerCase().includes(q));
+      });
+      for (const item of filtered) {
+        allResults.push({ section: 'spells', category: cat, item, isAdult: false });
+      }
+    }
+    
+    // Search adult spells (if adult toggle is on)
+    if (adultToggle.checked) {
+      const adultCategories = Object.keys(adultSpells || {});
+      for (const cat of adultCategories) {
+        const adultList = getMergedAdultSpells(cat);
+        const filtered = adultList.filter(item => {
+          return item.t.toLowerCase().includes(q) || 
+                 (item.s && item.s.toLowerCase().includes(q)) || 
+                 (item.a && item.a.toLowerCase().includes(q));
+        });
+        for (const item of filtered) {
+          allResults.push({ section: 'spells', category: cat, item, isAdult: true });
+        }
+      }
+    }
+    
+    // Search bardic (all categories)
+    const bardicCategories = Object.keys(bardic || {});
+    for (const cat of bardicCategories) {
+      const bardicList = getMergedData('bardic', cat);
+      const filtered = bardicList.filter(item => {
+        return item.t.toLowerCase().includes(q) || 
+               (item.s && item.s.toLowerCase().includes(q)) || 
+               (item.a && item.a.toLowerCase().includes(q));
+      });
+      for (const item of filtered) {
+        allResults.push({ section: 'bardic', category: cat, item, isAdult: false });
+      }
+    }
+    
+    // Search mockery (all categories)
+    const mockeryCategories = Object.keys(mockery || {});
+    for (const cat of mockeryCategories) {
+      const mockeryList = getMergedData('mockery', cat);
+      const filtered = mockeryList.filter(item => {
+        return item.t.toLowerCase().includes(q) || 
+               (item.s && item.s.toLowerCase().includes(q)) || 
+               (item.a && item.a.toLowerCase().includes(q));
+      });
+      for (const item of filtered) {
+        allResults.push({ section: 'mockery', category: cat, item, isAdult: false });
+      }
+    }
+    
+    // Search actions (all categories)
+    const actionCategories = Object.keys(characterActions || {});
+    for (const cat of actionCategories) {
+      const actionList = getMergedData('actions', cat);
+      const filtered = actionList.filter(item => {
+        const actionText = typeof item === 'string' ? item : item;
+        return actionText.toLowerCase().includes(q);
+      });
+      for (const item of filtered) {
+        allResults.push({ section: 'actions', category: cat, item, isAdult: false });
+      }
+    }
+    
+    // Apply favorites filter if enabled
+    let filteredResults = allResults;
+    if (favoritesOnly && favoritesOnly.checked) {
+      filteredResults = allResults.filter(result => {
+        if (result.section === 'actions') {
+          const itemId = getItemId('actions', result.item);
+          return favorites.has(itemId);
+        }
+        return isFav(result.item);
+      });
+    }
+    
+    debugLog(`renderGlobalSearch: found ${filteredResults.length} results across all sections`);
+    
+    // Clear content
+    content.innerHTML = '';
+    
+    // Group results by section/category for better organization
+    const grouped = {};
+    for (const result of filteredResults) {
+      const key = `${result.section}/${result.category}`;
+      if (!grouped[key]) {
+        grouped[key] = [];
+      }
+      grouped[key].push(result);
+    }
+    
+    // Render grouped results
+    const sectionOrder = ['spells', 'bardic', 'mockery', 'actions'];
+    const sectionLabels = {
+      spells: '🔮 Spell Parodies',
+      bardic: '✨ Bardic Inspiration',
+      mockery: '🗡️ Vicious Mockery',
+      actions: '🎭 Character Actions'
+    };
+    
+    for (const section of sectionOrder) {
+      const sectionKeys = Object.keys(grouped).filter(k => k.startsWith(section + '/'));
+      if (sectionKeys.length === 0) continue;
+      
+      // Section header
+      const sectionHeader = document.createElement('div');
+      sectionHeader.style.gridColumn = '1 / -1';
+      sectionHeader.style.fontSize = '20px';
+      sectionHeader.style.fontWeight = 'bold';
+      sectionHeader.style.marginTop = '16px';
+      sectionHeader.style.marginBottom = '8px';
+      sectionHeader.style.color = 'var(--accent)';
+      sectionHeader.textContent = sectionLabels[section];
+      content.appendChild(sectionHeader);
+      
+      // Render results for each category in this section
+      for (const key of sectionKeys.sort()) {
+        const [sec, cat] = key.split('/');
+        const categoryResults = grouped[key];
+        
+        // Category header
+        const categoryHeader = document.createElement('div');
+        categoryHeader.style.gridColumn = '1 / -1';
+        categoryHeader.style.fontSize = '16px';
+        categoryHeader.style.fontWeight = '600';
+        categoryHeader.style.marginTop = '12px';
+        categoryHeader.style.marginBottom = '4px';
+        categoryHeader.style.color = 'var(--burnt)';
+        categoryHeader.textContent = `→ ${cat}`;
+        content.appendChild(categoryHeader);
+        
+        // Render cards for this category
+        for (const result of categoryResults) {
+          if (result.section === 'actions') {
+            renderActionCard(result.item, result.category);
+          } else {
+            renderSpellCard(result.item, result.section, result.category, result.isAdult);
+          }
+        }
+      }
+    }
+    
+    // Show empty message if no results
+    if (filteredResults.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'card';
+      empty.style.gridColumn = '1 / -1';
+      empty.textContent = `No results found for "${q}". Try a different search term.`;
+      content.appendChild(empty);
+    }
+  }
+  
+  // Helper function to render a spell/bardic/mockery card in global search
+  function renderSpellCard(item, section, category, isAdult) {
+    const card = document.createElement('article');
+    card.className = 'card';
+    card.tabIndex = 0;
+    
+    const favBtn = document.createElement('button');
+    favBtn.className = 'card__fav';
+    const favOn = isFav(item);
+    favBtn.textContent = favOn ? '★' : '☆';
+    if (favOn) favBtn.classList.add('on');
+    favBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleFav(item, favBtn); });
+    
+    const chip = document.createElement('span');
+    chip.className = 'card__chip';
+    chip.textContent = section === 'spells' ? 'Spell' : (section === 'bardic' ? 'Bardic' : 'Mockery');
+    
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'card__copy';
+    copyBtn.textContent = 'Copy';
+    copyBtn.addEventListener('click', (e) => { e.stopPropagation(); copyLine(item); });
+    
+    // Determine if item is user-added or default
+    const defaults = section === 'spells' ? spells : (section === 'bardic' ? bardic : mockery);
+    const defaultList = defaults[category] || [];
+    const itemId = getItemId(section, item);
+    const isDefaultItem = defaultList.some(x => {
+      return x.t === item.t && x.s === item.s && x.a === item.a;
+    });
+    
+    // Check if it's user-added
+    const fullList = getMergedData(section, category);
+    const fullIndex = fullList.findIndex(x => {
+      return x.t === item.t && x.s === item.s && x.a === item.a && (x.adult === item.adult || (!x.adult && !item.adult));
+    });
+    const defaultCount = defaultList.filter(item => {
+      const itemId = getItemId(section, item);
+      return !(deletedDefaults[section]?.[category] || []).includes(itemId);
+    }).length;
+    const isUserAdded = fullIndex >= defaultCount;
+    let userIndex = isUserAdded ? fullIndex - defaultCount : null;
+    
+    // Edit button
+    const editBtn = document.createElement('button');
+    editBtn.className = 'card__edit';
+    editBtn.textContent = '✎';
+    editBtn.title = 'Edit or delete this item';
+    
+    const isDark = document.body.classList.contains('dark-mode');
+    if (isUserAdded) {
+      card.style.borderLeft = '4px solid #2b6f3a';
+      card.style.background = isDark ? '#2d3d2d' : '#f0f8f0';
+    } else if (isDefaultItem) {
+      card.style.borderLeft = '4px solid #4a90e2';
+      card.style.background = isDark ? '#2d3d4d' : '#f0f4f8';
+    }
+    
+    editBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const itemWithMeta = { ...item, _isDefaultItem: isDefaultItem, _isUserAdded: isUserAdded };
+      if (isAdult) itemWithMeta.adult = true;
+      const editIndex = isUserAdded ? userIndex : (isDefaultItem ? -1 : null);
+      openEditModal(section, category, itemWithMeta, editIndex);
+    });
+    
+    card.appendChild(editBtn);
+    card.addEventListener('click', () => copyLine(item));
+    
+    const p = document.createElement('div');
+    p.textContent = item.t;
+    const meta = document.createElement('div');
+    meta.className = 'card__meta';
+    if (section === 'mockery') {
+      meta.textContent = `Mockery — ${category}`;
+    } else {
+      meta.textContent = `Song: ${item.s} — ${item.a}${item.adult || isAdult ? '  •  Adult' : ''}`;
+    }
+    
+    card.appendChild(favBtn);
+    card.appendChild(copyBtn);
+    card.appendChild(chip);
+    card.appendChild(p);
+    card.appendChild(meta);
+    content.appendChild(card);
+  }
+  
+  // Helper function to render an action card in global search
+  function renderActionCard(action, category) {
+    const card = document.createElement('article');
+    card.className = 'card action-card';
+    card.style.cursor = 'pointer';
+    card.tabIndex = 0;
+    
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'card__copy';
+    copyBtn.textContent = 'Copy';
+    copyBtn.addEventListener('click', (e) => { 
+      e.stopPropagation(); 
+      copyToClipboard(action, 'actions', category);
+    });
+    
+    // Determine if action is user-added or default
+    const defaults = characterActions[category] || [];
+    const itemId = getItemId('actions', action);
+    const deletedIds = deletedDefaults.actions?.[category] || [];
+    const isDeletedDefault = deletedIds.includes(itemId);
+    const isDefaultItem = defaults.includes(action);
+    
+    const fullActions = getMergedData('actions', category);
+    const fullIndex = fullActions.indexOf(action);
+    const filteredDefaultCount = fullActions.length - ((userItems.actions && userItems.actions[category]) ? userItems.actions[category].length : 0);
+    const isUserAdded = fullIndex >= filteredDefaultCount;
+    const userIndex = isUserAdded ? fullIndex - filteredDefaultCount : null;
+    
+    // Edit button
+    const editBtn = document.createElement('button');
+    editBtn.className = 'card__edit';
+    editBtn.textContent = '✎';
+    editBtn.title = 'Edit or delete this item';
+    
+    const isDark = document.body.classList.contains('dark-mode');
+    if (isUserAdded) {
+      card.style.borderLeft = '4px solid #2b6f3a';
+      card.style.background = isDark ? '#2d3d2d' : '#f0f8f0';
+    } else if (isDefaultItem && !isDeletedDefault) {
+      card.style.borderLeft = '4px solid #4a90e2';
+      card.style.background = isDark ? '#2d3d4d' : '#f0f4f8';
+    }
+    
+    editBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const itemWithMeta = { ...action, _isDefaultItem: isDefaultItem, _isUserAdded: isUserAdded };
+      const editIndex = isUserAdded ? userIndex : (isDefaultItem ? -1 : null);
+      openEditModal('actions', category, itemWithMeta, editIndex);
+    });
+    
+    card.appendChild(editBtn);
+    card.addEventListener('click', () => copyToClipboard(action, 'actions', category));
+    
+    const p = document.createElement('div');
+    p.textContent = action;
+    const meta = document.createElement('div');
+    meta.className = 'card__meta';
+    meta.textContent = `Action — ${category}`;
+    
+    card.appendChild(copyBtn);
+    card.appendChild(p);
+    card.appendChild(meta);
+    content.appendChild(card);
+  }
+
   function render() {
     const section = sectionSelect.value;
+    const q = (searchInput.value || '').trim().toLowerCase();
     
-    debugLog(`render() called for section: ${section}`);
+    debugLog(`render() called for section: ${section}, search query: "${q}"`);
+    
+    // If there's a search query, use global search across all sections
+    if (q) {
+      renderGlobalSearch(q);
+      return;
+    }
     
     // Special rendering for character actions
     if (section === 'actions') {
       renderActions();
       return;
     }
-
-    const q = (searchInput.value || '').trim().toLowerCase();
     const cat = categorySelect.value;
     
     if (!cat) {
