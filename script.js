@@ -2885,9 +2885,12 @@
     }
     
     // Render filtered actions
-    const filteredDefaultCount = fullActions.length - (userItems.actions[cat] || []).length;
+    const filteredDefaultCount = fullActions.length - ((userItems.actions && userItems.actions[cat]) ? userItems.actions[cat].length : 0);
     
     debugLog(`renderActions: Starting loop, filteredActions.length=${filteredActions.length}`);
+    debugLog(`renderActions: userItems.actions exists:`, !!userItems.actions);
+    debugLog(`renderActions: userItems.actions[cat] exists:`, !!(userItems.actions && userItems.actions[cat]));
+    debugLog(`renderActions: filteredDefaultCount=${filteredDefaultCount}`);
     
     for (let i = 0; i < filteredActions.length; i++) {
       const action = filteredActions[i];
