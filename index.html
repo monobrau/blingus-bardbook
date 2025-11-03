@@ -20,8 +20,9 @@
   </header>
 
   <nav class="toolbar" aria-label="Controls">
-    <!-- Primary Controls Row -->
-    <div class="toolbar__row toolbar__row--primary">
+    <div class="toolbar__container">
+      <!-- Primary Controls Row -->
+      <div class="toolbar__row toolbar__row--primary">
       <label>Section
         <select id="sectionSelect">
           <option value="spells">Spell Parodies</option>
@@ -70,10 +71,11 @@
       <label id="presetLabel">Voice Preset
         <select id="presetSelect"></select>
       </label>
-    </div>
+      </div>
 
-    <!-- Generator Row (dynamically added) -->
-    <div class="toolbar__row toolbar__row--generators"></div>
+      <!-- Generator Row (dynamically added) -->
+      <div class="toolbar__row toolbar__row--generators"></div>
+    </div>
   </nav>
 
   <main id="content" class="content" aria-live="polite"></main>
