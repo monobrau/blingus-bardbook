@@ -3545,7 +3545,7 @@
       const isDefaultItem = defaults.includes(item);
       const isDeletedDefault = deletedIds.includes(itemId);
       const fullActions = getMergedData('actions', category);
-      const filteredDefaultCount = fullActions.length - (userItems.actions[category] || []).length;
+      const filteredDefaultCount = fullActions.length - ((userItems.actions && userItems.actions[category]) ? userItems.actions[category].length : 0);
       const fullIndex = fullActions.indexOf(item);
       const isUserAdded = fullIndex >= filteredDefaultCount;
       
@@ -3619,6 +3619,9 @@
         return;
       }
       
+      if (!userItems.actions) {
+        userItems.actions = {};
+      }
       if (!userItems.actions[category]) {
         userItems.actions[category] = [];
       }
@@ -3813,7 +3816,7 @@
     const isActions = section === 'actions';
     
     if (isActions) {
-      if (userItems.actions[category]) {
+      if (userItems.actions && userItems.actions[category]) {
         userItems.actions[category].splice(currentEditingIndex, 1);
         if (userItems.actions[category].length === 0) {
           delete userItems.actions[category];
