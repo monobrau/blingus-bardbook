@@ -4897,15 +4897,24 @@
     }
     
     // Handle youtube.com/watch URLs
-    // Try ?v=VIDEO_ID first (common case)
-    const watchMatch1 = url.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/);
-    if (watchMatch1 && watchMatch1[1]) {
-      return watchMatch1[1];
+    // Try to parse using URLSearchParams for reliable extraction
+    try {
+      if (url.includes('youtube.com/watch')) {
+        const urlObj = new URL(url.startsWith('http') ? url : 'https://' + url);
+        const videoId = urlObj.searchParams.get('v');
+        if (videoId && /^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
+          return videoId;
+        }
+      }
+    } catch (e) {
+      // Fall back to regex if URL parsing fails
     }
-    // Try &v=VIDEO_ID (when v is not the first parameter)
-    const watchMatch2 = url.match(/youtube\.com\/watch\?.*&v=([a-zA-Z0-9_-]{11})/);
-    if (watchMatch2 && watchMatch2[1]) {
-      return watchMatch2[1];
+    
+    // Fallback: Use regex to match v=VIDEO_ID in the URL
+    // This handles both ?v=VIDEO_ID and &v=VIDEO_ID cases
+    const watchMatch = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+    if (watchMatch && watchMatch[1]) {
+      return watchMatch[1];
     }
     
     // Handle youtube.com/embed URLs
