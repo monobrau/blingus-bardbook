@@ -2354,17 +2354,53 @@
   // Check if File System Access API is supported (for local use)
   const fileSystemSupported = 'showDirectoryPicker' in window;
   
+  // Check if PHP API is available (even on localhost)
+  // This allows server storage to work even when accessing via localhost
+  let phpApiAvailable = false;
+  async function checkPhpApiAvailability() {
+    if (window.location.protocol === 'file:') {
+      return false; // Can't use PHP API with file:// protocol
+    }
+    try {
+      const response = await fetch(API_ENDPOINT + '?action=load', { method: 'GET' });
+      // If we get a response (even 404/error), PHP is available
+      // 404 means PHP is working but no data file exists yet
+      // Network errors mean PHP is not available
+      phpApiAvailable = response.status !== 0 && !response.type.includes('opaque');
+      return phpApiAvailable;
+    } catch (error) {
+      // Network error or CORS issue - PHP API not available
+      phpApiAvailable = false;
+      return false;
+    }
+  }
+  
   debugLog('Storage mode detection:', {
     isLocalhost,
     isOnServer,
     protocol: window.location.protocol,
     hostname: window.location.hostname,
-    fileSystemSupported
+    fileSystemSupported,
+    phpApiAvailable: 'checking...'
   });
   
   // Initialize file storage - detect mode and load data
   async function initFileStorage() {
-    if (isOnServer) {
+    // Check if PHP API is available (even on localhost)
+    const phpAvailable = await checkPhpApiAvailability();
+    
+    debugLog('Storage mode detection (after PHP check):', {
+      isLocalhost,
+      isOnServer,
+      phpApiAvailable: phpAvailable,
+      willUseServerStorage: phpAvailable || isOnServer
+    });
+    
+    // Update file storage button UI now that we know PHP availability
+    setupFileStorageButton();
+    
+    // Use server storage if PHP API is available OR if we're on a remote server
+    if (phpAvailable || isOnServer) {
       // On server: use server-side API
       return await loadDataFromServer();
     } else {
@@ -2390,7 +2426,8 @@
   
   // Server-side storage functions
   async function saveDataToServer() {
-    if (!isOnServer) return false;
+    // Use server storage if PHP API is available OR if we're on a remote server
+    if (!phpApiAvailable && !isOnServer) return false;
     
     try {
       const data = getAllUserData();
@@ -2460,7 +2497,8 @@
   }
   
   async function loadDataFromServer() {
-    if (!isOnServer) return false;
+    // Use server storage if PHP API is available OR if we're on a remote server
+    if (!phpApiAvailable && !isOnServer) return false;
     
     try {
       const response = await fetch(API_ENDPOINT + '?action=load');
@@ -2686,7 +2724,7 @@
   function scheduleFileSave() {
     if (fileSaveTimeout) clearTimeout(fileSaveTimeout);
     fileSaveTimeout = setTimeout(async () => {
-      if (isOnServer) {
+      if (phpApiAvailable || isOnServer) {
         if (!isSavingToServer) {
           isSavingToServer = true;
           try {
@@ -5860,40 +5898,8 @@
   exportBtn.textContent = '📥 Export';
   exportBtn.addEventListener('click', () => {
       // Export COMPLETE dataset including all defaults and user customizations
-      const data = {
-        // Default content (complete datasets)
-        defaultSpells: spells,
-        defaultAdultSpells: adultSpells,
-        defaultBardic: bardic,
-        defaultMockery: mockery,
-        defaultActions: characterActions,
-        defaultGenerators: {
-          battleCries: battleCries,
-          insults: insults,
-          compliments: compliments
-        },
-        
-        // User preferences
-        favorites: JSON.parse(localStorage.getItem(favoritesKey) || '[]'),
-        darkMode: localStorage.getItem(darkModeKey) === 'true',
-        
-        // User-added content
-        userItems: JSON.parse(localStorage.getItem(userItemsKey) || '{}'),
-        generators: JSON.parse(localStorage.getItem(generatorsKey) || '{"battleCries":[],"insults":[],"compliments":[]}'),
-        
-        // Default item modifications (edits and deletions)
-        deletedDefaults: JSON.parse(localStorage.getItem(deletedDefaultsKey) || '{}'),
-        editedGeneratorDefaults: JSON.parse(localStorage.getItem(editedDefaultsKey) || '{"battleCries":{},"insults":{},"compliments":{}}'),
-        deletedGeneratorDefaults: JSON.parse(localStorage.getItem(deletedGeneratorDefaultsKey) || '{"battleCries":[],"insults":[],"compliments":[]}'),
-        
-        // Usage history
-        history: JSON.parse(localStorage.getItem(historyKey) || '[]'),
-        
-        // Metadata
-        version: '1.2',
-        timestamp: new Date().toISOString(),
-        exportNote: 'Complete export including all default items (spells, bardic, mockery, actions, criticalHits, criticalFailures, generators) plus all user customizations (favorites, custom items, edits, deletions, history).'
-      };
+      // Use getAllUserData() to ensure consistency and include all fields (including YouTube settings)
+      const data = getAllUserData();
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -5936,6 +5942,28 @@
               localStorage.setItem(userItemsKey, JSON.stringify(data.userItems));
               importedCount++;
               importedCategories.push('user items');
+              debugLog('Imported userItems:', data.userItems);
+              // Log YouTube settings specifically for debugging
+              const youtubeItems = [];
+              Object.keys(data.userItems).forEach(section => {
+                if (data.userItems[section]) {
+                  Object.keys(data.userItems[section]).forEach(category => {
+                    if (Array.isArray(data.userItems[section][category])) {
+                      data.userItems[section][category].forEach(item => {
+                        if (item.youtube || item.startTime !== undefined) {
+                          youtubeItems.push({ section, category, item });
+                        }
+                      });
+                    }
+                  });
+                }
+              });
+              if (youtubeItems.length > 0) {
+                console.log('Found YouTube settings in import:', youtubeItems.length, 'items with YouTube data');
+                debugLog('YouTube items:', youtubeItems);
+              } else {
+                console.log('No YouTube settings found in imported userItems');
+              }
             }
             if (data.deletedDefaults !== undefined) {
               localStorage.setItem(deletedDefaultsKey, JSON.stringify(data.deletedDefaults));
@@ -6059,67 +6087,77 @@
   fileStorageBtn.id = 'fileStorageBtn';
   fileStorageBtn.className = 'btn';
   
-  if (isOnServer) {
-    // On server: show server storage status with PHP indicator
-    fileStorageBtn.textContent = '💾 PHP Server Storage';
-    fileStorageBtn.className = 'btn btn--server';
-    fileStorageBtn.title = 'Data is automatically saved to server using PHP API';
-    fileStorageBtn.disabled = false;
-    fileStorageBtn.addEventListener('click', async () => {
-      try {
-        await saveDataToServer();
-        showToast('✓ Data saved to server');
-      } catch (error) {
-        const errorMsg = error.message || 'Unknown error';
-        console.error('Save failed:', errorMsg);
-        showToast(`✗ Failed to save: ${errorMsg}`);
-      }
-    });
+  // Function to setup file storage button UI (called after PHP check)
+  function setupFileStorageButton() {
+    if (!fileStorageBtn) return; // Safety check
     
-    // Add server storage status indicator to footer
-    const footer = $('.footer');
-    if (footer) {
-      const storageStatus = document.createElement('div');
-      storageStatus.id = 'storageStatus';
-      storageStatus.style.cssText = 'margin-top: 8px; font-size: 12px; color: var(--burnt); opacity: 0.8; display: flex; align-items: center; justify-content: center; gap: 6px; text-align: center;';
-      storageStatus.innerHTML = '<span style="color: #667eea;">🔷</span> <strong>Server Storage Active:</strong> Data saved to server via PHP API';
-      footer.appendChild(storageStatus);
-    }
-  } else {
-    // Local: use File System Access API
-    fileStorageBtn.textContent = fileSystemSupported ? '📁 Select Data Folder' : '📁 File Storage (N/A)';
-    fileStorageBtn.title = fileSystemSupported 
-      ? 'Select a folder to store data files (will create a "data" subdirectory)' 
-      : 'File System Access API not supported. Requires Chrome/Edge/Brave (Chromium) and HTTPS or localhost. Firefox/Safari not supported.';
-    fileStorageBtn.disabled = !fileSystemSupported;
-    if (!fileSystemSupported) {
-      fileStorageBtn.addEventListener('click', () => {
-        const browserInfo = navigator.userAgent.includes('Firefox') ? 'Firefox' : 
-                           navigator.userAgent.includes('Brave') ? 'Brave' :
-                           navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome') ? 'Safari' : 'Unknown';
-        const protocol = window.location.protocol;
-        
-        let message = 'File System Access API not available. ';
-        if (browserInfo === 'Firefox') {
-          message += 'Firefox does not support this feature. Please use Chrome, Edge, or Brave.';
-        } else if (protocol === 'http:' && !isLocalhost) {
-          message += 'Requires HTTPS (or localhost). Your site is using HTTP.';
-        } else {
-          message += `Requires Chrome/Edge/Brave browser and HTTPS (or localhost). Detected: ${browserInfo}, Protocol: ${protocol}`;
-        }
-        showToast(message);
-      });
-    } else {
+    if (phpApiAvailable || isOnServer) {
+      // On server: show server storage status with PHP indicator
+      fileStorageBtn.textContent = '💾 PHP Server Storage';
+      fileStorageBtn.className = 'btn btn--server';
+      fileStorageBtn.title = 'Data is automatically saved to server using PHP API';
+      fileStorageBtn.disabled = false;
       fileStorageBtn.addEventListener('click', async () => {
-        const success = await promptForDataDirectory();
-        if (success) {
-          // Save current data to file
-          await saveDataToFile();
-          showToast('✓ Data directory set and data saved');
+        try {
+          await saveDataToServer();
+          showToast('✓ Data saved to server');
+        } catch (error) {
+          const errorMsg = error.message || 'Unknown error';
+          console.error('Save failed:', errorMsg);
+          showToast(`✗ Failed to save: ${errorMsg}`);
         }
       });
+      
+      // Add server storage status indicator to footer
+      const footer = $('.footer');
+      if (footer) {
+        const storageStatus = document.createElement('div');
+        storageStatus.id = 'storageStatus';
+        storageStatus.style.cssText = 'margin-top: 8px; font-size: 12px; color: var(--burnt); opacity: 0.8; display: flex; align-items: center; justify-content: center; gap: 6px; text-align: center;';
+        storageStatus.innerHTML = '<span style="color: #667eea;">🔷</span> <strong>Server Storage Active:</strong> Data saved to server via PHP API';
+        footer.appendChild(storageStatus);
+      }
+    } else {
+      // Local: use File System Access API
+      fileStorageBtn.textContent = fileSystemSupported ? '📁 Select Data Folder' : '📁 File Storage (N/A)';
+      fileStorageBtn.title = fileSystemSupported 
+        ? 'Select a folder to store data files (will create a "data" subdirectory)' 
+        : 'File System Access API not supported. Requires Chrome/Edge/Brave (Chromium) and HTTPS or localhost. Firefox/Safari not supported.';
+      fileStorageBtn.disabled = !fileSystemSupported;
+      if (!fileSystemSupported) {
+        fileStorageBtn.addEventListener('click', () => {
+          const browserInfo = navigator.userAgent.includes('Firefox') ? 'Firefox' : 
+                             navigator.userAgent.includes('Brave') ? 'Brave' :
+                             navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome') ? 'Safari' : 'Unknown';
+          const protocol = window.location.protocol;
+          
+          let message = 'File System Access API not available. ';
+          if (browserInfo === 'Firefox') {
+            message += 'Firefox does not support this feature. Please use Chrome, Edge, or Brave.';
+          } else if (protocol === 'http:' && !isLocalhost) {
+            message += 'Requires HTTPS (or localhost). Your site is using HTTP.';
+          } else {
+            message += `Requires Chrome/Edge/Brave browser and HTTPS (or localhost). Detected: ${browserInfo}, Protocol: ${protocol}`;
+          }
+          showToast(message);
+        });
+      } else {
+        fileStorageBtn.addEventListener('click', async () => {
+          const success = await promptForDataDirectory();
+          if (success) {
+            // Save current data to file
+            await saveDataToFile();
+            showToast('✓ Data directory set and data saved');
+          }
+        });
+      }
     }
   }
+  
+  // Set up button initially with default state (will be updated after PHP check)
+  // Don't call setupFileStorageButton() here - wait for PHP check in initFileStorage()
+  fileStorageBtn.textContent = fileSystemSupported ? '📁 Select Data Folder' : '📁 File Storage (N/A)';
+  fileStorageBtn.disabled = !fileSystemSupported;
 
   generatorRow.appendChild(battleCryBtn);
   generatorRow.appendChild(insultBtn);
