@@ -29,12 +29,31 @@ error_log('Blingus API: POST data = ' . print_r($_POST, true));
 error_log('Blingus API: GET data = ' . print_r($_GET, true));
 
 // Configuration
-$dataDir = __DIR__ . '/../data/';
+// Use realpath to resolve the absolute path properly
+$baseDir = realpath(__DIR__ . '/..') ?: dirname(__DIR__);
+$dataDir = $baseDir . '/data/';
 $dataFile = $dataDir . 'blingus-data.json';
 
+// Get absolute paths for better error messages and reliability
+$absoluteDataDir = realpath($dataDir) ?: $dataDir;
+// Ensure we have a trailing slash
+if (substr($absoluteDataDir, -1) !== '/') {
+    $absoluteDataDir .= '/';
+}
+$absoluteDataFile = $absoluteDataDir . 'blingus-data.json';
+
+// Log the paths for debugging
+error_log('Blingus API: Base directory: ' . $baseDir);
+error_log('Blingus API: Data directory: ' . $absoluteDataDir);
+error_log('Blingus API: Data file: ' . $absoluteDataFile);
+
 // Ensure data directory exists
-if (!is_dir($dataDir)) {
-    mkdir($dataDir, 0755, true);
+if (!is_dir($absoluteDataDir)) {
+    if (!mkdir($absoluteDataDir, 0755, true)) {
+        error_log('Blingus API: Failed to create data directory: ' . $absoluteDataDir);
+    } else {
+        error_log('Blingus API: Created data directory: ' . $absoluteDataDir);
+    }
 }
 
 // Get action from query string, POST data, or JSON body
@@ -88,9 +107,18 @@ try {
             
             $data = $request['data'];
             
+            // Get absolute path for better error messages
+            $absoluteDataDir = realpath($dataDir) ?: $dataDir;
+            $absoluteDataFile = $absoluteDataDir . '/blingus-data.json';
+            
             // Validate data directory is writable
-            if (!is_writable($dataDir) && !is_writable(dirname($dataDir))) {
-                throw new Exception('Data directory is not writable: ' . $dataDir);
+            if (!is_writable($absoluteDataDir) && !is_writable(dirname($absoluteDataDir))) {
+                error_log('Blingus API: Data directory not writable. Path: ' . $absoluteDataDir);
+                error_log('Blingus API: Current user: ' . get_current_user());
+                if (is_dir($absoluteDataDir)) {
+                    error_log('Blingus API: Directory permissions: ' . substr(sprintf('%o', fileperms($absoluteDataDir)), -4));
+                }
+                throw new Exception('Data directory is not writable: ' . $absoluteDataDir . ' (Current user: ' . get_current_user() . ')');
             }
             
             $data['serverTimestamp'] = date('c');
@@ -102,13 +130,13 @@ try {
                 throw new Exception('Failed to encode data as JSON: ' . $jsonError);
             }
             
-            $result = @file_put_contents($dataFile, $json);
+            $result = @file_put_contents($absoluteDataFile, $json);
             if ($result === false) {
                 $error = error_get_last();
-                throw new Exception('Failed to write data file: ' . ($error ? $error['message'] : 'Unknown error') . ' (Path: ' . $dataFile . ')');
+                throw new Exception('Failed to write data file: ' . ($error ? $error['message'] : 'Unknown error') . ' (Path: ' . $absoluteDataFile . ')');
             }
             
-            error_log('Blingus API: Successfully saved ' . strlen($json) . ' bytes to ' . $dataFile);
+            error_log('Blingus API: Successfully saved ' . strlen($json) . ' bytes to ' . $absoluteDataFile);
             
             echo json_encode([
                 'success' => true,
