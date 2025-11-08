@@ -2685,6 +2685,442 @@
     ]
   };
 
+  // Skill Check Results - Success and Failure descriptions
+  const skillChecks = {
+    'Acrobatics - Success': [
+      'I gracefully flip over the obstacle, landing perfectly on my feet',
+      'My body moves like liquid, flowing through the narrow space with ease',
+      'I execute a perfect cartwheel, my feet barely touching the ground',
+      'With a fluid motion, I balance on the narrow beam as if I were born to it',
+      'I tumble through the air, landing in a perfect three-point stance',
+      'My movements are so smooth, I make it look effortless',
+      'I slide under the obstacle with inches to spare, popping up on the other side',
+      'With practiced grace, I leap from surface to surface like a cat',
+      'I contort my body through the opening, every muscle working in perfect harmony',
+      'My acrobatic prowess shines as I navigate the challenge flawlessly'
+    ],
+    'Acrobatics - Failure': [
+      'I attempt a flip but land flat on my back with a loud thud',
+      'My foot slips and I tumble awkwardly to the ground',
+      'I misjudge the distance and crash into the obstacle instead of over it',
+      'My balance fails me completely, and I fall in an undignified heap',
+      'I try to be graceful but end up looking like a flailing chicken',
+      'My acrobatic attempt ends with me sprawled on the ground, dignity lost',
+      'I slip and slide, unable to maintain my footing on the narrow surface',
+      'My body refuses to cooperate, and I fall in a tangle of limbs',
+      'I attempt a cartwheel but lose my balance halfway through',
+      'My acrobatic skills abandon me at the worst possible moment'
+    ],
+    'Animal Handling - Success': [
+      'The creature calms under my gentle touch, recognizing a friend',
+      'I speak softly to the animal, and it responds with trust',
+      'My understanding of animals shines through as the beast relaxes',
+      'The creature recognizes my calm demeanor and approaches willingly',
+      'I read the animal\'s body language perfectly and respond accordingly',
+      'With patience and care, I gain the creature\'s confidence',
+      'The animal senses my good intentions and allows me closer',
+      'I communicate with the beast in a way it understands, earning its trust',
+      'My gentle approach wins over the wary creature',
+      'The animal responds to my soothing presence, calming immediately'
+    ],
+    'Animal Handling - Failure': [
+      'The creature sees me as a threat and backs away, baring its teeth',
+      'My approach startles the animal, causing it to flee',
+      'I misread the creature\'s signals and make it more agitated',
+      'The beast doesn\'t trust me and shows clear signs of aggression',
+      'My attempts to calm the animal only make it more nervous',
+      'The creature sees through my facade and remains wary',
+      'I move too quickly and spook the animal into defensive posture',
+      'The beast doesn\'t respond to my attempts, remaining hostile',
+      'My lack of understanding causes the creature to become aggressive',
+      'The animal senses my uncertainty and refuses to cooperate'
+    ],
+    'Arcana - Success': [
+      'I recognize the magical pattern immediately, understanding its purpose',
+      'My knowledge of arcane theory helps me decipher the enchantment',
+      'The magical energy reveals its secrets to my trained eye',
+      'I identify the spell components and their interactions perfectly',
+      'My arcane expertise allows me to understand the magical phenomenon',
+      'The runes and symbols make perfect sense to my educated mind',
+      'I trace the magical energy flow and understand its source',
+      'My knowledge of magical theory helps me solve the puzzle',
+      'The enchantment\'s purpose becomes clear through my arcane studies',
+      'I recognize the school of magic and its specific application'
+    ],
+    'Arcana - Failure': [
+      'The magical symbols look like gibberish to my untrained eye',
+      'I can\'t make sense of the arcane patterns, despite my best efforts',
+      'The magical energy confuses me, its purpose unclear',
+      'My knowledge fails me, and the enchantment remains a mystery',
+      'The runes might as well be random scribbles for all I understand',
+      'I recognize it\'s magic, but that\'s about all I can determine',
+      'The arcane theory escapes me, leaving me baffled',
+      'My magical education doesn\'t cover this particular phenomenon',
+      'The spell components make no sense in this configuration',
+      'I stare at the magic, completely lost and confused'
+    ],
+    'Athletics - Success': [
+      'I summon all my strength and easily overcome the obstacle',
+      'My muscles strain but hold firm, allowing me to succeed',
+      'With a powerful effort, I lift/push/climb with impressive force',
+      'My physical prowess shines as I complete the feat of strength',
+      'I channel my inner strength and accomplish the task effortlessly',
+      'My body responds perfectly to the physical challenge',
+      'With determination and power, I achieve the athletic feat',
+      'My strength proves more than sufficient for the task',
+      'I execute the physical challenge with impressive skill',
+      'My athletic ability allows me to overcome the obstacle easily'
+    ],
+    'Athletics - Failure': [
+      'My muscles strain but fail me at the critical moment',
+      'I attempt the feat but lack the strength to complete it',
+      'My grip slips, and I fall short of the goal',
+      'I overestimate my abilities and fail spectacularly',
+      'The physical challenge proves too much for my current strength',
+      'My body betrays me, unable to perform the required action',
+      'I strain with all my might but can\'t overcome the obstacle',
+      'My strength fails me, leaving me exhausted and unsuccessful',
+      'I attempt the athletic feat but fall short in every way',
+      'The physical task proves beyond my capabilities'
+    ],
+    'Deception - Success': [
+      'My lie flows smoothly, convincing even myself for a moment',
+      'I weave a believable tale that seems completely authentic',
+      'My deception is so convincing, they don\'t question a word',
+      'I tell the perfect lie, hitting all the right emotional notes',
+      'My false story sounds more believable than the truth',
+      'I craft a deception so smooth, it\'s practically art',
+      'My lie is perfectly tailored to what they want to hear',
+      'I deceive them effortlessly, my words ringing with false sincerity',
+      'My fabricated story holds up under their scrutiny',
+      'I spin a tale so convincing, they accept it without hesitation'
+    ],
+    'Deception - Failure': [
+      'My lie is so transparent, a child could see through it',
+      'I stumble over my words, making my deception obvious',
+      'My story falls apart under the slightest questioning',
+      'I can\'t maintain eye contact, giving away my deception',
+      'My lie contradicts itself, revealing the truth',
+      'I tell such a bad lie, they laugh at my attempt',
+      'My deception is so clumsy, it\'s almost insulting',
+      'I can\'t keep my story straight, contradicting myself repeatedly',
+      'My false tale crumbles immediately under scrutiny',
+      'I attempt to deceive but fail so badly, they see right through me'
+    ],
+    'History - Success': [
+      'I recall the exact details of this historical event',
+      'My knowledge of history provides the perfect context',
+      'I remember reading about this in ancient texts',
+      'The historical significance becomes clear through my studies',
+      'I can place this event precisely in the timeline',
+      'My historical knowledge helps me understand the situation',
+      'I remember the key figures and their roles in this event',
+      'My studies of the past reveal the truth of the matter',
+      'I can connect this to other historical events I\'ve studied',
+      'The historical context makes perfect sense to my educated mind'
+    ],
+    'History - Failure': [
+      'I draw a complete blank on this historical period',
+      'My memory fails me, and I can\'t recall the details',
+      'I think I remember something, but I\'m probably wrong',
+      'The historical context escapes me completely',
+      'I know I studied this, but I can\'t remember any of it',
+      'My historical knowledge doesn\'t cover this particular event',
+      'I confuse this with a different historical period',
+      'I remember something, but I\'m not sure if it\'s relevant',
+      'The historical details are lost in the fog of my memory',
+      'I can\'t place this event in any historical context I know'
+    ],
+    'Insight - Success': [
+      'I read their body language perfectly, understanding their true intentions',
+      'My insight reveals what they\'re really thinking',
+      'I see through their facade to their actual motives',
+      'Their tells are obvious to my trained eye',
+      'I understand their true feelings despite their words',
+      'My insight pierces through their deception',
+      'I can sense their hidden emotions and motivations',
+      'Their body language tells me everything I need to know',
+      'I see the truth behind their carefully constructed mask',
+      'My insight reveals their real intentions clearly'
+    ],
+    'Insight - Failure': [
+      'I completely misread their intentions and body language',
+      'Their true motives remain hidden from my insight',
+      'I can\'t tell if they\'re lying or telling the truth',
+      'Their behavior confuses me, and I draw the wrong conclusions',
+      'I misinterpret their signals completely',
+      'My insight fails me, and I see only what they want me to see',
+      'I can\'t read their true intentions at all',
+      'Their facade is too convincing for my insight to penetrate',
+      'I misjudge their character and motivations entirely',
+      'My insight leads me to completely wrong conclusions'
+    ],
+    'Intimidation - Success': [
+      'My threat lands perfectly, and they visibly shrink back',
+      'I project such menace that they immediately comply',
+      'My intimidating presence makes them reconsider their position',
+      'They recognize the danger in my words and back down',
+      'My threat is so convincing, they believe every word',
+      'I loom over them, making my point with terrifying clarity',
+      'My intimidating demeanor leaves no doubt about the consequences',
+      'They crumble under my menacing presence',
+      'My threat strikes fear into their heart',
+      'I make it clear that crossing me would be a terrible mistake'
+    ],
+    'Intimidation - Failure': [
+      'My threat falls flat, and they laugh at my attempt',
+      'I try to be intimidating but come across as comical instead',
+      'My attempt at menace fails spectacularly',
+      'They see through my bluster and aren\'t impressed',
+      'I try to intimidate but only succeed in looking foolish',
+      'My threatening words sound weak and unconvincing',
+      'They aren\'t fazed by my attempt at intimidation',
+      'I fail to project the menace I intended',
+      'My intimidation attempt backfires, making me look pathetic',
+      'They see my threat as empty and ignore it completely'
+    ],
+    'Investigation - Success': [
+      'I notice the crucial detail that everyone else missed',
+      'My careful examination reveals the hidden clue',
+      'I piece together the evidence to form a clear picture',
+      'My investigation uncovers the truth others overlooked',
+      'I find the key piece of information that solves the puzzle',
+      'My attention to detail reveals what was hidden in plain sight',
+      'I connect the dots that others couldn\'t see',
+      'My thorough investigation pays off with important discoveries',
+      'I examine the evidence and understand what really happened',
+      'My investigative skills reveal the secrets others missed'
+    ],
+    'Investigation - Failure': [
+      'I search thoroughly but find nothing of value',
+      'My investigation misses the crucial detail right in front of me',
+      'I can\'t make sense of the evidence, no matter how hard I try',
+      'The clues don\'t add up, and I draw the wrong conclusions',
+      'I search in all the wrong places, finding nothing useful',
+      'My investigation leads me down the wrong path',
+      'I miss the obvious clue that would solve everything',
+      'The evidence confuses me, and I can\'t piece it together',
+      'I investigate but come up empty-handed',
+      'My search reveals nothing, leaving me frustrated and clueless'
+    ],
+    'Medicine - Success': [
+      'I diagnose the problem accurately and know exactly how to treat it',
+      'My medical knowledge helps me stabilize the condition',
+      'I recognize the symptoms and apply the correct treatment',
+      'My healing skills prove effective in treating the ailment',
+      'I identify the cause and know the proper remedy',
+      'My medical expertise allows me to help effectively',
+      'I assess the injury correctly and treat it appropriately',
+      'My knowledge of medicine guides me to the right solution',
+      'I recognize what\'s wrong and how to fix it',
+      'My healing touch and knowledge combine to help the patient'
+    ],
+    'Medicine - Failure': [
+      'I misdiagnose the problem completely',
+      'My medical knowledge fails me, and I can\'t help',
+      'I have no idea what\'s wrong or how to treat it',
+      'My attempts at healing only make things worse',
+      'I confuse the symptoms and apply the wrong treatment',
+      'My medical knowledge doesn\'t cover this particular ailment',
+      'I can\'t figure out what\'s wrong, despite my best efforts',
+      'My healing attempts are ineffective and possibly harmful',
+      'I misread the symptoms and make the wrong diagnosis',
+      'My medical skills prove inadequate for the situation'
+    ],
+    'Nature - Success': [
+      'I recognize the plant/animal/terrain immediately from my studies',
+      'My knowledge of nature helps me understand the environment',
+      'I identify the natural phenomenon and its significance',
+      'My understanding of the natural world reveals important information',
+      'I know exactly what this is and how it behaves',
+      'My nature knowledge helps me navigate and understand',
+      'I recognize the signs and what they mean',
+      'My studies of nature provide the perfect insight',
+      'I understand the natural world\'s workings here',
+      'My knowledge of nature guides me to the right conclusion'
+    ],
+    'Nature - Failure': [
+      'I have no idea what this plant/animal/terrain is',
+      'My nature knowledge fails me completely',
+      'I can\'t identify the natural phenomenon at all',
+      'The environment confuses me, and I draw wrong conclusions',
+      'I misidentify what I\'m looking at',
+      'My understanding of nature doesn\'t help here',
+      'I can\'t make sense of the natural signs around me',
+      'My nature studies don\'t cover this particular subject',
+      'I misread the natural environment completely',
+      'The natural world remains a mystery to me in this case'
+    ],
+    'Perception - Success': [
+      'I notice the detail that everyone else missed',
+      'My sharp eyes catch what others overlooked',
+      'I spot the hidden thing immediately',
+      'My perception reveals what was concealed',
+      'I notice something important that changes everything',
+      'My keen senses alert me to the crucial detail',
+      'I see what others couldn\'t, thanks to my sharp perception',
+      'My attention to detail pays off with an important discovery',
+      'I notice the subtle clue that others missed',
+      'My perception cuts through the distractions to the truth'
+    ],
+    'Perception - Failure': [
+      'I miss the obvious thing right in front of me',
+      'My perception fails me, and I notice nothing',
+      'I\'m so distracted that I miss everything important',
+      'The crucial detail escapes my notice completely',
+      'I look but don\'t see what I should',
+      'My perception is clouded, and I miss the important details',
+      'I fail to notice what\'s right there in plain sight',
+      'My attention wanders, and I miss everything',
+      'I can\'t focus, and important details slip past me',
+      'My perception betrays me, leaving me blind to the obvious'
+    ],
+    'Performance - Success': [
+      'My performance captivates the audience completely',
+      'I deliver a flawless performance that moves the crowd',
+      'My artistic skill shines through in every note/word/gesture',
+      'I perform so well that the audience is spellbound',
+      'My performance is so good, it brings tears to their eyes',
+      'I execute the performance perfectly, earning admiration',
+      'My artistic talent creates a truly memorable experience',
+      'I perform with such skill that the audience is amazed',
+      'My performance exceeds expectations in every way',
+      'I deliver a performance that will be remembered for years'
+    ],
+    'Performance - Failure': [
+      'My performance falls completely flat',
+      'I forget the words/notes and stumble awkwardly',
+      'My artistic attempt is met with awkward silence',
+      'I perform so badly that people look away in embarrassment',
+      'My performance is a complete disaster',
+      'I try to perform but fail spectacularly',
+      'My artistic skills abandon me at the worst moment',
+      'I deliver a performance so bad, it\'s painful to watch',
+      'I stumble through the performance, making multiple mistakes',
+      'My performance is so awkward, the audience cringes'
+    ],
+    'Persuasion - Success': [
+      'My words strike the perfect chord, and they agree',
+      'I present my argument so convincingly that they\'re won over',
+      'My persuasion is so effective, they change their mind',
+      'I find exactly the right words to convince them',
+      'My argument is so compelling, they can\'t refuse',
+      'I persuade them effortlessly with perfect logic and charm',
+      'My words work like magic, winning them over completely',
+      'I convince them so thoroughly, they wonder why they ever disagreed',
+      'My persuasion skills prove more than sufficient',
+      'I make my case so well that they agree without hesitation'
+    ],
+    'Persuasion - Failure': [
+      'My argument falls flat, and they remain unconvinced',
+      'I try to persuade but only make them more resistant',
+      'My words fail to have any impact on their opinion',
+      'I present my case poorly, and they reject it completely',
+      'My persuasion attempt backfires, making them more stubborn',
+      'I can\'t find the right words to convince them',
+      'My argument is weak, and they see right through it',
+      'I try to persuade but only succeed in annoying them',
+      'My words have no effect, and they remain unmoved',
+      'I fail to make my case, and they dismiss me entirely'
+    ],
+    'Religion - Success': [
+      'I recall the exact religious doctrine that applies here',
+      'My knowledge of religion provides the perfect insight',
+      'I remember the sacred texts that explain this situation',
+      'My religious studies help me understand the divine significance',
+      'I recognize the religious symbol/ritual and its meaning',
+      'My knowledge of faith guides me to the right understanding',
+      'I recall the theological principle that explains everything',
+      'My religious education provides the perfect context',
+      'I understand the divine purpose behind this situation',
+      'My knowledge of religion reveals the truth'
+    ],
+    'Religion - Failure': [
+      'I draw a complete blank on this religious matter',
+      'My religious knowledge fails me completely',
+      'I can\'t remember the relevant doctrine or text',
+      'The religious significance escapes my understanding',
+      'I think I know something, but I\'m probably wrong',
+      'My religious studies don\'t cover this particular subject',
+      'I confuse this with a different religious tradition',
+      'The theological meaning is lost on me',
+      'I can\'t make sense of the religious context',
+      'My knowledge of religion doesn\'t help me here'
+    ],
+    'Sleight of Hand - Success': [
+      'My fingers move so quickly, no one notices what I did',
+      'I execute the sleight perfectly, completely undetected',
+      'My dexterous hands work their magic flawlessly',
+      'I perform the trick so smoothly, it\'s invisible',
+      'My sleight of hand is so good, it\'s like magic',
+      'I accomplish the task without anyone being the wiser',
+      'My fingers work with perfect precision and speed',
+      'I execute the sleight flawlessly, leaving no trace',
+      'My dexterity allows me to succeed completely unnoticed',
+      'I perform the sleight so well, it\'s as if it never happened'
+    ],
+    'Sleight of Hand - Failure': [
+      'I fumble the sleight, making it completely obvious',
+      'My fingers betray me, and everyone sees what I did',
+      'I drop what I\'m trying to manipulate, revealing my attempt',
+      'My sleight of hand fails spectacularly',
+      'I try to be subtle but only succeed in being clumsy',
+      'My dexterity fails me, and I\'m caught red-handed',
+      'I attempt the sleight but make it painfully obvious',
+      'My fingers refuse to cooperate, ruining the attempt',
+      'I fumble so badly that everyone notices',
+      'My sleight of hand is so clumsy, it\'s embarrassing'
+    ],
+    'Stealth - Success': [
+      'I move like a shadow, completely undetected',
+      'My stealth is so perfect, I\'m practically invisible',
+      'I blend into the environment seamlessly',
+      'My movements are silent and undetectable',
+      'I slip past unnoticed, like a ghost',
+      'My stealth skills allow me to move unseen',
+      'I become one with the shadows, completely hidden',
+      'My careful movements keep me perfectly concealed',
+      'I move so quietly and carefully, no one notices',
+      'My stealth is flawless, and I remain completely undetected'
+    ],
+    'Stealth - Failure': [
+      'I step on something loud, alerting everyone to my presence',
+      'My stealth attempt fails completely, and I\'m spotted immediately',
+      'I make so much noise that stealth becomes impossible',
+      'I try to hide but stick out like a sore thumb',
+      'My clumsy movements give away my position',
+      'I attempt stealth but only succeed in being obvious',
+      'I make a noise that alerts everyone to my presence',
+      'My stealth skills abandon me at the worst moment',
+      'I try to be sneaky but only succeed in being loud',
+      'My attempt at stealth is a complete failure'
+    ],
+    'Survival - Success': [
+      'I read the signs perfectly and know exactly what to do',
+      'My survival skills guide me to the right decision',
+      'I recognize the danger and know how to avoid it',
+      'My knowledge of survival helps me navigate safely',
+      'I find exactly what I need using my survival expertise',
+      'My survival instincts prove correct',
+      'I understand the environment and how to thrive in it',
+      'My survival knowledge keeps me safe and prepared',
+      'I read the natural signs and respond appropriately',
+      'My survival skills allow me to succeed in the wilderness'
+    ],
+    'Survival - Failure': [
+      'I misread the signs and make the wrong decision',
+      'My survival knowledge fails me completely',
+      'I can\'t find what I need, despite my best efforts',
+      'I make a survival mistake that could be dangerous',
+      'My survival instincts lead me astray',
+      'I misjudge the situation and choose poorly',
+      'My survival skills don\'t help me here',
+      'I fail to recognize the danger until it\'s too late',
+      'I make a critical survival error',
+      'My knowledge of survival proves inadequate'
+    ]
+  };
+
   const $ = (sel, root = document) => root.querySelector(sel);
   const content = $('#content');
   
@@ -3163,6 +3599,7 @@
       defaultActions: characterActions,
       defaultCriticalHits: criticalHits,
       defaultCriticalFailures: criticalFailures,
+      defaultSkillChecks: skillChecks,
       defaultGenerators: {
         battleCries: battleCries,
         insults: insults,
@@ -3188,7 +3625,7 @@
       // Metadata
       version: '1.3',
       timestamp: new Date().toISOString(),
-      exportNote: 'Complete export including all default items (spells, bardic, mockery, actions, criticalHits, criticalFailures, generators) plus all user customizations (favorites, custom items, edits, deletions, history, YouTube karaoke settings).'
+      exportNote: 'Complete export including all default items (spells, bardic, mockery, actions, criticalHits, criticalFailures, skillChecks, generators) plus all user customizations (favorites, custom items, edits, deletions, history, YouTube karaoke settings).'
     };
   }
   
@@ -3298,7 +3735,7 @@
   function loadUserItems() {
     try {
       const raw = localStorage.getItem(userItemsKey);
-      const defaultStructure = { spells: {}, adultSpells: {}, bardic: {}, mockery: {}, actions: {}, criticalHits: {}, criticalFailures: {} };
+      const defaultStructure = { spells: {}, adultSpells: {}, bardic: {}, mockery: {}, actions: {}, criticalHits: {}, criticalFailures: {}, skillChecks: {} };
       if (!raw) {
         return defaultStructure;
       }
@@ -3311,11 +3748,12 @@
         mockery: parsed.mockery || {},
         actions: parsed.actions || {},
         criticalHits: parsed.criticalHits || {},
-        criticalFailures: parsed.criticalFailures || {}
+        criticalFailures: parsed.criticalFailures || {},
+        skillChecks: parsed.skillChecks || {}
       };
     } catch(e) {
       console.error('Error loading user items:', e);
-      return { spells: {}, adultSpells: {}, bardic: {}, mockery: {}, actions: {}, criticalHits: {}, criticalFailures: {} };
+      return { spells: {}, adultSpells: {}, bardic: {}, mockery: {}, actions: {}, criticalHits: {}, criticalFailures: {}, skillChecks: {} };
     }
   }
   
@@ -3324,7 +3762,7 @@
     try {
       const raw = localStorage.getItem(deletedDefaultsKey);
       if (!raw) {
-        return { spells: {}, adultSpells: {}, bardic: {}, mockery: {}, actions: {}, criticalHits: {}, criticalFailures: {} };
+        return { spells: {}, adultSpells: {}, bardic: {}, mockery: {}, actions: {}, criticalHits: {}, criticalFailures: {}, skillChecks: {} };
       }
       const parsed = JSON.parse(raw);
       // Ensure structure is correct
@@ -3481,7 +3919,7 @@
   
   // Generate unique ID for an item
   function getItemId(section, item) {
-    if (section === 'actions' || section === 'criticalHits' || section === 'criticalFailures') {
+    if (section === 'actions' || section === 'criticalHits' || section === 'criticalFailures' || section === 'skillChecks') {
       return typeof item === 'string' ? item : '';
     }
     return `${item.t}|${item.s}|${item.a}|${item.adult ? '1' : '0'}`;
@@ -3546,6 +3984,7 @@
       : section === 'actions' ? characterActions
       : section === 'criticalHits' ? criticalHits
       : section === 'criticalFailures' ? criticalFailures
+      : section === 'skillChecks' ? skillChecks
       : mockery;
     
     const defaultList = (defaults[category] || []);
@@ -3676,6 +4115,7 @@
       debugLog('buildCategories: characterActions defined?', typeof characterActions !== 'undefined');
       debugLog('buildCategories: criticalHits defined?', typeof criticalHits !== 'undefined');
       debugLog('buildCategories: criticalFailures defined?', typeof criticalFailures !== 'undefined');
+      debugLog('buildCategories: skillChecks defined?', typeof skillChecks !== 'undefined');
       
       if (section === 'spells') {
         cats = typeof spells !== 'undefined' && spells ? Object.keys(spells) : [];
@@ -3692,6 +4132,9 @@
       } else if (section === 'criticalFailures') {
         cats = typeof criticalFailures !== 'undefined' && criticalFailures ? Object.keys(criticalFailures) : [];
         debugLog('buildCategories: criticalFailures keys =', cats);
+      } else if (section === 'skillChecks') {
+        cats = typeof skillChecks !== 'undefined' && skillChecks ? Object.keys(skillChecks) : [];
+        debugLog('buildCategories: skillChecks keys =', cats);
       } else {
         cats = typeof mockery !== 'undefined' && mockery ? Object.keys(mockery) : [];
         debugLog('buildCategories: mockery keys =', cats);
@@ -3745,6 +4188,10 @@
     } else if (section === 'criticalFailures') {
       const result = getMergedData('criticalFailures', cat);
       debugLog(`getActiveList criticalFailures: result=${result.length}`);
+      return result;
+    } else if (section === 'skillChecks') {
+      const result = getMergedData('skillChecks', cat);
+      debugLog(`getActiveList skillChecks: result=${result.length}`);
       return result;
     } else {
       const result = getMergedData('mockery', cat);
@@ -3854,11 +4301,24 @@
       }
     }
     
+    // Search skill checks (all categories)
+    const skillCheckCategories = Object.keys(skillChecks || {});
+    for (const cat of skillCheckCategories) {
+      const skillCheckList = getMergedData('skillChecks', cat);
+      const filtered = skillCheckList.filter(item => {
+        const skillText = typeof item === 'string' ? item : item;
+        return skillText.toLowerCase().includes(q);
+      });
+      for (const item of filtered) {
+        allResults.push({ section: 'skillChecks', category: cat, item, isAdult: false });
+      }
+    }
+    
     // Apply favorites filter if enabled
     let filteredResults = allResults;
     if (favoritesOnly && favoritesOnly.checked) {
       filteredResults = allResults.filter(result => {
-        if (result.section === 'actions' || result.section === 'criticalHits' || result.section === 'criticalFailures') {
+        if (result.section === 'actions' || result.section === 'criticalHits' || result.section === 'criticalFailures' || result.section === 'skillChecks') {
           const itemId = getItemId(result.section, result.item);
           return favorites.has(itemId);
         }
@@ -3882,14 +4342,15 @@
     }
     
     // Render grouped results
-    const sectionOrder = ['spells', 'bardic', 'mockery', 'actions', 'criticalHits', 'criticalFailures'];
+    const sectionOrder = ['spells', 'bardic', 'mockery', 'actions', 'criticalHits', 'criticalFailures', 'skillChecks'];
     const sectionLabels = {
       spells: '🔮 Spell Parodies',
       bardic: '✨ Bardic Inspiration',
       mockery: '🗡️ Vicious Mockery',
       actions: '🎭 Character Actions',
       criticalHits: '⚔️ Critical Hit Descriptions',
-      criticalFailures: '💥 Critical Failure Descriptions'
+      criticalFailures: '💥 Critical Failure Descriptions',
+      skillChecks: '🎯 Skill Check Results'
     };
     
     for (const section of sectionOrder) {
@@ -3930,6 +4391,8 @@
           } else if (result.section === 'criticalHits') {
             renderActionCard(result.item, result.category);
           } else if (result.section === 'criticalFailures') {
+            renderActionCard(result.item, result.category);
+          } else if (result.section === 'skillChecks') {
             renderActionCard(result.item, result.category);
           } else {
             renderSpellCard(result.item, result.section, result.category, result.isAdult);
@@ -4126,6 +4589,12 @@
     // Special rendering for critical failures
     if (section === 'criticalFailures') {
       renderCriticalFailures();
+      return;
+    }
+    
+    // Special rendering for skill checks
+    if (section === 'skillChecks') {
+      renderSkillChecks();
       return;
     }
     const cat = categorySelect.value;
@@ -5162,6 +5631,200 @@
     }
   }
 
+  function renderSkillChecks() {
+    const cat = categorySelect.value;
+    const q = (searchInput.value || '').trim().toLowerCase();
+    
+    if (!cat) {
+      console.warn('renderSkillChecks: No category selected');
+      content.innerHTML = '<div class="card">Please select a category</div>';
+      if (categorySelect.options.length === 0) {
+        buildCategories();
+        if (categorySelect.options.length > 0) {
+          categorySelect.selectedIndex = 0;
+          setTimeout(() => renderSkillChecks(), RENDER_DELAY_MS);
+        }
+      }
+      return;
+    }
+    
+    // Get merged skill checks (defaults + user items, excluding deleted)
+    const fullChecks = getMergedData('skillChecks', cat);
+    const defaults = skillChecks[cat] || [];
+    let filteredChecks = fullChecks;
+    
+    debugLog(`renderSkillChecks: category=${cat}, fullChecks=${fullChecks.length}, defaults=${defaults.length}`);
+    
+    if (q) {
+      filteredChecks = fullChecks.filter(c => c.toLowerCase().includes(q));
+      debugLog(`renderSkillChecks: after search filter, filteredChecks=${filteredChecks.length}`);
+    }
+    
+    // Apply favorites filter if enabled
+    if (favoritesOnly && favoritesOnly.checked) {
+      filteredChecks = filteredChecks.filter(check => {
+        const itemId = getItemId('skillChecks', check);
+        return favorites.has(itemId);
+      });
+      debugLog(`renderSkillChecks: after favorites filter, filteredChecks=${filteredChecks.length}`);
+    }
+    
+    debugLog(`renderSkillChecks: final filteredChecks=${filteredChecks.length}, will render ${filteredChecks.length} cards`);
+    
+    content.innerHTML = '';
+    
+    // Add random button at the top (uses full list, not filtered)
+    if (fullChecks.length > 0) {
+      const randomCard = document.createElement('article');
+      randomCard.className = 'card';
+      randomCard.style.background = 'linear-gradient(135deg, #f7e7c4 0%, #fff9eb 100%)';
+      randomCard.style.border = '2px solid var(--accent)';
+      
+      const randomBtn = document.createElement('button');
+      randomBtn.className = 'btn';
+      randomBtn.style.width = '100%';
+      randomBtn.style.padding = '16px';
+      randomBtn.style.fontSize = '18px';
+      randomBtn.style.fontWeight = 'bold';
+      randomBtn.textContent = '🎲 Random Skill Check 🎲';
+      randomBtn.addEventListener('click', () => {
+        const randomCheck = fullChecks[Math.floor(Math.random() * fullChecks.length)];
+        
+        // Check if the selected check is in the filtered results
+        const isInFiltered = filteredChecks.includes(randomCheck);
+        
+        // Find and highlight the selected check card if it's visible
+        const allCards = content.querySelectorAll('.skill-check-card');
+        let selectedCard = null;
+        for (const card of allCards) {
+          const checkDiv = card.querySelector('[data-check-text]');
+          if (checkDiv && checkDiv.dataset.checkText === randomCheck) {
+            selectedCard = card;
+            break;
+          }
+        }
+        
+        if (selectedCard) {
+          // Remove previous highlights
+          allCards.forEach(c => c.classList.remove('highlighted'));
+          
+          // Highlight the selected card
+          selectedCard.classList.add('highlighted');
+          
+          // Scroll to the card
+          selectedCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          
+          // Remove highlight after 5 seconds
+          setTimeout(() => {
+            selectedCard.classList.remove('highlighted');
+          }, TOAST_DURATION_MS);
+          
+          showToast(`Random: ${randomCheck}`);
+        } else if (!isInFiltered) {
+          showToast(`Random: ${randomCheck} (not in current filter)`);
+        } else {
+          showToast(`Random: ${randomCheck}`);
+        }
+        copyToClipboard(randomCheck, 'skillChecks', cat);
+      });
+      
+      const randomHint = document.createElement('div');
+      randomHint.style.marginTop = '8px';
+      randomHint.style.fontSize = '14px';
+      randomHint.style.opacity = '0.7';
+      randomHint.style.textAlign = 'center';
+      randomHint.textContent = 'Click to get a random skill check result and copy it!';
+      
+      randomCard.appendChild(randomBtn);
+      randomCard.appendChild(randomHint);
+      content.appendChild(randomCard);
+    }
+    
+    // Render filtered skill checks
+    const filteredDefaultCount = fullChecks.length - ((userItems.skillChecks && userItems.skillChecks[cat]) ? userItems.skillChecks[cat].length : 0);
+    
+    debugLog(`renderSkillChecks: Starting loop, filteredChecks.length=${filteredChecks.length}`);
+    
+    for (let i = 0; i < filteredChecks.length; i++) {
+      const check = filteredChecks[i];
+      // Find the index in the full list (not filtered)
+      const fullIndex = fullChecks.indexOf(check);
+      
+      // Check if this is a default item
+      const itemId = getItemId('skillChecks', check);
+      const isDefaultItem = defaults.includes(check);
+      const deletedIds = deletedDefaults.skillChecks?.[cat] || [];
+      const isDeletedDefault = deletedIds.includes(itemId);
+      
+      const isUserAdded = fullIndex >= filteredDefaultCount;
+      const userIndex = isUserAdded ? fullIndex - filteredDefaultCount : null;
+      
+      const card = document.createElement('article');
+      card.className = 'card skill-check-card';
+      card.style.cursor = 'pointer';
+      
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'card__copy';
+      copyBtn.textContent = 'Copy';
+      copyBtn.addEventListener('click', (e) => { 
+        e.stopPropagation(); 
+        content.querySelectorAll('.skill-check-card').forEach(c => c.classList.remove('highlighted'));
+        copyToClipboard(check, 'skillChecks', cat);
+      });
+      
+      // Add edit button for ALL items
+      const editBtn = document.createElement('button');
+      editBtn.className = 'card__edit';
+      editBtn.textContent = '✎';
+      editBtn.title = 'Edit or delete this item';
+      
+      // Visual indicator
+      const isDark = document.body.classList.contains('dark-mode');
+      if (isUserAdded) {
+        card.style.borderLeft = '4px solid #2b6f3a';
+        card.style.background = isDark ? '#2d3d2d' : '#f0f8f0';
+      } else if (isDefaultItem && !isDeletedDefault) {
+        card.style.borderLeft = '4px solid #4a90e2';
+        card.style.background = isDark ? '#2d3d4d' : '#f0f4f8';
+      }
+      
+      editBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const checkObj = typeof check === 'string' ? check : check;
+        const editIndex = isUserAdded ? userIndex : (isDefaultItem ? -1 : null);
+        openEditModal('skillChecks', cat, checkObj, editIndex);
+      });
+      card.appendChild(editBtn);
+      
+      card.addEventListener('click', () => {
+        content.querySelectorAll('.skill-check-card').forEach(c => c.classList.remove('highlighted'));
+        copyToClipboard(check, 'skillChecks', cat);
+      });
+
+      const p = document.createElement('div');
+      p.textContent = check;
+      p.style.fontSize = '16px';
+      p.style.lineHeight = '1.6';
+      p.dataset.checkText = check; // Add data attribute for easier lookup
+      
+      const meta = document.createElement('div');
+      meta.className = 'card__meta';
+      meta.textContent = `Skill Check — ${cat}`;
+
+      card.appendChild(copyBtn);
+      card.appendChild(p);
+      card.appendChild(meta);
+      content.appendChild(card);
+    }
+    
+    if (!filteredChecks.length) {
+      const empty = document.createElement('div');
+      empty.className = 'card';
+      empty.textContent = 'No results. Try another category or search term.';
+      content.appendChild(empty);
+    }
+  }
+
   // History tracking functions
   function loadHistory() {
     try {
@@ -5680,7 +6343,7 @@
     try {
       const section = sectionSelect.value;
       const category = categorySelect.value;
-      const text = (section === 'actions' || section === 'criticalHits' || section === 'criticalFailures') ? item : `${item.t} (Song: ${item.s} — ${item.a})`;
+      const text = (section === 'actions' || section === 'criticalHits' || section === 'criticalFailures' || section === 'skillChecks') ? item : `${item.t} (Song: ${item.s} — ${item.a})`;
       await navigator.clipboard.writeText(text);
       addToHistory(text, section, category);
       showToast('Copied to clipboard');
@@ -5704,11 +6367,13 @@
     currentEditingIndex = userIndex;
     
     // Store item metadata separately for actions/criticalHits/criticalFailures (since they're strings)
-    if ((section === 'actions' || section === 'criticalHits' || section === 'criticalFailures') && typeof item === 'string') {
+    if ((section === 'actions' || section === 'criticalHits' || section === 'criticalFailures' || section === 'skillChecks') && typeof item === 'string') {
       // Check if it's a default item
       const defaults = section === 'actions' ? (characterActions[category] || []) 
         : section === 'criticalHits' ? (criticalHits[category] || [])
-        : (criticalFailures[category] || []);
+        : section === 'criticalFailures' ? (criticalFailures[category] || [])
+        : section === 'skillChecks' ? (skillChecks[category] || [])
+        : [];
       const itemId = getItemId(section, item);
       const deletedIds = deletedDefaults[section]?.[category] || [];
       const isDefaultItem = defaults.includes(item);
@@ -5727,7 +6392,7 @@
       currentEditingItem = item;
     }
     
-    const isActions = section === 'actions' || section === 'criticalHits' || section === 'criticalFailures';
+    const isActions = section === 'actions' || section === 'criticalHits' || section === 'criticalFailures' || section === 'skillChecks';
     const isEditing = (userIndex !== null && userIndex !== undefined && userIndex >= 0) || (userIndex === -1);
     
     modalTitle.textContent = isEditing ? 'Edit Item' : 'Add New Item';
@@ -5827,14 +6492,14 @@
     
     console.log('✓ Section and category validated:', section, category);
     
-    const isActions = section === 'actions' || section === 'criticalHits' || section === 'criticalFailures';
+    const isActions = section === 'actions' || section === 'criticalHits' || section === 'criticalFailures' || section === 'skillChecks';
     const isDefaultItem = currentEditingItem?._isDefaultItem;
     const isUserAdded = currentEditingItem?._isUserAdded;
     
     if (isActions) {
       const text = editText.value.trim();
       if (!text) {
-        const sectionName = section === 'actions' ? 'action' : (section === 'criticalHits' ? 'critical hit' : 'critical failure');
+        const sectionName = section === 'actions' ? 'action' : (section === 'criticalHits' ? 'critical hit' : (section === 'criticalFailures' ? 'critical failure' : 'skill check'));
         showToast(`Please enter ${sectionName} text`);
         return;
       }
@@ -5849,7 +6514,7 @@
       if (currentEditingIndex !== null && currentEditingIndex !== undefined && currentEditingIndex >= 0) {
         // Editing existing user item
         userItems[section][category][currentEditingIndex] = text;
-        const sectionName = section === 'actions' ? 'Action' : (section === 'criticalHits' ? 'Critical hit' : 'Critical failure');
+        const sectionName = section === 'actions' ? 'Action' : (section === 'criticalHits' ? 'Critical hit' : (section === 'criticalFailures' ? 'Critical failure' : 'Skill check'));
         showToast(`${sectionName} updated`);
       } else if (currentEditingIndex === -1 && isDefaultItem) {
         // Editing a default item - hide original and add edited version
@@ -5866,12 +6531,12 @@
         }
         userItems[section][category].push(text);
         saveDeletedDefaults(deletedDefaults);
-        const sectionName = section === 'actions' ? 'action' : (section === 'criticalHits' ? 'critical hit' : 'critical failure');
+        const sectionName = section === 'actions' ? 'action' : (section === 'criticalHits' ? 'critical hit' : (section === 'criticalFailures' ? 'critical failure' : 'skill check'));
         showToast(`Default ${sectionName} edited (original hidden)`);
       } else {
         // Adding new
         userItems[section][category].push(text);
-        const sectionName = section === 'actions' ? 'Action' : (section === 'criticalHits' ? 'Critical hit' : 'Critical failure');
+        const sectionName = section === 'actions' ? 'Action' : (section === 'criticalHits' ? 'Critical hit' : (section === 'criticalFailures' ? 'Critical failure' : 'Skill check'));
         showToast(`${sectionName} added`);
       }
     } else {
@@ -6160,7 +6825,7 @@
       return;
     }
     
-    const isActions = section === 'actions' || section === 'criticalHits' || section === 'criticalFailures';
+    const isActions = section === 'actions' || section === 'criticalHits' || section === 'criticalFailures' || section === 'skillChecks';
     
     if (isActions) {
       if (userItems[section] && userItems[section][category]) {
@@ -6244,6 +6909,8 @@
       renderCriticalHits();
     } else if (section === 'criticalFailures') {
       renderCriticalFailures();
+    } else if (section === 'skillChecks') {
+      renderSkillChecks();
     } else {
       render();
     }
@@ -6274,7 +6941,7 @@
   addEditBtn.addEventListener('click', () => {
     const section = sectionSelect.value;
     const category = categorySelect.value;
-    if (section === 'actions') {
+    if (section === 'actions' || section === 'criticalHits' || section === 'criticalFailures' || section === 'skillChecks') {
       openEditModal(section, category, null, null);
     } else {
       openEditModal(section, category, { t: '', s: '', a: '' }, null);
