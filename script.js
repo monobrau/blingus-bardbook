@@ -117,18 +117,18 @@
       {t:"Rise up—from the floor; healing's door, no more.", s:"Rise Up", a:"Andra Day"},
       {t:"Even a rust monster would appreciate this healing—and they don't appreciate anything.", s:"Blingus' Obsession", a:"Mockery"}
     ],
-    'Shatter': [
-      {t:"Thunderstruck—armor's bust; sonic boom, doom's thrust.", s:"Thunderstruck", a:"AC/DC"},
-      {t:"Another one bites the dust—and another one's gone; shatter's song, damage's strong.", s:"Another One Bites the Dust", a:"Queen"},
-      {t:"We will rock you—with sound that breaks; shatter shakes, no mistakes.", s:"We Will Rock You", a:"Queen"},
-      {t:"Boom boom pow—sonic blast now; shatter's how, damage's wow.", s:"Boom Boom Pow", a:"The Black Eyed Peas"},
-      {t:"Sound of silence? Not this time; shatter's chime, breaking rhyme.", s:"The Sound of Silence", a:"Simon & Garfunkel"},
-      {t:"I heard it through the grapevine—and now you hear it too; shatter's through, damage's due.", s:"I Heard It Through the Grapevine", a:"Marvin Gaye"},
-      {t:"Like a rolling stone—shatter's thrown; sonic zone, damage's own.", s:"Like a Rolling Stone", a:"Bob Dylan"},
-      {t:"Break on through to the other side—of broken; shatter's token, armor's spoken.", s:"Break On Through (To the Other Side)", a:"The Doors"},
-      {t:"Even a stone golem would feel this—and they're made of stone.", s:"D&D Lore", a:"Mockery"},
-      {t:"Thunder only happens when it's shattering—your armor, that is.", s:"Landslide", a:"Fleetwood Mac"},
-      {t:"I can't get no satisfaction—but shatter can; damage's plan, sonic's fan.", s:"(I Can't Get No) Satisfaction", a:"The Rolling Stones"}
+    'Crown of Madness': [
+      {t:"Let's get retarded—in here; mind control's near, attack your peer.", s:"Let's Get Retarded", a:"The Black Eyed Peas"},
+      {t:"I put a spell on you—and now you're mine; attack your friend, it's fine.", s:"I Put a Spell on You", a:"Screamin' Jay Hawkins"},
+      {t:"Under my thumb—you're controlled; do as I say, be bold.", s:"Under My Thumb", a:"The Rolling Stones"},
+      {t:"Master of puppets—pulling your strings; attack your allies, chaos brings.", s:"Master of Puppets", a:"Metallica"},
+      {t:"Puppet on a string—I'm pulling you; do what I want, it's true.", s:"Puppet on a String", a:"Sandie Shaw"},
+      {t:"Control—I've got it now; your mind's mine, take a bow.", s:"Control", a:"Janet Jackson"},
+      {t:"Friends will be friends—but not today; you're attacking them, I say.", s:"Friends Will Be Friends", a:"Queen"},
+      {t:"You're my best friend—but now attack them; mind control's gem.", s:"You're My Best Friend", a:"Queen"},
+      {t:"Even a rust monster would be confused by this—and they're confused by everything.", s:"Blingus' Obsession", a:"Mockery"},
+      {t:"I can't get no satisfaction—but mind control can; make them attack, it's the plan.", s:"(I Can't Get No) Satisfaction", a:"The Rolling Stones"},
+      {t:"Don't stop believin'—in attacking your friend; mind control to the end.", s:"Don't Stop Believin'", a:"Journey"}
     ],
     'Silence': [
       {t:"Hello darkness, my old friend—shhh, we ghost again; quiet to the end.", s:"The Sound of Silence", a:"Simon & Garfunkel"},
@@ -294,9 +294,11 @@
       {t:"Let's get it on—your heartbeat; slow jam lift you to your feet.", s:"Let's Get It On", a:"Marvin Gaye", adult:true},
       {t:"I kissed a girl—healed your world; don't ask the science, flags unfurled.", s:"I Kissed a Girl", a:"Katy Perry", adult:true}
     ],
-    'Shatter': [
-      {t:"Boom boom pow—shatter's how; armor's down, damage's wow.", s:"Boom Boom Pow", a:"The Black Eyed Peas", adult:true},
-      {t:"I like big butts and I cannot lie—but shatter's breaking more than that; armor's flat.", s:"Baby Got Back", a:"Sir Mix-a-Lot", adult:true}
+    'Crown of Madness': [
+      {t:"Let's get retarded—mind control's here; make them attack, no fear.", s:"Let's Get Retarded", a:"The Black Eyed Peas", adult:true},
+      {t:"I put a spell on you—and now you do what I want; mind control's the hunt.", s:"I Put a Spell on You", a:"Screamin' Jay Hawkins", adult:true},
+      {t:"I want your mind—and your body too; control's the game, it's true.", s:"I Want Your Sex", a:"George Michael", adult:true},
+      {t:"Do what I want—attack your friend; mind control's the trend.", s:"Do What I Want", a:"Various", adult:true}
     ],
     'Silence': [
       {t:"Shhh—silence is golden; magic's olden, sound's folden—and so's your spell.", s:"Silence Is Golden", a:"The Tremeloes", adult:true},
