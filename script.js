@@ -1988,79 +1988,7 @@
       'Asking about the Stinky Court ceremony (you were officially inducted)',
       'Looking for clues about the stream visions (each person saw something different)',
       'Trying to figure out what the Sylvan note said (Vadania got one)',
-      'Asking about Granny Nightshade (she rules Thither, apparently)',
-      'Checking if anyone has seen the deflated airship (it was at the top of a tower)',
-      'Trying to find the tower with the airship (Sir Talavar was there)',
-      'Asking about the bird cage (Sir Talavar was trapped in it)',
-      'Looking for information about fairy dragons (Sir Talavar is one)',
-      'Trying to avoid giant snakes (Sir Talavar warned you about them)',
-      'Asking about the amphibious humanoid\'s body (it was in the basket)',
-      'Checking if anyone knows about the key to the cage (Jingle-Jangle has it)',
-      'Trying to figure out how to get to Tellamy Hill (Jingle-Jangle\'s cave)',
-      'Asking about Glim\'s confusion (he thought he was delivering pizza)',
-      'Looking for the "shiny talking box" (Glim found one)',
-      'Trying to find the Walking Inn (the druid there wants Zabilna back)',
-      'Asking about mud muffins (they\'re enemies you fought)',
-      'Checking if anyone has seen will-o'-wisps (spirits of the drowned)',
-      'Trying to figure out why spirits want Zabilna back in power',
-      'Asking about Clapperclaw (the scarecrow guide in Downfall)',
-      'Looking for Downfall (occupied by Bullywugs)',
-      'Trying to find Thistlewhisk (guide to Downfall)',
-      'Asking about appropriate clothing (needed for Stinky Court)',
-      'Checking if anyone knows what "Spittlespew" means',
-      'Trying to figure out Wittershin\'s (running in place counter-clockwise)',
-      'Asking about Loomlurch (Skabatha\'s lair)',
-      'Looking for the massive hollowed-out tree (Loomlurch)',
-      'Trying to find Skabatha\'s portrait room (circular room with sister portraits)',
-      'Asking about Balvdrova\'s spool of thread (need to get it from Skabatha)',
-      'Checking if anyone knows why Bavlorna helped Bo',
-      'Trying to figure out Igwil\'s Cauldron (it froze Zabilna\'s palace)',
-      'Asking about the frozen palace (time magic)',
-      'Looking for information about Zabilna (trapped in frozen palace)',
-      'Trying to avoid getting frozen in time',
-      'Asking about the hag sisters (Bavlorna, Endelyn, Skabatha, Tasha)',
-      'Checking if anyone knows why Bavlorna won\'t talk about Tasha',
-      'Trying to find the Bullywug king (might not be trustworthy)',
-      'Asking about the Stinky Court ceremony',
-      'Looking for clues about stream visions',
-      'Trying to figure out the Sylvan note',
-      'Asking about Granny Nightshade (rules Thither)',
-      'Checking if anyone has seen the deflated airship',
-      'Trying to find the tower with the airship',
-      'Asking about the bird cage (Sir Talavar was in it)',
-      'Looking for information about fairy dragons',
-      'Trying to avoid giant snakes',
-      'Asking about the amphibious humanoid\'s body',
-      'Checking if anyone knows about the key to the cage',
-      'Trying to figure out how to get to Tellamy Hill',
-      'Asking about Glim\'s pizza delivery mistake',
-      'Looking for the "shiny talking box"',
-      'Trying to find the Walking Inn',
-      'Asking about mud muffins',
-      'Checking if anyone has seen will-o'-wisps',
-      'Trying to figure out why spirits want Zabilna back',
-      'Asking about Clapperclaw',
-      'Looking for Downfall',
-      'Trying to find Thistlewhisk',
-      'Asking about appropriate clothing for Stinky Court',
-      'Checking if anyone knows what "Spittlespew" means',
-      'Trying to figure out Wittershin\'s',
-      'Asking about Loomlurch',
-      'Looking for the massive hollowed-out tree',
-      'Trying to find Skabatha\'s portrait room',
-      'Asking about Balvdrova\'s spool of thread',
-      'Checking if anyone knows why Bavlorna helped Bo',
-      'Trying to figure out Igwil\'s Cauldron',
-      'Asking about the frozen palace',
-      'Looking for information about Zabilna',
-      'Trying to avoid getting frozen in time',
-      'Asking about the hag sisters',
-      'Checking if anyone knows why Bavlorna won\'t talk about Tasha',
-      'Trying to find the Bullywug king',
-      'Asking about the Stinky Court ceremony',
-      'Looking for clues about stream visions',
-      'Trying to figure out the Sylvan note',
-      'Asking about Granny Nightshade'
+      'Asking about Granny Nightshade (she rules Thither, apparently)'
     ]
   };
 
@@ -3741,21 +3669,36 @@
     
     let cats = [];
     try {
+      debugLog('buildCategories: section =', section);
+      debugLog('buildCategories: spells defined?', typeof spells !== 'undefined');
+      debugLog('buildCategories: bardic defined?', typeof bardic !== 'undefined');
+      debugLog('buildCategories: mockery defined?', typeof mockery !== 'undefined');
+      debugLog('buildCategories: characterActions defined?', typeof characterActions !== 'undefined');
+      debugLog('buildCategories: criticalHits defined?', typeof criticalHits !== 'undefined');
+      debugLog('buildCategories: criticalFailures defined?', typeof criticalFailures !== 'undefined');
+      
       if (section === 'spells') {
         cats = typeof spells !== 'undefined' && spells ? Object.keys(spells) : [];
+        debugLog('buildCategories: spells keys =', cats);
       } else if (section === 'bardic') {
         cats = typeof bardic !== 'undefined' && bardic ? Object.keys(bardic) : [];
+        debugLog('buildCategories: bardic keys =', cats);
       } else if (section === 'actions') {
         cats = typeof characterActions !== 'undefined' && characterActions ? Object.keys(characterActions) : [];
+        debugLog('buildCategories: characterActions keys =', cats);
       } else if (section === 'criticalHits') {
         cats = typeof criticalHits !== 'undefined' && criticalHits ? Object.keys(criticalHits) : [];
+        debugLog('buildCategories: criticalHits keys =', cats);
       } else if (section === 'criticalFailures') {
         cats = typeof criticalFailures !== 'undefined' && criticalFailures ? Object.keys(criticalFailures) : [];
+        debugLog('buildCategories: criticalFailures keys =', cats);
       } else {
         cats = typeof mockery !== 'undefined' && mockery ? Object.keys(mockery) : [];
+        debugLog('buildCategories: mockery keys =', cats);
       }
     } catch (error) {
       console.error('Error building categories:', error);
+      console.error('Error stack:', error.stack);
       cats = [];
     }
     
