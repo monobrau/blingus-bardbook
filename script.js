@@ -176,7 +176,16 @@
     "Bo's watching—better make it good!",
     "The Midnight Carnival's got nothing on us!",
     "Time to show why fairies shouldn't be underestimated!",
-    "Another chapter, another battle, another story!"
+    "Another chapter, another battle, another story!",
+    "Thindary would be proud—undead hunter style!",
+    "Laura's songbook has nothing on this!",
+    "Bantar killed the Tarrasque in two rounds—let's see what we can do!",
+    "T-Bone's got nothing on this protection!",
+    "I know something about this—and it's going to hurt!",
+    "Remember: undead take double damage from fire—Khalim Chao said so!",
+    "Like Latani's Plantlance—but actually useful!",
+    "Ahab died stoically—you're just going to die!",
+    "Glandor's greatsword has nothing on my words!"
   ];
 
   const insults = [
@@ -217,7 +226,19 @@
     "Your combat prowess is like my sense of direction—wildly inconsistent.",
     "Even Bo's limp was more reliable than your accuracy.",
     "You're like a half-remembered tale—vague, confusing, and quickly dismissed.",
-    "I've seen smarter decisions from someone choosing which road to walk—and that's saying something."
+    "I've seen smarter decisions from someone choosing which road to walk—and that's saying something.",
+    "Thindary's axe would shine brighter than your future—and it's just metal.",
+    "Laura's songbook has better lyrics than your combat has strategy.",
+    "Bantar did 150 damage in one hit—you can't even do 15.",
+    "T-Bone would protect you, but even he has standards.",
+    "Ahab died with more dignity than you're showing right now.",
+    "Latani's Plantlance was nerfed and still better than your best move.",
+    "Glandor's greatsword has more edge than your entire personality.",
+    "Even Khalim Chaos's Undead Index would reject you—and it's just a book.",
+    "You're not in Khalim Chao's guide—you're in the 'what not to be' section.",
+    "I know something about this—you're terrible at it!",
+    "Your aim makes Latani's nerfed Plantlance look accurate.",
+    "Thindary hunted undead—you're just undead weight."
   ];
 
   const compliments = [
@@ -246,6 +267,23 @@
     "That was... actually strategic. Who taught you that?",
     "You're making me look good by association—I appreciate that.",
     "That deserves a round of applause—if I wasn't holding my lute.",
+    "Almost as good as Thindary's axe work—almost.",
+    "Laura would put that in her songbook—the good parts, anyway.",
+    "Bantar would be impressed—and he killed the Tarrasque, so that's saying something.",
+    "T-Bone would approve—and he's protective, so that's high praise.",
+    "Ahab would have been proud—stoic and effective.",
+    "Latani's Plantlance wishes it was that good—even before the nerf.",
+    "Glandor's greatsword would be jealous—if swords had feelings.",
+    "Khalim Chao would write about that—in the 'how to do it right' section.",
+    "I know something about this—and that was actually good!",
+    "That move would make Thindary's axe shine with approval.",
+    "Laura's songbook needs a new entry—and that's it.",
+    "Bantar did 150 damage once—you're getting there, maybe.",
+    "T-Bone would add you to his protection list—congrats.",
+    "Ahab died stoically—you're living effectively. Progress!",
+    "Latani's Plantlance was powerful—you're getting there.",
+    "Glandor would nod approvingly—and he's a fighter, so that's rare.",
+    "Khalim Chaos's Index would list you as 'competent'—high praise from a book.",
     "You're proving that sometimes, counting on people isn't the worst idea.",
     "That was almost as smooth as my best exit strategy—almost.",
     "You're doing better than I expected—and my expectations were... let's say low.",
@@ -489,7 +527,16 @@
       {t:"Even Endelyn's puppets have more personality—and they're made of string.", s:"Blingus' Battle Burns", a:"Mockery"},
       {t:"Skabatha's toys are more threatening than you—and they're for children.", s:"Blingus' Battle Burns", a:"Mockery"},
       {t:"You're the fey equivalent of a carnival game nobody wins.", s:"Blingus' Battle Burns", a:"Mockery"},
-      {t:"Your deal is worse than a hag's bargain—and that's saying something.", s:"Blingus' Battle Burns", a:"Mockery"}
+      {t:"Your deal is worse than a hag's bargain—and that's saying something.", s:"Blingus' Battle Burns", a:"Mockery"},
+      {t:"I know something about this—you're terrible at it!", s:"Blingus' Battle Burns", a:"Mockery"},
+      {t:"Thindary's axe would shine brighter than your future—and it's just metal.", s:"Blingus' Battle Burns", a:"Mockery"},
+      {t:"Bantar did 150 damage in one hit—you can't even do 15.", s:"Blingus' Battle Burns", a:"Mockery"},
+      {t:"Latani's Plantlance was nerfed and still better than your best move.", s:"Blingus' Battle Burns", a:"Mockery"},
+      {t:"Even Khalim Chaos's Undead Index would reject you—and it's just a book.", s:"Blingus' Battle Burns", a:"Mockery"},
+      {t:"Laura's songbook has better lyrics than your combat has strategy.", s:"Blingus' Battle Burns", a:"Mockery"},
+      {t:"T-Bone would protect you, but even he has standards.", s:"Blingus' Battle Burns", a:"Mockery"},
+      {t:"Ahab died with more dignity than you're showing right now.", s:"Blingus' Battle Burns", a:"Mockery"},
+      {t:"Glandor's greatsword has more edge than your entire personality.", s:"Blingus' Battle Burns", a:"Mockery"}
     ],
     "Brawn O’Neil — Dwarven Monk": [
       {t:"Brawn warms up with problems tougher than you; he calls them pebbles.", s:"Blingus' Battle Burns", a:"Mockery"},
@@ -676,7 +723,18 @@
       {t:"Kelemvor's sorting you into the 'try again later' pile.", s:"Blingus' Battle Burns", a:"Mockery"},
       {t:"Even Myrkul's minions passed on you—and they're not picky.", s:"Blingus' Battle Burns", a:"Mockery"},
       {t:"The Wall of the Faithless has better company than you.", s:"Blingus' Battle Burns", a:"Mockery"},
-      {t:"Even Eye of the Beholder's skeletons have better coordination.", s:"Blingus' Battle Burns", a:"Mockery"}
+      {t:"Even Eye of the Beholder's skeletons have better coordination.", s:"Blingus' Battle Burns", a:"Mockery"},
+      {t:"Thindary's axe would shine right through you—and he's an undead hunter, so that's saying something.", s:"Blingus' Battle Burns", a:"Mockery"},
+      {t:"Khalim Chao's guide says undead take double damage from fire—and you're about to find out why.", s:"Blingus' Battle Burns", a:"Mockery"},
+      {t:"Even Khalim Chaos's Undead Index would list you as 'easily dispatched'—and it's just a book.", s:"Blingus' Battle Burns", a:"Mockery"},
+      {t:"Thindary hunted undead with a shining axe—you're about to meet something similar.", s:"Blingus' Battle Burns", a:"Mockery"},
+      {t:"Laura's songbook has a section on undead—you're in the 'comedy relief' chapter.", s:"Blingus' Battle Burns", a:"Mockery"},
+      {t:"Bantar killed the Tarrasque—you're not even worth his No-Daiche.", s:"Blingus' Battle Burns", a:"Mockery"},
+      {t:"T-Bone protects his friends from threats—you're not even a threat.", s:"Blingus' Battle Burns", a:"Mockery"},
+      {t:"Ahab died stoically in Dragon Mountain—you're just going to die pathetically here.", s:"Blingus' Battle Burns", a:"Mockery"},
+      {t:"Latani's Plantlance was nerfed and still better than your entire undead existence.", s:"Blingus' Battle Burns", a:"Mockery"},
+      {t:"Glandor's greatsword has cut down worse—and you're worse.", s:"Blingus' Battle Burns", a:"Mockery"},
+      {t:"I know something about this—you're about to be very, very dead. Again.", s:"Blingus' Battle Burns", a:"Mockery"}
     ],
     'Demons & Devils': [
       {t:"Contracts? I prefer results; you prefer loopholes.", s:"Blingus' Battle Burns", a:"Mockery"},
