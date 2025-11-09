@@ -185,7 +185,10 @@
     "Remember: undead take double damage from fire—Khalim Chao said so!",
     "Like Latani's Plantlance—but actually useful!",
     "Ahab died stoically—you're just going to die!",
-    "Glandor's greatsword has nothing on my words!"
+    "Glandor's greatsword has nothing on my words!",
+    "Even Nissan The Pathfinder would be impressed—and he's too proud to walk!",
+    "Katika The Clean-Shaven rides a log with legs—you can't even ride your own failure!",
+    "Tree Steed style—too proud to walk, too cool to care!"
   ];
 
   const insults = [
@@ -238,7 +241,13 @@
     "You're not in Khalim Chao's guide—you're in the 'what not to be' section.",
     "I know something about this—you're terrible at it!",
     "Your aim makes Latani's nerfed Plantlance look accurate.",
-    "Thindary hunted undead—you're just undead weight."
+    "Thindary hunted undead—you're just undead weight.",
+    "Even the forest gnomes' Tree Steed has more dignity than you—and it's a log with legs.",
+    "Nissan The Pathfinder would be too proud to acknowledge your existence.",
+    "Katika The Clean-Shaven's log has more mobility than your combat skills.",
+    "You're less impressive than a log with legs—and those gnomes are proud of that log.",
+    "The forest gnomes are too proud to walk—you're too pathetic to stand.",
+    "Your insults bounce off them like they bounce off those gnomes—indifferent and unimpressed."
   ];
 
   const compliments = [
@@ -284,6 +293,12 @@
     "Latani's Plantlance was powerful—you're getting there.",
     "Glandor would nod approvingly—and he's a fighter, so that's rare.",
     "Khalim Chaos's Index would list you as 'competent'—high praise from a book.",
+    "Nissan The Pathfinder would approve—and he's too proud to walk, so that's saying something.",
+    "Katika The Clean-Shaven would be proud—and she rides a log with legs, so standards are high.",
+    "Even the forest gnomes' Tree Steed would be impressed—and it's just a log.",
+    "You've got the pride of those forest gnomes—without needing a log to ride.",
+    "That move would make those gnomes proud—and they're proud of a log with legs.",
+    "You're almost as impressive as a Tree Steed—almost.",
     "You're proving that sometimes, counting on people isn't the worst idea.",
     "That was almost as smooth as my best exit strategy—almost.",
     "You're doing better than I expected—and my expectations were... let's say low.",
@@ -536,7 +551,14 @@
       {t:"Laura's songbook has better lyrics than your combat has strategy.", s:"Blingus' Battle Burns", a:"Mockery"},
       {t:"T-Bone would protect you, but even he has standards.", s:"Blingus' Battle Burns", a:"Mockery"},
       {t:"Ahab died with more dignity than you're showing right now.", s:"Blingus' Battle Burns", a:"Mockery"},
-      {t:"Glandor's greatsword has more edge than your entire personality.", s:"Blingus' Battle Burns", a:"Mockery"}
+      {t:"Glandor's greatsword has more edge than your entire personality.", s:"Blingus' Battle Burns", a:"Mockery"},
+      {t:"Even the forest gnomes' Tree Steed has more dignity than you—and it's a log with legs.", s:"Blingus' Battle Burns", a:"Mockery"},
+      {t:"Nissan The Pathfinder would be too proud to acknowledge your existence.", s:"Blingus' Battle Burns", a:"Mockery"},
+      {t:"Katika The Clean-Shaven's log has more mobility than your combat skills.", s:"Blingus' Battle Burns", a:"Mockery"},
+      {t:"You're less impressive than a log with legs—and those gnomes are proud of that log.", s:"Blingus' Battle Burns", a:"Mockery"},
+      {t:"The forest gnomes are too proud to walk—you're too pathetic to stand.", s:"Blingus' Battle Burns", a:"Mockery"},
+      {t:"Your insults bounce off like they bounce off those gnomes—indifferent and unimpressed.", s:"Blingus' Battle Burns", a:"Mockery"},
+      {t:"Even a Tree Steed would be too proud to carry you—and it's just a log.", s:"Blingus' Battle Burns", a:"Mockery"}
     ],
     "Brawn O’Neil — Dwarven Monk": [
       {t:"Brawn warms up with problems tougher than you; he calls them pebbles.", s:"Blingus' Battle Burns", a:"Mockery"},
