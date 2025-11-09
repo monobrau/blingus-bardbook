@@ -250,6 +250,21 @@
     "Your insults bounce off them like they bounce off those gnomes—indifferent and unimpressed."
   ];
 
+  const introductions = [
+    "My lords, my ladies, and all here assembled! Presenting Brawn O'Neil, the Dwarven Monk! A warrior forged in stone, whose fists are named 'Reason' and 'Consequences'! He drinks, he thinks, he swings—and only one of those will hurt you! From the mountain halls he comes, where problems are but pebbles! Behold, the monk who makes mountains tremble!",
+    "Hark! Attend all who seek wonder! I give you Puck Pinewhistle, the Fairy Sorcerer! He bends the Weave itself to his will, and his sparkles hit harder than your best ideas! With wings that span the arcane and magic that satisfies even the gods! Twinspells shade, metamagic mastery—behold the sorcerer who makes the impossible routine!",
+    "Lords and ladies, witness now Vadania Amakiir, the Elven Ranger! She tracks problems to their source—and you, my friend, are the source! Her bowstring fears commitment, but it ties only to your fate! Favored enemy: incompetence—and you are endangered! The forest itself files noise complaints when she moves! Behold the ranger who never misses!",
+    "And now, the one you've all been waiting for! Presenting Blingus, the Wayfarer Fairy Bard! Small package, big attitude, your funeral! He travels light—your pride will, too! The way is far, your end is near! He doesn't cast shade—he curates it! From the Feywild he wanders, leaving marriages and battles in his wake! Behold the bard who makes words cut deeper than any blade!",
+    "My lords! I present to you Brawn O'Neil! A dwarf whose beard has seen more action than most warriors! His stunning strikes are educational, his flurries are flawless! Step of the Wind? You'll step off your pride! From the deepest mines to the highest peaks, he brings the pain!",
+    "Behold Puck Pinewhistle! A fairy whose magic satisfies even the gods themselves! His cantrips have better timing than your life choices! Wild about his magic, mild about you! He sneezes glitter, you choke on defeat! The Weave bends to his will, and you will too!",
+    "Witness Vadania Amakiir! The ranger whose arrows never miss! She aims where you're going—you never get there! Her footprints leave less trace than your excuses! The forest itself whispers her name in reverence! Behold the hunter who makes stealth obsolete!",
+    "And finally, Blingus the Wayfarer! The bard who makes wandering an art form! His words cut deep—the blade is economy-sized, but the impact is huge! He's left more things behind than you've ever started! From Prismeer to the Material Plane, he brings the chaos! Behold the fairy who makes commitment look optional!",
+    "My lords and ladies! Brawn O'Neil approaches! A monk whose technique is hard, whose strikes are harder! He finishes what he starts—something you clearly don't understand! His fists have more staying power than your entire existence! Behold the dwarf who makes mountains look soft!",
+    "Presenting Puck Pinewhistle! The sorcerer whose magic penetrates even the thickest defenses! His sparkles have more impact than your best effort! He knows how to make things last—unlike your attacks! Behold the fairy who makes the Weave his playground!",
+    "I give you Vadania Amakiir! The ranger whose aim never falters! Her arrows have more staying power than your entire performance! She knows how to hit her target—you can't even find yours! Behold the elf who makes tracking look easy!",
+    "And now, the master of ceremonies himself! Blingus the Wayfarer! The bard whose insults last longer than your attacks! He knows how to use what he's got—unlike you! His words satisfy even dragons—you couldn't satisfy a goblin! Behold the fairy who makes leaving look like an art!"
+  ];
+
   const compliments = [
     "Not bad—almost as good as one of my songs.",
     "You're doing great—for someone who isn't me.",
@@ -3250,6 +3265,7 @@
       debugLog('Merged battle cries:', getMergedGenerators('battleCries'));
       debugLog('Merged insults:', getMergedGenerators('insults'));
       debugLog('Merged compliments:', getMergedGenerators('compliments'));
+      debugLog('Merged introductions:', getMergedGenerators('introductions'));
       debugLog('Raw localStorage:', {
         generators: localStorage.getItem(generatorsKey),
         deletedDefaults: localStorage.getItem(deletedGeneratorDefaultsKey),
@@ -3809,10 +3825,11 @@
               generators = {
                 battleCries: Array.isArray(generators.battleCries) ? generators.battleCries : [],
                 insults: Array.isArray(generators.insults) ? generators.insults : [],
-                compliments: Array.isArray(generators.compliments) ? generators.compliments : []
+                compliments: Array.isArray(generators.compliments) ? generators.compliments : [],
+                introductions: Array.isArray(generators.introductions) ? generators.introductions : []
               };
             } else {
-              generators = { battleCries: [], insults: [], compliments: [] };
+              generators = { battleCries: [], insults: [], compliments: [], introductions: [] };
             }
             localStorage.setItem(generatorsKey, JSON.stringify(generators));
           }
@@ -3914,7 +3931,8 @@
       defaultGenerators: {
         battleCries: battleCries,
         insults: insults,
-        compliments: compliments
+        compliments: compliments,
+        introductions: introductions
       },
       
       // User preferences
@@ -3923,12 +3941,12 @@
       
       // User-added content
       userItems: JSON.parse(localStorage.getItem(userItemsKey) || '{}'),
-      generators: JSON.parse(localStorage.getItem(generatorsKey) || '{"battleCries":[],"insults":[],"compliments":[]}'),
+      generators: JSON.parse(localStorage.getItem(generatorsKey) || '{"battleCries":[],"insults":[],"compliments":[],"introductions":[]}'),
       
       // Default item modifications (edits and deletions)
       deletedDefaults: JSON.parse(localStorage.getItem(deletedDefaultsKey) || '{}'),
-      editedGeneratorDefaults: JSON.parse(localStorage.getItem(editedDefaultsKey) || '{"battleCries":{},"insults":{},"compliments":{}}'),
-      deletedGeneratorDefaults: JSON.parse(localStorage.getItem(deletedGeneratorDefaultsKey) || '{"battleCries":[],"insults":[],"compliments":[]}'),
+      editedGeneratorDefaults: JSON.parse(localStorage.getItem(editedDefaultsKey) || '{"battleCries":{},"insults":{},"compliments":{},"introductions":{}}'),
+      deletedGeneratorDefaults: JSON.parse(localStorage.getItem(deletedGeneratorDefaultsKey) || '{"battleCries":[],"insults":[],"compliments":[],"introductions":[]}'),
       
       // Usage history
       history: JSON.parse(localStorage.getItem(historyKey) || '[]'),
@@ -3992,10 +4010,11 @@
           generators = {
             battleCries: Array.isArray(generators.battleCries) ? generators.battleCries : [],
             insults: Array.isArray(generators.insults) ? generators.insults : [],
-            compliments: Array.isArray(generators.compliments) ? generators.compliments : []
+            compliments: Array.isArray(generators.compliments) ? generators.compliments : [],
+            introductions: Array.isArray(generators.introductions) ? generators.introductions : []
           };
         } else {
-          generators = { battleCries: [], insults: [], compliments: [] };
+          generators = { battleCries: [], insults: [], compliments: [], introductions: [] };
         }
         localStorage.setItem(generatorsKey, JSON.stringify(generators));
       }
@@ -4116,7 +4135,7 @@
   function loadUserGenerators() {
     try {
       const raw = localStorage.getItem(generatorsKey);
-      let parsed = raw ? JSON.parse(raw) : { battleCries: [], insults: [], compliments: [] };
+      let parsed = raw ? JSON.parse(raw) : { battleCries: [], insults: [], compliments: [], introductions: [] };
       
       // Ensure structure is correct - each type should be an array
       if (!parsed.battleCries || !Array.isArray(parsed.battleCries)) {
@@ -4128,16 +4147,20 @@
       if (!parsed.compliments || !Array.isArray(parsed.compliments)) {
         parsed.compliments = [];
       }
+      if (!parsed.introductions || !Array.isArray(parsed.introductions)) {
+        parsed.introductions = [];
+      }
       
       // Filter out any non-string values (cleanup)
       parsed.battleCries = parsed.battleCries.filter(item => typeof item === 'string');
       parsed.insults = parsed.insults.filter(item => typeof item === 'string');
       parsed.compliments = parsed.compliments.filter(item => typeof item === 'string');
+      parsed.introductions = parsed.introductions.filter(item => typeof item === 'string');
       
       return parsed;
     } catch(e) {
       console.error('Error loading generators:', e);
-      return { battleCries: [], insults: [], compliments: [] };
+      return { battleCries: [], insults: [], compliments: [], introductions: [] };
     }
   }
 
@@ -4203,7 +4226,8 @@
     const defaults = {
       battleCries: battleCries,
       insults: insults,
-      compliments: compliments
+      compliments: compliments,
+      introductions: introductions
     };
     const userAdded = loadUserGenerators();
     const editedDefaults = loadEditedDefaults();
@@ -6206,7 +6230,8 @@
     const defaults = {
       battleCries: battleCries,
       insults: insults,
-      compliments: compliments
+      compliments: compliments,
+      introductions: introductions
     };
     const userAdded = loadUserGenerators();
     const editedDefaults = loadEditedDefaults();
@@ -6258,7 +6283,8 @@
     const typeNames = {
       battleCries: '⚔️ Battle Cries',
       insults: '🗡️ Insults',
-      compliments: '💬 Compliments'
+      compliments: '💬 Compliments',
+      introductions: '🎭 Chaucer Introductions'
     };
 
     itemsWithMeta.forEach((itemMeta) => {
@@ -6401,7 +6427,8 @@
     const typeNames = {
       battleCries: '⚔️ Battle Cries',
       insults: '🗡️ Insults',
-      compliments: '💬 Compliments'
+      compliments: '💬 Compliments',
+      introductions: '🎭 Chaucer Introductions'
     };
     generatorEditTitle.textContent = `Add ${typeNames[generatorTypeSelect.value]} Item`;
     deleteGeneratorBtn.style.display = 'none';
@@ -7471,6 +7498,20 @@
     showGeneratorModal('💬 Compliment', compliment, 'compliments');
   });
 
+  const introductionBtn = document.createElement('button');
+  introductionBtn.id = 'introductionBtn';
+  introductionBtn.className = 'btn';
+  introductionBtn.textContent = '🎭 Introduction';
+  introductionBtn.addEventListener('click', () => {
+    const mergedIntroductions = getMergedGenerators('introductions');
+    if (mergedIntroductions.length === 0) {
+      showToast('No introductions available');
+      return;
+    }
+    const introduction = mergedIntroductions[Math.floor(Math.random() * mergedIntroductions.length)];
+    showGeneratorModal('🎭 Chaucer Introduction', introduction, 'introductions');
+  });
+
   // Generator modal event listeners
   generatorCopyBtn.addEventListener('click', () => {
     const text = generatorCopyBtn.dataset.textToCopy;
@@ -7778,6 +7819,7 @@
   generatorRow.appendChild(battleCryBtn);
   generatorRow.appendChild(insultBtn);
   generatorRow.appendChild(complimentBtn);
+  generatorRow.appendChild(introductionBtn);
   generatorRow.appendChild(historyBtn);
   generatorRow.appendChild(fileStorageBtn);
   generatorRow.appendChild(exportBtn);
