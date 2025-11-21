@@ -187,6 +187,17 @@
         childList: true,
         subtree: true
       });
+
+      // Store observer for cleanup
+      window.TabNavigation._chipObserver = observer;
+    }
+  }
+
+  // Cleanup function to prevent memory leaks
+  function cleanup() {
+    if (window.TabNavigation._chipObserver) {
+      window.TabNavigation._chipObserver.disconnect();
+      window.TabNavigation._chipObserver = null;
     }
   }
 
@@ -195,8 +206,12 @@
     switchToSection,
     switchToCategory,
     getCurrentSection: () => currentSection,
-    getCurrentCategory: () => currentCategory
+    getCurrentCategory: () => currentCategory,
+    cleanup
   };
+
+  // Cleanup on page unload
+  window.addEventListener('beforeunload', cleanup);
 
   // Initialize
   init();

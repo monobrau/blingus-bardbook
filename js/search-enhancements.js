@@ -6,6 +6,15 @@
 (function() {
   'use strict';
 
+  // Get constants (wait for it to be loaded)
+  const getConstants = () => window.BlingusConstants || {};
+  const getUtils = () => window.SharedUtils || {};
+
+  // Cache DOM references
+  let searchInput = null;
+  let content = null;
+  let mutationObserver = null;
+
   // Wait for DOM and main script to load
   function waitForElements(callback) {
     if (document.readyState === 'loading') {
@@ -16,7 +25,7 @@
   }
 
   function enhanceSearch() {
-    const searchInput = document.getElementById('searchInput');
+    searchInput = document.getElementById('searchInput');
     const toolbar = document.querySelector('.toolbar__container');
 
     if (!searchInput || !toolbar) {
@@ -39,11 +48,13 @@
   }
 
   function createResultCounter() {
-    const toolbar = document.querySelector('.toolbar__row--primary');
+    const toolbar = document.querySelector('.toolbar__row--search');
     if (!toolbar || document.getElementById('searchResultCount')) return;
 
     const counter = document.createElement('div');
     counter.id = 'searchResultCount';
+    counter.setAttribute('role', 'status');
+    counter.setAttribute('aria-live', 'polite');
     counter.style.cssText = `
       padding: 8px 12px;
       background: var(--accent-2);
@@ -67,33 +78,41 @@
     const label = document.createElement('label');
     label.className = 'toggle';
     label.setAttribute('data-tooltip', 'Matches similar words even with typos');
-    label.innerHTML = `
-      <input type="checkbox" id="fuzzySearchToggle" checked />
-      <span>🔍 Fuzzy search</span>
-    `;
 
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.id = 'fuzzySearchToggle';
+    checkbox.checked = true;
+
+    const span = document.createElement('span');
+    span.textContent = '🔍 Fuzzy search';
+
+    label.appendChild(checkbox);
+    label.appendChild(span);
     toolbar.appendChild(label);
 
     // Listen for changes
-    const checkbox = label.querySelector('input');
     checkbox.addEventListener('change', () => {
-      localStorage.setItem('fuzzySearchEnabled', checkbox.checked);
+      const constants = getConstants();
+      const key = constants.STORAGE_KEYS?.FUZZY_SEARCH || 'fuzzySearchEnabled';
+      localStorage.setItem(key, checkbox.checked);
+
       // Trigger re-render if there's a search query
-      const searchInput = document.getElementById('searchInput');
       if (searchInput && searchInput.value.trim()) {
         searchInput.dispatchEvent(new Event('input'));
       }
     });
 
     // Restore saved preference
-    const saved = localStorage.getItem('fuzzySearchEnabled');
+    const constants = getConstants();
+    const key = constants.STORAGE_KEYS?.FUZZY_SEARCH || 'fuzzySearchEnabled';
+    const saved = localStorage.getItem(key);
     if (saved !== null) {
       checkbox.checked = saved === 'true';
     }
   }
 
   function enhanceSearchInput() {
-    const searchInput = document.getElementById('searchInput');
     if (!searchInput) return;
 
     // Add search icon and loading indicator
@@ -103,7 +122,8 @@
 
       const icon = document.createElement('span');
       icon.className = 'search-icon';
-      icon.innerHTML = '🔍';
+      icon.textContent = '🔍';
+      icon.setAttribute('aria-hidden', 'true');
       icon.style.cssText = `
         position: absolute;
         right: 10px;
@@ -123,7 +143,11 @@
     const counter = document.getElementById('searchResultCount');
     if (!counter) return;
 
+    const constants = getConstants();
+    const animDuration = constants.TIMINGS?.ANIMATION_DURATION || 200;
+
     if (count !== null && count !== undefined) {
+      // Safe: Using textContent (no XSS risk)
       counter.textContent = `Found ${count} result${count !== 1 ? 's' : ''}${query ? ` for "${query}"` : ''}`;
       counter.style.display = 'block';
 
@@ -131,48 +155,74 @@
       counter.style.transform = 'scale(1.05)';
       setTimeout(() => {
         counter.style.transform = 'scale(1)';
-      }, 200);
+      }, animDuration);
     } else {
       counter.style.display = 'none';
     }
   }
 
   function enhanceGlobalSearch() {
-    // We'll enhance the cards after they're rendered
-    // Set up a MutationObserver to detect when content changes
-    const content = document.getElementById('content');
+    // Set up a throttled MutationObserver to detect when content changes
+    content = document.getElementById('content');
     if (!content) return;
 
-    const observer = new MutationObserver((mutations) => {
-      const searchInput = document.getElementById('searchInput');
-      const query = searchInput ? searchInput.value.trim() : '';
+    const constants = getConstants();
+    const utils = getUtils();
+    const throttleDelay = constants.TIMINGS?.MUTATION_THROTTLE || 150;
 
-      if (query) {
-        // Count visible cards (excluding empty state messages)
-        const cards = content.querySelectorAll('.card');
-        let count = 0;
+    // Create throttled callback
+    const throttledCallback = utils.throttle ? utils.throttle(handleContentMutation, throttleDelay) : handleContentMutation;
 
-        cards.forEach(card => {
-          // Don't count empty state or header cards
-          if (!card.textContent.includes('No results found') &&
-              !card.textContent.includes('Search Results')) {
-            count++;
+    mutationObserver = new MutationObserver(throttledCallback);
 
-            // Highlight matches in this card
-            highlightCardMatches(card, query);
-          }
-        });
-
-        updateResultCount(count, query);
-      } else {
-        updateResultCount(null);
-      }
-    });
-
-    observer.observe(content, {
+    mutationObserver.observe(content, {
       childList: true,
       subtree: true
     });
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', cleanup);
+  }
+
+  function handleContentMutation() {
+    const query = searchInput ? searchInput.value.trim() : '';
+
+    if (query) {
+      // Count visible cards (excluding empty state messages)
+      const cards = content.querySelectorAll('.card');
+      let count = 0;
+
+      cards.forEach(card => {
+        const cardText = card.textContent || '';
+        // Don't count empty state or special cards
+        if (!cardText.includes('No results') &&
+            !cardText.includes('Search Results') &&
+            !card.classList.contains('random-card')) {
+          count++;
+
+          // Highlight matches in this card
+          highlightCardMatches(card, query);
+        }
+      });
+
+      updateResultCount(count, query);
+    } else {
+      updateResultCount(null);
+      // Remove all highlights when search is cleared
+      if (content) {
+        const highlightedCards = content.querySelectorAll('[data-highlighted]');
+        highlightedCards.forEach(card => {
+          card.removeAttribute('data-highlighted');
+          // Remove mark elements
+          const marks = card.querySelectorAll('mark');
+          marks.forEach(mark => {
+            const text = mark.textContent;
+            const textNode = document.createTextNode(text);
+            mark.parentNode.replaceChild(textNode, mark);
+          });
+        });
+      }
+    }
   }
 
   function highlightCardMatches(card, query) {
@@ -182,23 +232,30 @@
     card.setAttribute('data-highlighted', 'true');
 
     // Get text nodes and highlight matches
-    const textElements = card.querySelectorAll('p, div, span');
+    const textElements = card.querySelectorAll('p:not(.card__meta), div:not(.card__meta)');
+
     textElements.forEach(el => {
-      // Skip if already has highlighting
-      if (el.querySelector('mark')) return;
+      // Skip if already has highlighting or is metadata
+      if (el.querySelector('mark') || el.classList.contains('card__meta')) return;
 
       const text = el.textContent;
       if (text && text.toLowerCase().includes(query.toLowerCase())) {
-        const highlighted = highlightMatches(text, query);
-        if (highlighted !== text) {
+        const utils = getUtils();
+        const highlighted = utils.highlightMatches ? utils.highlightMatches(text, query) : escapeAndHighlight(text, query);
+
+        if (highlighted !== text && !el.querySelector('mark')) {
+          // SAFETY NOTE: highlighted text is XSS-safe because:
+          // 1. It's escaped via SharedUtils.escapeHtml()
+          // 2. Only <mark> tags are added with inline styles
+          // 3. User input (query) is escaped via escapeRegex()
           el.innerHTML = highlighted;
         }
       }
     });
   }
 
-  // Utility: Highlight matches (duplicated from search-utils.js for standalone use)
-  function highlightMatches(text, query) {
+  // Fallback if SharedUtils not loaded yet
+  function escapeAndHighlight(text, query) {
     if (!query || !text) return escapeHtml(text);
 
     const escapedText = escapeHtml(text);
@@ -209,13 +266,25 @@
   }
 
   function escapeHtml(text) {
+    if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
   }
 
   function escapeRegex(str) {
+    if (!str) return '';
     return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  // Cleanup function to prevent memory leaks
+  function cleanup() {
+    if (mutationObserver) {
+      mutationObserver.disconnect();
+      mutationObserver = null;
+    }
+    searchInput = null;
+    content = null;
   }
 
   // Initialize
@@ -224,6 +293,6 @@
   // Export for testing
   window.SearchEnhancements = {
     updateResultCount,
-    highlightMatches
+    cleanup
   };
 })();
