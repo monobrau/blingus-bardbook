@@ -60,7 +60,7 @@
       background: var(--accent-2);
       color: white;
       border-radius: 6px;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       display: none;
       white-space: nowrap;
@@ -72,7 +72,8 @@
   }
 
   function createFuzzyToggle() {
-    const toolbar = document.querySelector('.toolbar__row--filters');
+    // Add fuzzy search toggle to the search row (next to other toggles)
+    const toolbar = document.querySelector('.toolbar__row--search');
     if (!toolbar || document.getElementById('fuzzySearchToggle')) return;
 
     const label = document.createElement('label');

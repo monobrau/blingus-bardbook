@@ -52,8 +52,14 @@ body.dark-mode .banner {
 
 .toolbar {
   padding: 12px;
-  border-bottom: 1px solid var(--burnt);
-  transition: border-color 0.3s ease;
+  border-bottom: 3px solid var(--accent);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+body.dark-mode .toolbar {
+  border-bottom-color: var(--accent-2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .toolbar__container {
@@ -133,7 +139,19 @@ body.dark-mode .toolbar__container {
 }
 
 .toolbar__row--search {
-  /* Search input row */
+  /* Search input row with filters */
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  border: 1px solid rgba(139, 74, 43, 0.1);
+}
+
+body.dark-mode .toolbar__row--search {
+  background: rgba(45, 45, 68, 0.5);
+  border-color: rgba(199, 125, 79, 0.15);
 }
 
 .toolbar__row--generators {
@@ -141,9 +159,93 @@ body.dark-mode .toolbar__container {
   margin-top: 0;
 }
 
+.toolbar__row--button-groups {
+  /* Button groups row with visual sections */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+}
+
 .toolbar__spacer {
   flex: 1;
   min-width: 20px;
+}
+
+/* Button Groups */
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: fit-content;
+}
+
+.button-group__label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--accent);
+  opacity: 0.8;
+  margin-bottom: 2px;
+  padding: 0 8px;
+}
+
+body.dark-mode .button-group__label {
+  color: var(--accent-2);
+}
+
+.button-group > div {
+  display: flex;
+  gap: 4px;
+  flex-wrap: nowrap;
+}
+
+/* Make child buttons inline */
+.button-group .btn--group {
+  padding: 8px 12px;
+  font-size: 13px;
+  border-radius: 6px;
+  white-space: nowrap;
+  min-width: auto;
+  transition: all 0.2s ease;
+}
+
+.button-group .btn--group:first-of-type {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+.button-group .btn--group:last-of-type {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.button-group .btn--group:not(:first-of-type):not(:last-of-type) {
+  border-radius: 0;
+}
+
+/* Generator icon buttons - smaller for icon-only */
+.button-group .btn--group[data-tooltip*="battle cry"],
+.button-group .btn--group[data-tooltip*="insult"],
+.button-group .btn--group[data-tooltip*="compliment"],
+.button-group .btn--group[data-tooltip*="introduction"] {
+  min-width: 44px;
+  padding: 8px 10px;
+  font-size: 18px;
+}
+
+/* Grouped buttons layout */
+.button-group:has(.btn--group) {
+  background: rgba(139, 74, 43, 0.05);
+  border: 1px solid rgba(139, 74, 43, 0.15);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+body.dark-mode .button-group:has(.btn--group) {
+  background: rgba(199, 125, 79, 0.08);
+  border-color: rgba(199, 125, 79, 0.2);
 }
 
 /* Tab Navigation Styles */
@@ -265,20 +367,33 @@ label {
 }
 
 select, input[type="search"] {
-  padding: 8px 10px;
-  border: 1px solid var(--burnt);
+  padding: 10px 14px;
+  border: 2px solid var(--burnt);
   background: #fffaf0;
   color: var(--ink);
-  border-radius: 6px;
+  border-radius: 8px;
   min-width: 190px;
-  box-shadow: inset 0 1px 0 #fff;
-  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+select:focus, input[type="search"]:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(139, 74, 43, 0.1), inset 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 body.dark-mode select, body.dark-mode input[type="search"] {
   background: #2d2d44;
   color: var(--ink);
   border-color: var(--burnt);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-mode select:focus, body.dark-mode input[type="search"]:focus {
+  border-color: var(--accent-2);
+  box-shadow: 0 0 0 3px rgba(107, 142, 90, 0.15), inset 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .toggle input {
@@ -286,34 +401,48 @@ body.dark-mode select, body.dark-mode input[type="search"] {
 }
 
 .btn {
-  padding: 8px 12px;
-  border: 1px solid var(--burnt);
-  background: #f7e7c4;
-  border-radius: 6px;
+  padding: 10px 16px;
+  border: 2px solid var(--burnt);
+  background: linear-gradient(180deg, #f9edd0, #f5e6bb);
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   white-space: nowrap;
-  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease, transform 0.1s ease;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
 .btn:hover {
-  background: #f3deb1;
-  transform: translateY(-1px);
+  background: linear-gradient(180deg, #f5e6bb, #f1dea5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
 }
 
 .btn:active {
   transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(139, 74, 43, 0.2), 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
 body.dark-mode .btn {
-  background: #3d3d5e;
+  background: linear-gradient(180deg, #3d3d5e, #353548);
   color: var(--ink);
   border-color: var(--burnt);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 body.dark-mode .btn:hover {
-  background: #4d4d6e;
+  background: linear-gradient(180deg, #4d4d6e, #3d3d5e);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .btn:focus {
+  box-shadow: 0 0 0 3px rgba(107, 142, 90, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .btn--secondary {
@@ -732,6 +861,21 @@ body.dark-mode #generatorText {
     gap: 8px 10px;
   }
 
+  /* Stack button groups on tablet */
+  .toolbar__row--button-groups {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .button-group {
+    width: 100%;
+  }
+
+  .button-group > div {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
   /* Make buttons more touch-friendly */
   .btn {
     min-height: 44px; /* iOS recommended touch target */
@@ -741,6 +885,11 @@ body.dark-mode #generatorText {
   .btn--secondary {
     min-height: 40px;
     padding: 8px 12px;
+  }
+
+  .btn--group {
+    min-height: 44px;
+    padding: 10px 14px;
   }
 
   /* Improve card button touch targets */
@@ -776,9 +925,42 @@ body.dark-mode #generatorText {
 @media (max-width: 520px) {
   .banner h1 { font-size: 24px; }
 
+  .toolbar__row--search {
+    padding: 10px;
+  }
+
+  .toolbar__row--search .search {
+    width: 100%;
+    order: -1; /* Put search first */
+  }
+
+  .toolbar__row--search .toggle span {
+    font-size: 12px;
+  }
+
   select, input[type="search"] {
     min-width: 100%;
+    width: 100%;
     font-size: 16px; /* Prevents zoom on iOS */
+  }
+
+  .button-group__label {
+    text-align: center;
+  }
+
+  .button-group > div {
+    justify-content: center;
+  }
+
+  /* Footer adjustments */
+  .footer {
+    padding: 14px;
+    font-size: 12px;
+  }
+
+  .footer kbd {
+    font-size: 10px;
+    padding: 2px 6px;
   }
 
   /* Make tabs more compact on mobile */

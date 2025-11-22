@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Blingus' Bardbook</title>
-  <link rel="stylesheet" href="styles.css?v=13" />
+  <link rel="stylesheet" href="styles.css?v=14" />
 </head>
 <body>
   <header class="banner">
@@ -74,44 +74,76 @@
       </select>
       <select id="categorySelect" style="display: none;" aria-hidden="true"></select>
 
-      <!-- Search Row -->
+      <!-- Search & Quick Filters Row -->
       <div class="toolbar__row toolbar__row--search">
-        <label class="search">
+        <label class="search" style="flex: 1; min-width: 200px;">
           <input id="searchInput" type="search" placeholder="Search all lyrics, songs, artists, or actions..." />
         </label>
         <button id="clearBtn" class="btn btn--secondary" data-tooltip="Clear search (Esc)">Clear</button>
+        <label class="toggle" data-tooltip="Show only starred items (Ctrl+F)">
+          <input type="checkbox" id="favoritesOnly" />
+          <span>⭐ Favorites</span>
+        </label>
+        <label class="toggle" data-tooltip="Toggle dark theme (Ctrl+D)">
+          <input type="checkbox" id="darkModeToggle" />
+          <span>🌙 Dark</span>
+        </label>
       </div>
 
-      <!-- Checkbox Filters Row -->
-      <div class="toolbar__row toolbar__row--filters">
-      <label class="toggle" data-tooltip="Show only starred items (Ctrl+F)">
-        <input type="checkbox" id="favoritesOnly" />
-        <span>Only favorites</span>
-      </label>
+      <!-- Button Groups Row -->
+      <div class="toolbar__row toolbar__row--button-groups">
+        <!-- Content Actions Group -->
+        <div class="button-group">
+          <span class="button-group__label">Content</span>
+          <div>
+            <button id="addEditBtn" class="btn btn--group" data-tooltip="Add or edit items">✏️ Edit Items</button>
+            <button id="historyBtn" class="btn btn--group" data-tooltip="View recently used items (Press H)">📜 History</button>
+          </div>
+        </div>
 
-      <label class="toggle" data-tooltip="Toggle dark theme (Ctrl+D)">
-        <input type="checkbox" id="darkModeToggle" />
-        <span>🌙 Dark mode</span>
-      </label>
+        <!-- Generators Group -->
+        <div class="button-group">
+          <span class="button-group__label">Generators</span>
+          <div>
+            <button id="battleCryBtn" class="btn btn--group" data-tooltip="Random battle cry">⚔️</button>
+            <button id="insultBtn" class="btn btn--group" data-tooltip="Random insult">🗡️</button>
+            <button id="complimentBtn" class="btn btn--group" data-tooltip="Random compliment">💬</button>
+            <button id="introductionBtn" class="btn btn--group" data-tooltip="Chaucer introduction">🎭</button>
+            <button id="manageGeneratorsBtn" class="btn btn--group" data-tooltip="Manage generator content">⚙️</button>
+          </div>
+        </div>
+
+        <!-- Data Management Group -->
+        <div class="button-group">
+          <span class="button-group__label">Data</span>
+          <div>
+            <button id="exportBtn" class="btn btn--group" data-tooltip="Export all data">📥 Export</button>
+            <button id="importBtn" class="btn btn--group" data-tooltip="Import data">📤 Import</button>
+            <button id="fileStorageBtn" class="btn btn--group" data-tooltip="File or server storage">💾</button>
+          </div>
+        </div>
       </div>
 
-      <!-- Action Buttons Row -->
-      <div class="toolbar__row toolbar__row--actions">
-      <button id="clearCacheBtn" class="btn btn--secondary btn--cache" title="Force reload and clear browser cache">🔄 Clear Cache</button>
-      <button id="addEditBtn" class="btn">Add/Edit Items</button>
-      <button id="manageGeneratorsBtn" class="btn">🎲 Manage Generators</button>
+      <!-- Fuzzy Search Toggle (hidden by default, dynamically added by search-enhancements.js) -->
+      <div class="toolbar__row toolbar__row--filters" style="display: none;">
       </div>
-
-      <!-- Generator Row (dynamically added) -->
-      <div class="toolbar__row toolbar__row--generators"></div>
     </div>
   </nav>
 
   <main id="content" class="content" aria-live="polite"></main>
 
   <footer class="footer">
-    <div>Tip: Click any line to copy • Star to favorite • Use the toolbar to filter (favorites/search).</div>
-    <div style="margin-top: 8px; font-size: 14px;">⌨️ Keyboard: Arrow keys to navigate, Enter to copy • <strong>Press ? for all shortcuts</strong></div>
+    <div style="font-size: 15px; margin-bottom: 10px;">
+      💡 <strong>Quick Tips:</strong> Click any line to copy • Star your favorites • Use keyboard shortcuts for power users
+    </div>
+    <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; font-size: 13px; opacity: 0.9;">
+      <span>⌨️ <kbd>?</kbd> Help</span>
+      <span>⌨️ <kbd>Ctrl+K</kbd> Search</span>
+      <span>⌨️ <kbd>1-7</kbd> Sections</span>
+      <span>⌨️ <kbd>H</kbd> History</span>
+      <span>⌨️ <kbd>↑↓</kbd> Navigate</span>
+      <span>⌨️ <kbd>Enter</kbd> Copy</span>
+    </div>
   </footer>
 
   <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
@@ -286,24 +318,24 @@
   </div>
 
   <!-- Core utilities (load first - other modules depend on these) -->
-  <script src="js/constants.js?v=13"></script>
-  <script src="js/shared-utils.js?v=13"></script>
+  <script src="js/constants.js?v=14"></script>
+  <script src="js/shared-utils.js?v=14"></script>
 
   <!-- Utility modules -->
-  <script src="js/storage-utils.js?v=13"></script>
-  <script src="js/ui-utils.js?v=13"></script>
+  <script src="js/storage-utils.js?v=14"></script>
+  <script src="js/ui-utils.js?v=14"></script>
 
   <!-- Tab navigation -->
-  <script src="js/tab-navigation.js?v=13"></script>
+  <script src="js/tab-navigation.js?v=14"></script>
 
   <!-- Search enhancements -->
-  <script src="js/search-utils.js?v=13"></script>
-  <script src="js/search-enhancements.js?v=13"></script>
+  <script src="js/search-utils.js?v=14"></script>
+  <script src="js/search-enhancements.js?v=14"></script>
 
   <!-- Keyboard shortcuts -->
-  <script src="js/keyboard-shortcuts.js?v=13"></script>
+  <script src="js/keyboard-shortcuts.js?v=14"></script>
 
   <!-- Main application script -->
-  <script src="script.js?v=13"></script>
+  <script src="script.js?v=14"></script>
 </body>
 </html>
