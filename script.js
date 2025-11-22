@@ -7346,16 +7346,13 @@
     }
   });
   
-  // Generator buttons row (use existing element from HTML)
-  const generatorRow = document.querySelector('.toolbar__row--generators');
-
   // Generator modal functions
   function showGeneratorModal(title, text, generatorType = null) {
     generatorTitle.textContent = title;
     generatorText.textContent = text;
     generatorModal.classList.add('show');
     generatorModal.setAttribute('aria-hidden', 'false');
-    
+
     // Store text and generator type for copy button
     generatorCopyBtn.dataset.textToCopy = text;
     generatorCopyBtn.dataset.generatorType = generatorType || '';
@@ -7366,61 +7363,58 @@
     generatorModal.setAttribute('aria-hidden', 'true');
   }
 
-  const battleCryBtn = document.createElement('button');
-  battleCryBtn.id = 'battleCryBtn';
-  battleCryBtn.className = 'btn';
-  battleCryBtn.textContent = '⚔️ Battle Cry';
-  battleCryBtn.addEventListener('click', () => {
-    const mergedCries = getMergedGenerators('battleCries');
-    if (mergedCries.length === 0) {
-      showToast('No battle cries available');
-      return;
-    }
-    const cry = mergedCries[Math.floor(Math.random() * mergedCries.length)];
-    showGeneratorModal('⚔️ Battle Cry', cry, 'battleCries');
-  });
+  // Attach event listeners to existing generator buttons in HTML
+  const battleCryBtn = document.getElementById('battleCryBtn');
+  if (battleCryBtn) {
+    battleCryBtn.addEventListener('click', () => {
+      const mergedCries = getMergedGenerators('battleCries');
+      if (mergedCries.length === 0) {
+        showToast('No battle cries available');
+        return;
+      }
+      const cry = mergedCries[Math.floor(Math.random() * mergedCries.length)];
+      showGeneratorModal('⚔️ Battle Cry', cry, 'battleCries');
+    });
+  }
 
-  const insultBtn = document.createElement('button');
-  insultBtn.id = 'insultBtn';
-  insultBtn.className = 'btn';
-  insultBtn.textContent = '🗡️ Insult';
-  insultBtn.addEventListener('click', () => {
-    const mergedInsults = getMergedGenerators('insults');
-    if (mergedInsults.length === 0) {
-      showToast('No insults available');
-      return;
-    }
-    const insult = mergedInsults[Math.floor(Math.random() * mergedInsults.length)];
-    showGeneratorModal('🗡️ Insult', insult, 'insults');
-  });
+  const insultBtn = document.getElementById('insultBtn');
+  if (insultBtn) {
+    insultBtn.addEventListener('click', () => {
+      const mergedInsults = getMergedGenerators('insults');
+      if (mergedInsults.length === 0) {
+        showToast('No insults available');
+        return;
+      }
+      const insult = mergedInsults[Math.floor(Math.random() * mergedInsults.length)];
+      showGeneratorModal('🗡️ Insult', insult, 'insults');
+    });
+  }
 
-  const complimentBtn = document.createElement('button');
-  complimentBtn.id = 'complimentBtn';
-  complimentBtn.className = 'btn';
-  complimentBtn.textContent = '💬 Compliment';
-  complimentBtn.addEventListener('click', () => {
-    const mergedCompliments = getMergedGenerators('compliments');
-    if (mergedCompliments.length === 0) {
-      showToast('No compliments available');
-      return;
-    }
-    const compliment = mergedCompliments[Math.floor(Math.random() * mergedCompliments.length)];
-    showGeneratorModal('💬 Compliment', compliment, 'compliments');
-  });
+  const complimentBtn = document.getElementById('complimentBtn');
+  if (complimentBtn) {
+    complimentBtn.addEventListener('click', () => {
+      const mergedCompliments = getMergedGenerators('compliments');
+      if (mergedCompliments.length === 0) {
+        showToast('No compliments available');
+        return;
+      }
+      const compliment = mergedCompliments[Math.floor(Math.random() * mergedCompliments.length)];
+      showGeneratorModal('💬 Compliment', compliment, 'compliments');
+    });
+  }
 
-  const introductionBtn = document.createElement('button');
-  introductionBtn.id = 'introductionBtn';
-  introductionBtn.className = 'btn';
-  introductionBtn.textContent = '🎭 Introduction';
-  introductionBtn.addEventListener('click', () => {
-    const mergedIntroductions = getMergedGenerators('introductions');
-    if (mergedIntroductions.length === 0) {
-      showToast('No introductions available');
-      return;
-    }
-    const introduction = mergedIntroductions[Math.floor(Math.random() * mergedIntroductions.length)];
-    showGeneratorModal('🎭 Chaucer Introduction', introduction, 'introductions');
-  });
+  const introductionBtn = document.getElementById('introductionBtn');
+  if (introductionBtn) {
+    introductionBtn.addEventListener('click', () => {
+      const mergedIntroductions = getMergedGenerators('introductions');
+      if (mergedIntroductions.length === 0) {
+        showToast('No introductions available');
+        return;
+      }
+      const introduction = mergedIntroductions[Math.floor(Math.random() * mergedIntroductions.length)];
+      showGeneratorModal('🎭 Chaucer Introduction', introduction, 'introductions');
+    });
+  }
 
   // Generator modal event listeners
   generatorCopyBtn.addEventListener('click', () => {
@@ -7445,30 +7439,27 @@
     }
   });
 
-  // Export/Import functionality
-  const exportBtn = document.createElement('button');
-  exportBtn.id = 'exportBtn';
-  exportBtn.className = 'btn';
-  exportBtn.textContent = '📥 Export';
-  exportBtn.addEventListener('click', () => {
+  // Export/Import functionality - attach to existing buttons in HTML
+  const exportBtn = document.getElementById('exportBtn');
+  if (exportBtn) {
+    exportBtn.addEventListener('click', () => {
       // Export COMPLETE dataset including all defaults and user customizations
       // Use getAllUserData() to ensure consistency and include all fields (including YouTube settings)
       const data = getAllUserData();
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `blingus-bardbook-export-${Date.now()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast('Data exported!');
-  });
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `blingus-bardbook-export-${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Data exported!');
+    });
+  }
 
-  const importBtn = document.createElement('button');
-  importBtn.id = 'importBtn';
-  importBtn.className = 'btn';
-  importBtn.textContent = '📤 Import';
-  importBtn.addEventListener('click', () => {
+  const importBtn = document.getElementById('importBtn');
+  if (importBtn) {
+    importBtn.addEventListener('click', () => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'application/json';
@@ -7583,7 +7574,8 @@
       reader.readAsText(file);
     });
     input.click();
-  });
+    });
+  }
 
   // History modal functions
   function showHistoryModal() {
@@ -7634,16 +7626,14 @@
     historyModal.setAttribute('aria-hidden', 'true');
   }
 
-  const historyBtn = document.createElement('button');
-  historyBtn.id = 'historyBtn';
-  historyBtn.className = 'btn';
-  historyBtn.textContent = '📜 Recently Used';
-  historyBtn.addEventListener('click', showHistoryModal);
+  // Attach listener to existing history button in HTML
+  const historyBtn = document.getElementById('historyBtn');
+  if (historyBtn) {
+    historyBtn.addEventListener('click', showHistoryModal);
+  }
 
-  // File storage button - behavior depends on server vs local
-  const fileStorageBtn = document.createElement('button');
-  fileStorageBtn.id = 'fileStorageBtn';
-  fileStorageBtn.className = 'btn';
+  // File storage button - attach to existing button in HTML
+  const fileStorageBtn = document.getElementById('fileStorageBtn');
   
   // Function to setup file storage button UI (called after PHP check)
   function setupFileStorageButton() {
@@ -7720,21 +7710,15 @@
       }
     }
   }
-  
+
   // Set up button initially with default state (will be updated after PHP check)
   // Don't call setupFileStorageButton() here - wait for PHP check in initFileStorage()
-  fileStorageBtn.textContent = fileSystemSupported ? '📁 Select Data Folder' : '📁 File Storage (N/A)';
-  fileStorageBtn.disabled = !fileSystemSupported;
+  if (fileStorageBtn) {
+    fileStorageBtn.textContent = fileSystemSupported ? '📁 Select Data Folder' : '📁 File Storage (N/A)';
+    fileStorageBtn.disabled = !fileSystemSupported;
+  }
 
-  generatorRow.appendChild(battleCryBtn);
-  generatorRow.appendChild(insultBtn);
-  generatorRow.appendChild(complimentBtn);
-  generatorRow.appendChild(introductionBtn);
-  generatorRow.appendChild(historyBtn);
-  generatorRow.appendChild(fileStorageBtn);
-  generatorRow.appendChild(exportBtn);
-  generatorRow.appendChild(importBtn);
-  // generatorRow is already in the HTML DOM, no need to append
+  // Note: All buttons are now in HTML, no need to create or append them
 
   // History modal event listeners
   historyCloseBtn.addEventListener('click', closeHistoryModal);
