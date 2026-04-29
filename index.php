@@ -14,6 +14,13 @@ $moduleFiles = [
   'search-utils.js',
   'search-enhancements.js',
   'keyboard-shortcuts.js',
+  'data/generators-data.js',
+  'data/spells-data.js',
+  'data/bardic-data.js',
+  'data/mockery-data.js',
+  'data/actions-data.js',
+  'data/criticals-data.js',
+  'data/skillchecks-data.js',
   'script.js',
   'styles.css'
 ];
@@ -21,7 +28,11 @@ $moduleFiles = [
 $versions = [];
 foreach ($moduleFiles as $file) {
   // script.js and styles.css are at root level, others are in js/ folder
-  $filePath = __DIR__ . '/' . (($file === 'styles.css' || $file === 'script.js') ? $file : 'js/' . $file);
+  if ($file === 'styles.css' || $file === 'script.js') {
+    $filePath = __DIR__ . '/' . $file;
+  } else {
+    $filePath = __DIR__ . '/js/' . $file;
+  }
   $versions[$file] = file_exists($filePath) ? filemtime($filePath) : time();
 }
 ?>
@@ -342,6 +353,15 @@ foreach ($moduleFiles as $file) {
 
   <!-- Keyboard shortcuts -->
   <script src="js/keyboard-shortcuts.js?v=<?php echo $versions['keyboard-shortcuts.js']; ?>"></script>
+
+  <!-- Data modules (load before main script) -->
+  <script src="js/data/generators-data.js?v=<?php echo $versions['data/generators-data.js']; ?>"></script>
+  <script src="js/data/spells-data.js?v=<?php echo $versions['data/spells-data.js']; ?>"></script>
+  <script src="js/data/bardic-data.js?v=<?php echo $versions['data/bardic-data.js']; ?>"></script>
+  <script src="js/data/mockery-data.js?v=<?php echo $versions['data/mockery-data.js']; ?>"></script>
+  <script src="js/data/actions-data.js?v=<?php echo $versions['data/actions-data.js']; ?>"></script>
+  <script src="js/data/criticals-data.js?v=<?php echo $versions['data/criticals-data.js']; ?>"></script>
+  <script src="js/data/skillchecks-data.js?v=<?php echo $versions['data/skillchecks-data.js']; ?>"></script>
 
   <!-- Main application script -->
   <script src="script.js?v=<?php echo $versions['script.js']; ?>"></script>

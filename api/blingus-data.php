@@ -201,7 +201,7 @@ try {
             
         case 'load':
             // Load data from JSON file
-            if (!file_exists($dataFile)) {
+            if (!file_exists($absoluteDataFile)) {
                 echo json_encode([
                     'success' => false,
                     'message' => 'No saved data found'
@@ -209,7 +209,7 @@ try {
                 break;
             }
             
-            $json = file_get_contents($dataFile);
+            $json = file_get_contents($absoluteDataFile);
             $data = json_decode($json, true);
             
             if ($data === null) {
