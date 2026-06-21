@@ -346,6 +346,21 @@ body.dark-mode .tab--active {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
+.chip--disabled,
+.chip:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.chip--disabled:hover,
+.chip:disabled:hover {
+  background: var(--paper);
+  color: var(--accent-2);
+  transform: none;
+}
+
 body.dark-mode .chip {
   background: #2d2d44;
   border-color: var(--accent-2);
@@ -356,6 +371,161 @@ body.dark-mode .chip:hover,
 body.dark-mode .chip--active {
   background: var(--accent-2);
   color: white;
+}
+
+/* Action workflow panel */
+.workflow {
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(139, 74, 43, 0.12);
+  border-radius: 8px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+body.dark-mode .workflow {
+  background: rgba(45, 45, 68, 0.55);
+  border-color: rgba(199, 125, 79, 0.15);
+}
+
+.workflow__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 200px) minmax(0, 1fr);
+  gap: 8px 12px;
+  width: 100%;
+  align-items: end;
+}
+
+.workflow__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.workflow__field--outcome,
+.workflow__field--targets {
+  grid-column: 1 / -1;
+}
+
+.workflow__field--outcome[hidden] {
+  display: none !important;
+}
+
+.workflow--skills .workflow__field--scene {
+  grid-column: 1;
+}
+
+.workflow--skills .workflow__field--detail {
+  grid-column: 2;
+}
+
+.workflow--skills .workflow__field--outcome {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 768px) {
+  .workflow--skills .workflow__field--scene,
+  .workflow--skills .workflow__field--detail {
+    grid-column: 1 / -1;
+  }
+}
+
+.workflow__field--detail[hidden],
+.workflow__field--detail[style*="display: none"] {
+  display: none !important;
+}
+
+.workflow__label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--burnt);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+body.dark-mode .workflow__label {
+  color: var(--accent-2);
+}
+
+.workflow__hint {
+  font-weight: 400;
+  opacity: 0.7;
+  font-size: 10px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.workflow__select {
+  width: 100%;
+  max-width: 100%;
+  padding: 6px 28px 6px 10px;
+  border: 2px solid var(--burnt);
+  background: #fffaf0;
+  color: var(--ink);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+body.dark-mode .workflow__select {
+  background: #2d2d44;
+  color: var(--parchment);
+  border-color: var(--accent-2);
+}
+
+.chips--compact {
+  gap: 4px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.chip--compact {
+  padding: 4px 9px;
+  font-size: 11px;
+  font-weight: 600;
+  border-width: 1px;
+}
+
+.chip--compact:hover {
+  transform: none;
+}
+
+.workflow__targets {
+  flex-wrap: wrap;
+}
+
+.workflow__summary {
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: rgba(247, 231, 196, 0.65);
+  border: 1px dashed var(--accent);
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.dark-mode .workflow__summary {
+  background: rgba(61, 61, 94, 0.65);
+  color: var(--parchment);
+}
+
+@media (max-width: 768px) {
+  .workflow__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .workflow__summary {
+    white-space: normal;
+  }
 }
 
 label {
@@ -526,6 +696,10 @@ body.dark-mode .card.highlighted {
   box-shadow: 0 6px 16px rgba(199, 125, 79, 0.4) !important;
 }
 
+.card--workflow-match {
+  scroll-margin-top: 80px;
+}
+
 .card:focus {
   outline: 3px solid var(--accent);
   outline-offset: 2px;
@@ -679,6 +853,213 @@ body.dark-mode #localKaraokeStatus {
   flex-shrink: 0;
   font-size: 13px;
   padding: 6px 12px;
+}
+
+/* Karaoke player — video + parody lyrics side by side */
+.modal__content.karaoke-player-modal {
+  position: relative;
+  width: min(1400px, 96vw);
+  height: min(860px, 88vh);
+  max-width: 98vw;
+  max-height: 98vh;
+  min-width: 520px;
+  min-height: 400px;
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.karaoke-player-modal__header {
+  flex-shrink: 0;
+  margin-bottom: 0;
+  padding: 16px 20px 12px;
+}
+
+.karaoke-player-modal__footer {
+  flex-shrink: 0;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px 16px;
+}
+
+.karaoke-player-modal__body {
+  flex: 1;
+  min-height: 0;
+  padding: 12px 20px;
+  overflow: hidden;
+}
+
+.karaoke-player-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 20px;
+  align-items: stretch;
+  height: 100%;
+}
+
+.karaoke-player-split__video {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.karaoke-player-container {
+  position: relative;
+  flex: 1;
+  min-height: 180px;
+  overflow: hidden;
+  width: 100%;
+  background: #000;
+  border-radius: 8px;
+}
+
+.karaoke-player-container__video {
+  display: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #000;
+}
+
+.karaoke-player-external {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  background: linear-gradient(160deg, #1a1a1a 0%, #2d2d2d 100%);
+  color: #f5f5f5;
+  text-align: center;
+  border-radius: 8px;
+}
+
+.karaoke-player-external[hidden] {
+  display: none !important;
+}
+
+.karaoke-player-external__title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.karaoke-player-external__text {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  max-width: 36em;
+  opacity: 0.92;
+}
+
+.btn--youtube {
+  background: #ff0000;
+  color: white;
+  border: none;
+  margin-top: 4px;
+  padding: 10px 18px;
+  font-size: 1rem;
+}
+
+.btn--youtube:hover {
+  filter: brightness(1.08);
+}
+
+.karaoke-player-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  text-align: center;
+}
+
+.karaoke-player-loading[hidden] {
+  display: none !important;
+}
+
+.karaoke-player-loading p {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.karaoke-lyrics-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  padding: 16px 18px;
+  background: var(--paper);
+  border: 2px solid var(--accent);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.karaoke-lyrics-panel__meta {
+  flex-shrink: 0;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--burnt);
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--accent);
+  line-height: 1.4;
+}
+
+.karaoke-lyrics-panel__text {
+  flex: 1;
+  overflow-y: auto;
+  font-size: 1.05rem;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  color: var(--ink);
+}
+
+.karaoke-player-resize-handle {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 22px;
+  height: 22px;
+  cursor: nwse-resize;
+  touch-action: none;
+  opacity: 0.55;
+  z-index: 2;
+  background:
+    linear-gradient(135deg, transparent 0%, transparent 45%, var(--burnt) 45%, var(--burnt) 50%, transparent 50%, transparent 60%, var(--burnt) 60%, var(--burnt) 65%, transparent 65%);
+}
+
+.karaoke-player-resize-handle:hover,
+.karaoke-player-modal.is-resizing .karaoke-player-resize-handle {
+  opacity: 1;
+}
+
+.btn--ghost {
+  background: transparent;
+  border: 1px solid var(--burnt);
+  color: var(--ink);
+}
+
+.btn--ghost:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+body.dark-mode .btn--ghost:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+body.dark-mode .karaoke-lyrics-panel {
+  background: #1e1e2e;
 }
 
 body.dark-mode .karaoke-result {
@@ -1119,5 +1500,19 @@ body.dark-mode #generatorText {
     grid-template-columns: 1fr;
     padding: 12px;
     gap: 12px;
+  }
+
+  .karaoke-player-split {
+    grid-template-columns: 1fr;
+  }
+
+  .modal__content.karaoke-player-modal {
+    min-width: 0;
+    width: 96vw !important;
+    height: 92vh !important;
+  }
+
+  .karaoke-lyrics-panel {
+    min-height: 180px;
   }
 }

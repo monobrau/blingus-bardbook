@@ -40,12 +40,14 @@ for (const file of dataFiles) {
 // Spells/bardic not empty (parody lyrics preserved)
 const spellsCode = fs.readFileSync(path.join(root, 'js/data/spells-data.js'), 'utf8');
 const bardicCode = fs.readFileSync(path.join(root, 'js/data/bardic-data.js'), 'utf8');
-assert((spellsCode.match(/\{t:/g) || []).length > 50, 'spells have parody entries');
-assert((bardicCode.match(/\{t:/g) || []).length > 30, 'bardic has entries');
+assert((spellsCode.match(/\{t:/g) || []).length >= 40, 'spells have curated parody entries');
+assert((bardicCode.match(/\{t:/g) || []).length >= 45, 'bardic has curated entries');
+assert(!spellsCode.includes('Forgotten Realms Lore'), 'lore one-liners removed from spells');
+assert(!bardicCode.includes("Blingus' Obsession"), 'lore one-liners removed from bardic');
 
 // Actions curated (smaller than original ~1063 lines)
 const actionsLines = fs.readFileSync(path.join(root, 'js/data/actions-data.js'), 'utf8').split('\n').length;
-assert(actionsLines < 300, 'actions curated (' + actionsLines + ' lines)');
+assert(actionsLines < 550, 'actions curated (' + actionsLines + ' lines)');
 
 // Karaoke API exists
 assert(fs.existsSync(path.join(root, 'api/karaoke.php')), 'api/karaoke.php exists');

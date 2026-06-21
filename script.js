@@ -1710,29 +1710,12 @@
       return;
     }
     
-    // Special rendering for character actions
-    if (section === 'actions') {
-      renderActions();
+    // Special rendering for workflow sections (actions, crits, skills)
+    if (window.ActionWorkflow?.isWorkflowSection(section)) {
+      renderWorkflowOutcomes();
       return;
     }
     
-    // Special rendering for critical hits
-    if (section === 'criticalHits') {
-      renderCriticalHits();
-      return;
-    }
-    
-    // Special rendering for critical failures
-    if (section === 'criticalFailures') {
-      renderCriticalFailures();
-      return;
-    }
-    
-    // Special rendering for skill checks
-    if (section === 'skillChecks') {
-      renderSkillChecks();
-      return;
-    }
     const cat = categorySelect.value;
     
     if (!cat) {
@@ -2173,6 +2156,173 @@
     }
   }
 
+  function renderWorkflowOutcomes() {
+    const q = (searchInput.value || '').trim().toLowerCase();
+    const wfState = window.ActionWorkflow?.getState?.() || { targets: ['any'], outcomeMod: 'roleplay' };
+    const context = window.ActionWorkflow?.resolveOutcomeContext?.() || { ready: false, reason: 'Use the steps above to narrow down outcomes.' };
+
+    clearElement(content);
+
+    if (!context.ready) {
+      const emptyCard = document.createElement('div');
+      emptyCard.className = 'card';
+      emptyCard.textContent = context.reason;
+      content.appendChild(emptyCard);
+      return;
+    }
+
+    const { section, category, metaLabel, modalPrefix, location } = context;
+    const sceneLabel = window.ActionWorkflow.getSceneLabel(location);
+    const basePool = getMergedData(section, category);
+    const mergedPool = window.ActionWorkflow.buildWorkflowOutcomePool(basePool, wfState, context);
+
+    if (!mergedPool.length) {
+      const emptyCard = document.createElement('div');
+      emptyCard.className = 'card';
+      emptyCard.textContent = 'No outcomes yet for this combination. Try Edit Items to add some.';
+      content.appendChild(emptyCard);
+      return;
+    }
+
+    let validTexts = window.ActionWorkflow.filterValidOutcomes(mergedPool, wfState, context);
+    if (q) {
+      validTexts = validTexts.filter((text) => text.toLowerCase().includes(q));
+    }
+    if (favoritesOnly && favoritesOnly.checked) {
+      validTexts = validTexts.filter((text) => favorites.has(getItemId(section, text)));
+    }
+
+    const defaultsMap = section === 'actions' ? characterActions
+      : section === 'criticalHits' ? criticalHits
+      : section === 'criticalFailures' ? criticalFailures
+      : skillChecks;
+    const defaults = defaultsMap[category] || [];
+
+    const cardClass = section === 'actions' ? 'action-card'
+      : section === 'criticalHits' ? 'critical-hit-card'
+      : section === 'criticalFailures' ? 'critical-failure-card'
+      : 'skill-check-card';
+
+    const dataAttr = section === 'actions' ? 'actionText'
+      : section === 'criticalHits' ? 'hitText'
+      : section === 'criticalFailures' ? 'failureText'
+      : 'checkText';
+
+    const isDark = document.body.classList.contains('dark-mode');
+    const userAddedCount = (userItems[section] && userItems[section][category]) ? userItems[section][category].length : 0;
+    const filteredDefaultCount = mergedPool.length - userAddedCount;
+
+    const intro = document.createElement('div');
+    intro.className = 'card workflow-outcomes-intro';
+    intro.style.fontSize = '14px';
+    intro.style.opacity = '0.85';
+    intro.style.padding = '12px 16px';
+    if (validTexts.length) {
+      const filteredNote = validTexts.length < mergedPool.length
+        ? ` (${mergedPool.length - validTexts.length} hidden — don't fit this selection)`
+        : '';
+      intro.textContent = `${validTexts.length} valid outcome${validTexts.length === 1 ? '' : 's'} for this scene and choices${filteredNote}`;
+    } else {
+      intro.textContent = window.ActionWorkflow.getEmptyOutcomeHint(wfState, context, mergedPool.length, 0)
+        || 'No valid outcomes for this selection.';
+    }
+    content.appendChild(intro);
+
+    if (validTexts.length > 0) {
+      const randomCard = document.createElement('article');
+      randomCard.className = 'card random-card';
+      randomCard.style.background = isDark ? 'linear-gradient(135deg, #3d3d5e 0%, #2d2d44 100%)' : 'linear-gradient(135deg, #f7e7c4 0%, #fff9eb 100%)';
+      randomCard.style.border = '2px solid var(--accent)';
+
+      const randomBtn = document.createElement('button');
+      randomBtn.className = 'btn btn-random';
+      randomBtn.style.width = '100%';
+      randomBtn.style.padding = '16px';
+      randomBtn.style.fontSize = '18px';
+      randomBtn.style.fontWeight = 'bold';
+      randomBtn.textContent = '🎲 Feeling Chaotic? 🎲';
+      randomBtn.addEventListener('click', () => {
+        const pick = validTexts[Math.floor(Math.random() * validTexts.length)];
+        const titleParts = [modalPrefix, sceneLabel];
+        if (section !== 'actions') titleParts.push(category);
+        showGeneratorModal(titleParts.join(' · '), pick, section);
+      });
+
+      const randomHint = document.createElement('div');
+      randomHint.style.marginTop = '8px';
+      randomHint.style.fontSize = '14px';
+      randomHint.style.opacity = '0.7';
+      randomHint.style.textAlign = 'center';
+      randomHint.textContent = `Random pick from ${validTexts.length} valid outcome${validTexts.length === 1 ? '' : 's'}`;
+
+      randomCard.appendChild(randomBtn);
+      randomCard.appendChild(randomHint);
+      content.appendChild(randomCard);
+    }
+
+    for (let i = 0; i < validTexts.length; i++) {
+      const item = validTexts[i];
+      const fullIndex = basePool.indexOf(item);
+      const isDefaultItem = defaults.includes(item);
+      const deletedIds = deletedDefaults[section]?.[category] || [];
+      const isDeletedDefault = deletedIds.includes(getItemId(section, item));
+      const isUserAdded = fullIndex >= filteredDefaultCount;
+      const userIndex = isUserAdded ? fullIndex - filteredDefaultCount : null;
+
+      const card = document.createElement('article');
+      card.className = `card ${cardClass}`;
+      card.style.cursor = 'pointer';
+
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'card__copy';
+      copyBtn.textContent = 'Copy';
+      copyBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        content.querySelectorAll(`.${cardClass}`).forEach((c) => c.classList.remove('highlighted'));
+        copyToClipboard(item, section, category);
+      });
+
+      const editBtn = document.createElement('button');
+      editBtn.className = 'card__edit';
+      editBtn.textContent = '✎';
+      editBtn.title = 'Edit or delete this item';
+      if (isUserAdded) {
+        card.style.borderLeft = '4px solid #2b6f3a';
+        card.style.background = isDark ? '#2d3d2d' : '#f0f8f0';
+      } else if (isDefaultItem && !isDeletedDefault) {
+        card.style.borderLeft = '4px solid #4a90e2';
+        card.style.background = isDark ? '#2d3d4d' : '#f0f4f8';
+      }
+      editBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openEditModal(section, category, item, isUserAdded ? userIndex : (isDefaultItem ? -1 : null));
+      });
+      card.appendChild(editBtn);
+
+      card.addEventListener('click', () => {
+        content.querySelectorAll(`.${cardClass}`).forEach((c) => c.classList.remove('highlighted'));
+        copyToClipboard(item, section, category);
+      });
+
+      const p = document.createElement('div');
+      p.textContent = item;
+      p.style.fontSize = '16px';
+      p.style.lineHeight = '1.6';
+      p.dataset[dataAttr] = item;
+
+      const meta = document.createElement('div');
+      meta.className = 'card__meta';
+      meta.textContent = section === 'actions'
+        ? `${metaLabel} — ${sceneLabel}`
+        : `${metaLabel} — ${sceneLabel} · ${category}`;
+
+      card.appendChild(copyBtn);
+      card.appendChild(p);
+      card.appendChild(meta);
+      content.appendChild(card);
+    }
+  }
+
   function renderActions() {
     const q = (searchInput.value || '').trim().toLowerCase();
     const cat = categorySelect.value;
@@ -2238,45 +2388,7 @@
       randomBtn.textContent = '🎲 Feeling Chaotic? 🎲';
       randomBtn.addEventListener('click', () => {
         const randomAction = fullActions[Math.floor(Math.random() * fullActions.length)];
-        
-        // Check if the selected action is in the filtered results
-        const isInFiltered = filteredActions.includes(randomAction);
-        
-        // Find and highlight the selected action card if it's visible
-        const allCards = content.querySelectorAll('.action-card');
-        let selectedCard = null;
-        for (const card of allCards) {
-          // Find the div with the action text using data attribute
-          const actionDiv = card.querySelector('[data-action-text]');
-          if (actionDiv && actionDiv.dataset.actionText === randomAction) {
-            selectedCard = card;
-            break;
-          }
-        }
-        
-        if (selectedCard) {
-          // Remove previous highlights
-          allCards.forEach(c => c.classList.remove('highlighted'));
-          
-          // Highlight the selected card
-          selectedCard.classList.add('highlighted');
-          
-          // Scroll to the card
-          selectedCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          
-          // Remove highlight after 5 seconds
-          setTimeout(() => {
-            selectedCard.classList.remove('highlighted');
-          }, TOAST_DURATION_MS);
-          
-          showToast(`Random: ${randomAction}`);
-        } else if (!isInFiltered) {
-          // Selected action is filtered out - show a longer toast message
-          showToast(`Random: ${randomAction} (not in current filter)`);
-        } else {
-          showToast(`Random: ${randomAction}`);
-        }
-        copyToClipboard(randomAction, 'actions', cat);
+        showGeneratorModal(`🎭 ${cat}`, randomAction, 'actions');
       });
       
       const randomHint = document.createElement('div');
@@ -2284,7 +2396,7 @@
       randomHint.style.fontSize = '14px';
       randomHint.style.opacity = '0.7';
       randomHint.style.textAlign = 'center';
-      randomHint.textContent = 'Click to get a random action and copy it!';
+      randomHint.textContent = 'Click for a random thing Blingus says or does!';
       
       randomCard.appendChild(randomBtn);
       randomCard.appendChild(randomHint);
@@ -3459,7 +3571,14 @@
       return;
     }
 
-    const item = { youtube: cleanVideoId, localKaraoke: localKaraoke || null, startTime: startTime || 0, s: title };
+    const item = {
+      youtube: cleanVideoId,
+      localKaraoke: localKaraoke || null,
+      startTime: startTime || 0,
+      s: title,
+      a: editArtist?.value?.trim() || currentEditingItem?.a || '',
+      t: editText?.value?.trim() || currentEditingItem?.t || '',
+    };
     if (window.BlingusKaraoke) {
       window.BlingusKaraoke.playItem(item, title);
       return;
@@ -3962,15 +4081,17 @@
   sectionSelect.addEventListener('change', () => { 
     buildCategories(); 
     const section = sectionSelect.value;
-    // Hide/show toggles based on section
-    if (section === 'actions') {
+    // Hide favorites toggle on workflow sections (no star UI on string cards)
+    if (window.ActionWorkflow?.isWorkflowSection(section)) {
       favoritesOnly.parentElement.style.display = 'none';
     } else {
       favoritesOnly.parentElement.style.display = '';
     }
     // Ensure a category is selected after building categories
     setTimeout(() => {
-      if (categorySelect.options.length > 0 && !categorySelect.value) {
+      if (window.ActionWorkflow?.isWorkflowSection(section)) {
+        window.ActionWorkflow.applyTabPreset(section);
+      } else if (categorySelect.options.length > 0 && !categorySelect.value) {
         categorySelect.selectedIndex = 0;
       }
       render();
@@ -4002,18 +4123,7 @@
     localStorage.setItem(darkModeKey, e.target.checked ? 'true' : 'false');
     scheduleFileSave();
     // Re-render to update card backgrounds that use inline styles
-    const section = sectionSelect.value;
-    if (section === 'actions') {
-      renderActions();
-    } else if (section === 'criticalHits') {
-      renderCriticalHits();
-    } else if (section === 'criticalFailures') {
-      renderCriticalFailures();
-    } else if (section === 'skillChecks') {
-      renderSkillChecks();
-    } else {
-      render();
-    }
+    render();
   });
   searchInput.addEventListener('input', render);
   clearBtn.addEventListener('click', () => { searchInput.value = ''; render(); });
@@ -4109,16 +4219,6 @@
   if (youtubePlayerModal) {
     youtubePlayerModal.addEventListener('click', (e) => {
       if (e.target === youtubePlayerModal) {
-        closeYouTubePlayer();
-      }
-    });
-  }
-  if (youtubeOpenTabBtn) {
-    youtubeOpenTabBtn.addEventListener('click', () => {
-      const watchUrl = youtubePlayerFrame?.dataset?.watchUrl;
-      if (watchUrl) {
-        const title = youtubePlayerTitle?.textContent || 'Karaoke Track';
-        openYouTubeVideo(watchUrl, title);
         closeYouTubePlayer();
       }
     });
@@ -4733,16 +4833,7 @@
           favorites = loadFavorites();
           // Trigger a re-render to show loaded data
           setTimeout(() => {
-            const section = sectionSelect.value;
-            if (section === 'actions') {
-              renderActions();
-            } else if (section === 'criticalHits') {
-              renderCriticalHits();
-            } else if (section === 'criticalFailures') {
-              renderCriticalFailures();
-            } else {
-              render();
-            }
+            render();
           }, 100);
         }
       } catch (error) {
@@ -4769,6 +4860,13 @@
     debugLog(`Initial category selected: ${categorySelect.value}`);
   }
   debugLog('Initial render...');
+  if (window.ActionWorkflow) {
+    window.ActionWorkflow.init({ onChange: () => render() });
+    if (window.ActionWorkflow.isWorkflowSection(sectionSelect.value)) {
+      window.ActionWorkflow.showPanel(true);
+      window.ActionWorkflow.applyTabPreset(sectionSelect.value);
+    }
+  }
   try {
     render();
   } catch (error) {

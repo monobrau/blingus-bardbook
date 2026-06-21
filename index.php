@@ -14,6 +14,7 @@ $moduleFiles = [
   'search-utils.js',
   'search-enhancements.js',
   'keyboard-shortcuts.js',
+  'action-workflow.js',
   'karaoke-manager.js',
   'data/generators-data.js',
   'data/spells-data.js',
@@ -22,6 +23,7 @@ $moduleFiles = [
   'data/actions-data.js',
   'data/criticals-data.js',
   'data/skillchecks-data.js',
+  'data/scene-outcomes.js',
   'script.js',
   'styles.css'
 ];
@@ -55,7 +57,7 @@ foreach ($moduleFiles as $file) {
       <h1>Blingus' Bardbook</h1>
       <div class="crest" aria-hidden="true">🛡️</div>
     </div>
-    <p class="subtitle">Iconic, humorous song‑parody lines for spells, Bardic Inspiration, Vicious Mockery, and character action ideas</p>
+    <p class="subtitle">Iconic song‑parody spell lines, mockery, and a step‑by‑step picker for what Blingus says, does, hits, or rolls</p>
   </header>
 
   <nav class="toolbar" aria-label="Controls">
@@ -94,11 +96,35 @@ foreach ($moduleFiles as $file) {
         </div>
       </div>
 
-      <!-- Category Chips Row -->
+      <!-- Category Chips Row (spells, bardic, mockery) -->
       <div class="toolbar__row toolbar__row--chips" id="categoryChipsRow">
         <div class="chips" role="group" aria-label="Categories" id="categoryChips">
           <!-- Category chips will be dynamically populated -->
         </div>
+      </div>
+
+      <!-- Multi-step workflow (actions, crits, skills) -->
+      <div id="workflowPanel" class="workflow toolbar__row" style="display: none;" aria-label="Blingus action workflow">
+        <div class="workflow__grid">
+          <div class="workflow__field workflow__field--scene">
+            <label class="workflow__label" for="workflowSceneSelect">Scene</label>
+            <select id="workflowSceneSelect" class="workflow__select" aria-label="Location or scene"></select>
+          </div>
+          <div class="workflow__field workflow__field--outcome" id="workflowOutcomeStep">
+            <div class="workflow__label" id="workflowOutcomeLabel">Outcome</div>
+            <div class="chips chips--compact" id="workflowOutcomeChips" role="group" aria-label="Outcome type"></div>
+          </div>
+          <div class="workflow__field workflow__field--detail" id="workflowDetailStep">
+            <label class="workflow__label" for="workflowDetailSelect" id="workflowDetailLabel">Weapon / skill</label>
+            <select id="workflowDetailSelect" class="workflow__select" aria-label="Weapon, magic type, or skill"></select>
+            <div class="workflow__hint" id="workflowRoleplayHint" style="display: none;">Roleplay uses lines from the scene above.</div>
+          </div>
+          <div class="workflow__field workflow__field--targets">
+            <div class="workflow__label">Target <span class="workflow__hint">(filter)</span></div>
+            <div class="chips chips--compact workflow__targets" id="workflowTargetChips" role="group" aria-label="Targets"></div>
+          </div>
+        </div>
+        <div id="workflowSummary" class="workflow__summary" aria-live="polite"></div>
       </div>
 
       <!-- Hidden selects for backward compatibility -->
@@ -251,24 +277,37 @@ foreach ($moduleFiles as $file) {
 
   <!-- YouTube Player Modal -->
   <div id="youtubePlayerModal" class="modal" role="dialog" aria-labelledby="youtubePlayerTitle" aria-hidden="true">
-    <div class="modal__content" style="max-width: 900px;">
-      <div class="modal__header">
+    <div id="karaokePlayerContent" class="modal__content karaoke-player-modal">
+      <div class="modal__header karaoke-player-modal__header">
         <h2 id="youtubePlayerTitle">🎵 Karaoke Track</h2>
         <button class="modal__close" id="youtubePlayerClose" aria-label="Close">&times;</button>
       </div>
-      <div class="modal__body" style="padding: 20px;">
-        <div id="youtubePlayerContainer" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; background: #000;">
-          <video id="karaokeLocalVideo" controls playsinline style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000;"></video>
-          <iframe id="youtubePlayerFrame" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
-        </div>
-        <div id="youtubeFallback" style="display: none; margin-top: 16px; text-align: center;">
-          <p style="color: var(--ink); margin-bottom: 12px;">Video embedding is restricted. Open on YouTube instead?</p>
-          <button id="youtubeOpenTabBtn" class="btn" style="background: #ff0000; color: white;">Open on YouTube</button>
+      <div class="modal__body karaoke-player-modal__body">
+        <div class="karaoke-player-split">
+          <div class="karaoke-player-split__video">
+            <div id="youtubePlayerContainer" class="karaoke-player-container">
+              <video id="karaokeLocalVideo" controls playsinline class="karaoke-player-container__video"></video>
+              <div id="youtubeFallback" class="karaoke-player-external" hidden>
+                <p class="karaoke-player-external__title">Local playback unavailable</p>
+                <p class="karaoke-player-external__text">YouTube blocks in-page playback for most karaoke videos. Download via <strong>Search &amp; Download Karaoke</strong> for video here, or open YouTube in a new tab and use the lyrics beside it.</p>
+                <button id="youtubeOpenTabBtn" class="btn btn--youtube" type="button">Open on YouTube</button>
+              </div>
+              <div id="karaokePlayerLoading" class="karaoke-player-loading" hidden>
+                <p id="karaokePlayerLoadingText">Downloading karaoke…</p>
+              </div>
+            </div>
+          </div>
+          <aside id="karaokeLyricsPanel" class="karaoke-lyrics-panel" aria-label="Parody lyrics">
+            <div id="karaokeLyricsMeta" class="karaoke-lyrics-panel__meta"></div>
+            <div id="karaokeLyricsText" class="karaoke-lyrics-panel__text"></div>
+          </aside>
         </div>
       </div>
-      <div class="modal__footer">
+      <div class="modal__footer karaoke-player-modal__footer">
+        <button id="karaokePlayerResetSizeBtn" class="btn btn--ghost" type="button" title="Reset player to default size">Reset size</button>
         <button id="youtubePlayerCloseBtn" class="btn">Close</button>
       </div>
+      <div id="karaokePlayerResizeHandle" class="karaoke-player-resize-handle" title="Drag to resize (saved automatically)" aria-hidden="true"></div>
     </div>
   </div>
 
@@ -388,6 +427,10 @@ foreach ($moduleFiles as $file) {
   <script src="js/data/actions-data.js?v=<?php echo $versions['data/actions-data.js']; ?>"></script>
   <script src="js/data/criticals-data.js?v=<?php echo $versions['data/criticals-data.js']; ?>"></script>
   <script src="js/data/skillchecks-data.js?v=<?php echo $versions['data/skillchecks-data.js']; ?>"></script>
+  <script src="js/data/scene-outcomes.js?v=<?php echo $versions['data/scene-outcomes.js']; ?>"></script>
+
+  <!-- Action workflow (after data modules) -->
+  <script src="js/action-workflow.js?v=<?php echo $versions['action-workflow.js']; ?>"></script>
 
   <!-- Main application script -->
   <script src="script.js?v=<?php echo $versions['script.js']; ?>"></script>

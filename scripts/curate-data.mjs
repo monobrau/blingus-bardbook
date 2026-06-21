@@ -1,6 +1,6 @@
 /**
- * One-time curation script for test/revamp branch.
- * Keeps spell/bardic untouched; trims overlap in other data files.
+ * Curation script for test/revamp branch.
+ * Trims overlap in actions/mockery/etc.; scores and keeps best song parodies for spells/bardic.
  */
 import fs from 'fs';
 import path from 'path';
@@ -51,7 +51,7 @@ function scoreAction(line) {
   return score;
 }
 
-function curateStringMap(obj, maxPerCategory = 5) {
+function curateStringMap(obj, maxPerCategory = 5, maxObsessive = 1) {
   const out = {};
   for (const [key, items] of Object.entries(obj)) {
     const deduped = dedupeStrings(items, 0.65);
@@ -61,7 +61,7 @@ function curateStringMap(obj, maxPerCategory = 5) {
     for (const item of ranked) {
       if (picked.length >= maxPerCategory) break;
       const obs = /tarrasque|rust monster|checking your gear|polishing/i.test(item);
-      if (obs && obsCount >= 1) continue;
+      if (obs && obsCount >= maxObsessive) continue;
       if (obs) obsCount++;
       picked.push(item);
     }
@@ -229,8 +229,175 @@ window.BlingusData.compliments = compliments;
   fs.writeFileSync(path.join(dataDir, 'generators-data.js'), header + body + footer);
 }
 
+const LORE_ARTISTS = new Set([
+  'Mockery',
+  'D&D Lore',
+  'Forgotten Realms Lore',
+  "Blingus' Obsession",
+  "Blingus' Feywild Reference",
+  'Wild Beyond The Witchlight',
+]);
+
+function parodyWords(text) {
+  return normalize(text).split(' ').filter((w) => w.length > 0);
+}
+
+function lastWord(text) {
+  const words = parodyWords(text);
+  return words[words.length - 1] || '';
+}
+
+function isRealSongParody(item) {
+  if (!item?.s || !item?.a) return false;
+  if (LORE_ARTISTS.has(item.a)) return false;
+  if (/lore|mockery|obsession|witchlight|reference/i.test(item.a)) return false;
+  return true;
+}
+
+function scoreParody(item) {
+  if (!isRealSongParody(item)) return -100;
+
+  let score = 0;
+  const t = item.t;
+  const song = item.s;
+  const tNorm = normalize(t);
+  const songNorm = normalize(song);
+
+  // Opening line echoes song title/hook
+  const songWords = parodyWords(song).filter((w) => w.length > 2);
+  const openPhrase = songWords.slice(0, Math.min(4, songWords.length)).join(' ');
+  if (openPhrase.length > 4 && tNorm.startsWith(openPhrase.slice(0, Math.min(openPhrase.length, 18)))) {
+    score += 4;
+  } else if (songWords.some((w) => w.length > 4 && tNorm.includes(w))) {
+    score += 2;
+  }
+
+  // Song-title words appear in parody
+  let titleWordHits = 0;
+  for (const w of songWords) {
+    if (w.length > 3 && tNorm.includes(w)) titleWordHits++;
+  }
+  score += Math.min(titleWordHits, 4);
+
+  // End rhyme / hook word near end of line
+  const tLast = lastWord(t);
+  const sLast = lastWord(song);
+  const tail = tNorm.split(' ').slice(-4).join(' ');
+  if (tLast && sLast && (tLast === sLast || tail.includes(sLast))) {
+    score += 3;
+  } else if (tLast.length > 3 && sLast.length > 3 && tLast.slice(-3) === sLast.slice(-3)) {
+    score += 1;
+  }
+
+  // Song-like phrasing
+  if (/[;—]/.test(t)) score += 1;
+  if (t.length >= 55 && t.length <= 115) score += 1;
+  if (t.length > 130) score -= 2;
+  if (t.length < 45) score -= 1;
+
+  // Weak AI rhyme crutches
+  if (/\b(cue|jive|folden|dorm|norm|gem|sheen|struts|officious)\b/i.test(t.split(/[.;]/).pop() || '')) {
+    score -= 2;
+  }
+  if (/contain 'em.*sustain 'em/i.test(t)) score -= 3;
+  if (/story checks out|checks out/i.test(t) && !/no diggity/i.test(tNorm)) score -= 1;
+
+  return score;
+}
+
+function dedupeParodyEntries(items, threshold = 0.68) {
+  const kept = [];
+  for (const item of items) {
+    const text = item.t || '';
+    if (kept.some((k) => similarity(k.t, text) >= threshold)) continue;
+    kept.push(item);
+  }
+  return kept;
+}
+
+function curateParodyMap(obj, maxPerCategory = 5, minScore = 2) {
+  const out = {};
+  for (const [key, items] of Object.entries(obj)) {
+    const ranked = items
+      .filter(isRealSongParody)
+      .map((item) => ({ item, score: scoreParody(item) }))
+      .filter(({ score }) => score >= minScore);
+
+    // One best line per song title
+    const bySong = new Map();
+    for (const row of ranked) {
+      const songKey = normalize(row.item.s);
+      const prev = bySong.get(songKey);
+      if (!prev || row.score > prev.score) bySong.set(songKey, row);
+    }
+
+    let list = [...bySong.values()]
+      .sort((a, b) => b.score - a.score)
+      .map(({ item }) => item);
+
+    list = dedupeParodyEntries(list, 0.66);
+    out[key] = list.slice(0, maxPerCategory);
+  }
+  return out;
+}
+
+function serializeParodyMap(name, obj) {
+  const lines = [`const ${name} = {`];
+  for (const [key, items] of Object.entries(obj)) {
+    lines.push(`  '${key.replace(/'/g, "\\'")}': [`);
+    for (const item of items) {
+      lines.push(
+        `    {t:${JSON.stringify(item.t)}, s:${JSON.stringify(item.s)}, a:${JSON.stringify(item.a)}${item.adult ? ', adult:true' : ''}},`
+      );
+    }
+    lines.push('  ],');
+  }
+  lines.push('};');
+  return lines.join('\n');
+}
+
+function writeSpells(spells, adultSpells) {
+  const header = `/**
+ * Spell parody data (curated revamp — best song-faithful parodies per spell)
+ */
+window.BlingusData = window.BlingusData || {};
+
+`;
+  const footer = `
+window.BlingusData.spells = spells;
+window.BlingusData.adultSpells = adultSpells;
+`;
+  fs.writeFileSync(
+    path.join(dataDir, 'spells-data.js'),
+    header + serializeParodyMap('spells', spells) + '\n\n' + serializeParodyMap('adultSpells', adultSpells) + footer
+  );
+}
+
+function writeBardic(bardic) {
+  const header = `/**
+ * Bardic inspiration data (curated revamp — best song-faithful parodies per type)
+ */
+window.BlingusData = window.BlingusData || {};
+
+`;
+  const footer = `
+window.BlingusData.bardic = bardic;
+`;
+  fs.writeFileSync(path.join(dataDir, 'bardic-data.js'), header + serializeParodyMap('bardic', bardic) + footer);
+}
+
+function countParodyEntries(obj) {
+  return Object.values(obj).reduce((n, list) => n + list.length, 0);
+}
+
 // Run
-const actions = loadModuleExport(path.join(dataDir, 'actions-data.js'), 'characterActions');
+const spells = loadModuleExport(path.join(dataDir, 'spells-data.js'), 'spells');
+const adultSpells = loadModuleExport(path.join(dataDir, 'spells-data.js'), 'adultSpells');
+const bardic = loadModuleExport(path.join(dataDir, 'bardic-data.js'), 'bardic');
+const actionsSourcePath = path.join(dataDir, 'actions-source.js');
+const actions = fs.existsSync(actionsSourcePath)
+  ? loadModuleExport(actionsSourcePath, 'characterActionsSource')
+  : loadModuleExport(path.join(dataDir, 'actions-data.js'), 'characterActions');
 const criticalHits = loadModuleExport(path.join(dataDir, 'criticals-data.js'), 'criticalHits');
 const criticalFailures = loadModuleExport(path.join(dataDir, 'criticals-data.js'), 'criticalFailures');
 const skillChecks = loadModuleExport(path.join(dataDir, 'skillchecks-data.js'), 'skillChecks');
@@ -240,10 +407,30 @@ const insults = loadModuleExport(path.join(dataDir, 'generators-data.js'), 'insu
 const introductions = loadModuleExport(path.join(dataDir, 'generators-data.js'), 'introductions');
 const compliments = loadModuleExport(path.join(dataDir, 'generators-data.js'), 'compliments');
 
-writeActions(curateStringMap(actions, 5));
+const curatedSpells = curateParodyMap(spells, 5, 2);
+const curatedAdultSpells = curateParodyMap(adultSpells, 3, 1);
+const curatedBardic = curateParodyMap(bardic, 6, 2);
+
+writeSpells(curatedSpells, curatedAdultSpells);
+writeBardic(curatedBardic);
+writeActions(curateStringMap(actions, 12, 2));
 writeCriticals(curateStringMap(criticalHits, 5), curateStringMap(criticalFailures, 5));
 writeSkillChecks(curateStringMap(skillChecks, 4));
 writeMockery(curateMockery(mockery, 12));
 writeGenerators(battleCries, insults, introductions, compliments);
 
 console.log('Curation complete.');
+console.log(
+  '  spells:',
+  countParodyEntries(spells),
+  '->',
+  countParodyEntries(curatedSpells),
+  '| adult:',
+  countParodyEntries(adultSpells),
+  '->',
+  countParodyEntries(curatedAdultSpells),
+  '| bardic:',
+  countParodyEntries(bardic),
+  '->',
+  countParodyEntries(curatedBardic)
+);

@@ -1,249 +1,351 @@
 /**
- * Critical hit/failure data (curated revamp)
+ * Critical hit/failure data (expanded)
  */
 window.BlingusData = window.BlingusData || {};
 
 const criticalHits = {
-  'Arrows': [
-    "My arrow strikes like time distortion in Prismeer—here, then there, then everywhere at once",
+  "Arrows": [
+    "My arrow strikes like time distortion in Prismeer\\\\\\\\u2014here, then there, then everywhere at once",
     "My arrow finds its mark, sinking deep into their flesh with a satisfying thud",
     "My arrowhead digs between their ribs, and I see them gasp and stagger backward",
     "My arrow strikes with brutal force, tearing through fabric and flesh alike",
     "My arrowhead buries itself in their leg, and they drop to one knee with a grunt",
+    "My arrow punches through leather and keeps going until it finds bone",
+    "I loose a shot that threads between allies and nails the target square in the chest",
+    "My arrows lands with perfect timing and unmistakable force",
   ],
-  'Crossbolts': [
+  "Crossbolts": [
     "My bolt strikes with a thunderous impact, the sound echoing as it pierces deep into my target",
     "My crossbolt embeds itself with such force that I see splinters of bone fly outward",
     "A perfectly aimed bolt finds the gap between armor plates, sinking in with a sickening crunch",
     "My heavy projectile strikes true, its momentum carrying it through flesh and out the other side",
     "I watch my crossbolt tear through their armor like paper, its heavy head finding its mark with devastating force",
+    "My crossbolts lands with perfect timing and unmistakable force",
+    "I capitalize on the opening and drive the hit home",
+    "The blow connects cleanly and leaves no doubt it was a crit",
   ],
-  'Swords': [
+  "Swords": [
     "My sword strikes true, its edge finding a gap and biting deep into their side",
     "My blade cuts deep, drawing a line of red as it slices through their armor and flesh",
     "A masterful swing sends my blade through their guard, the steel singing as it cuts air then flesh",
     "My weapon strikes with deadly precision, and I see sparks fly as metal meets metal",
     "My sword cuts cleanly through, leaving a perfect slice that immediately begins to weep crimson",
+    "My blade opens a line across their guard and blood follows immediately",
+    "I riposte so cleanly the steel sings and their weapon skitters away",
+    "My swords lands with perfect timing and unmistakable force",
   ],
-  'Polearms': [
+  "Polearms": [
     "My polearm strikes with devastating reach, the blade finding its mark from an impossible angle",
     "My weapon extends my reach perfectly, the tip piercing through their armor with deadly precision",
     "My polearm cuts through the air before striking true, its length giving me the advantage",
     "A masterful thrust sends my weapon's tip through their defenses, sinking deep into flesh",
     "My polearm strikes with brutal force, the heavy blade cleaving through armor like paper",
+    "My polearms lands with perfect timing and unmistakable force",
+    "I capitalize on the opening and drive the hit home",
+    "The blow connects cleanly and leaves no doubt it was a crit",
   ],
-  'Knives': [
+  "Knives": [
     "My dagger cuts deep, drawing a line of crimson as it slides along bone",
     "My dagger finds its mark with deadly precision, slipping between armor plates like a whisper",
     "My blade strikes true, the small weapon finding a gap and sinking in up to the hilt",
     "A masterful throw sends my knife spinning through the air before embedding itself deep",
     "My dagger cuts with surgical precision, its edge finding exactly the right spot between ribs",
+    "My knives lands with perfect timing and unmistakable force",
+    "I capitalize on the opening and drive the hit home",
+    "The blow connects cleanly and leaves no doubt it was a crit",
   ],
-  'Blunt Weapons': [
+  "Blunt Weapons": [
     "My weapon strikes with bone-crushing force, the impact audible even over the sounds of battle",
     "My mace finds its mark with devastating power, the heavy head crushing through armor and bone",
     "A masterful swing sends my weapon through their defenses, the impact sending them flying",
     "My blunt weapon strikes with thunderous force, the sound echoing as metal meets flesh",
     "My weapon hits with brutal efficiency, the weight behind it shattering armor and bone alike",
+    "My blunt weapons lands with perfect timing and unmistakable force",
+    "I capitalize on the opening and drive the hit home",
+    "The blow connects cleanly and leaves no doubt it was a crit",
   ],
-  'Axes and Hammers': [
+  "Axes and Hammers": [
     "My axe cleaves through armor and flesh with brutal force, leaving a gaping wound in its wake",
     "My weapon strikes true, the heavy blade finding its mark and cutting deep into my foe",
     "A masterful swing sends my axe through their defenses, the impact sending them spinning",
     "My hammer strikes with thunderous force, crushing through armor like it was made of tin",
     "My weapon finds its mark with devastating power, the sharp edge tearing through multiple layers",
+    "My axes and hammers lands with perfect timing and unmistakable force",
+    "I capitalize on the opening and drive the hit home",
+    "The blow connects cleanly and leaves no doubt it was a crit",
   ],
-  'Other Weapons': [
+  "Other Weapons": [
     "My weapon strikes with brutal force, leaving a trail of destruction in its wake",
     "My weapon strikes with devastating force, finding its mark with deadly precision",
     "My unconventional weapon catches them off guard, striking from an angle they never expected",
     "A masterful strike sends my weapon through their defenses, the impact sending them reeling",
     "My weapon finds its mark with brutal efficiency, the unique design maximizing damage",
+    "My other weapons lands with perfect timing and unmistakable force",
+    "I capitalize on the opening and drive the hit home",
+    "The blow connects cleanly and leaves no doubt it was a crit",
   ],
-  'Fire': [
+  "Fire": [
     "My fire magic strikes with such heat that steam rises from their wet armor",
     "Flames burst forth with explosive force, catching them completely off guard",
     "My spell sends fire racing across their body, leaving trails of blackened flesh",
     "A masterful fire spell strikes true, the flames so hot they turn stone to glass",
     "The fire erupts with brutal efficiency, consuming everything in its path",
+    "Flames wrap my target and cling where armor gaps open",
+    "My spell detonates in a bloom of heat that leaves scorch marks on stone behind them",
+    "My fire lands with perfect timing and unmistakable force",
   ],
-  'Cold': [
+  "Cold": [
     "My magical cold bites deep, leaving patches of frostbite and frozen flesh",
     "My spell unleashes a wave of cold that freezes everything it touches",
     "Ice crystals form around the impact, the cold so severe it cracks their armor",
     "My freezing magic strikes with brutal force, leaving them shivering and numb",
     "My cold spell hits with such intensity that icicles form from their breath",
+    "My cold lands with perfect timing and unmistakable force",
+    "I capitalize on the opening and drive the hit home",
+    "The blow connects cleanly and leaves no doubt it was a crit",
   ],
-  'Lightning': [
+  "Lightning": [
     "My magical bolt strikes with thunderous force, leaving them smoking and stunned",
     "My lightning magic strikes with devastating precision, leaving them convulsing",
     "Lightning arcs from my spell with crackling intensity, electricity dancing across their body",
     "My lightning magic strikes true, the bolt so powerful it leaves their hair standing on end",
     "A bolt of lightning sears through the air before striking home, leaving scorch marks",
+    "My lightning lands with perfect timing and unmistakable force",
+    "I capitalize on the opening and drive the hit home",
+    "The blow connects cleanly and leaves no doubt it was a crit",
   ],
-  'Thunder': [
+  "Thunder": [
     "A wave of sonic force crashes into them, the impact audible for miles around",
     "My sound spell hits with such force that the shockwave knocks them backward",
     "My spell sends a wave of pure sound that tears through their defenses",
     "A masterful thunder spell strikes true, the blast so powerful it cracks stone",
     "My spell unleashes a storm of sound that surrounds them, the noise overwhelming",
+    "My thunder lands with perfect timing and unmistakable force",
+    "I capitalize on the opening and drive the hit home",
+    "The blow connects cleanly and leaves no doubt it was a crit",
   ],
-  'Psychic': [
+  "Psychic": [
     "My spell unleashes a storm of psychic energy that batters their mind",
     "My magical mind attack strikes with brutal intensity, leaving them disoriented",
     "My psychic magic strikes with deadly precision, leaving them mentally shattered",
     "My spell strikes their mind with crushing force, and I see them grasping at their head",
     "My psychic magic attacks their thoughts directly, the mental assault overwhelming",
+    "My psychic lands with perfect timing and unmistakable force",
+    "I capitalize on the opening and drive the hit home",
+    "The blow connects cleanly and leaves no doubt it was a crit",
   ],
-  'Force': [
+  "Force": [
     "My spell unleashes a wave of pure energy that tears through armor and flesh",
     "My force spell hits with such power that it creates visible ripples in the air",
     "My spell unleashes a torrent of raw magic that overwhelms their defenses",
     "My spell sends waves of pure force that tear through everything in their path",
     "Pure magical energy erupts from my spell, the force so intense it pushes everything back",
+    "My force lands with perfect timing and unmistakable force",
+    "I capitalize on the opening and drive the hit home",
+    "The blow connects cleanly and leaves no doubt it was a crit",
   ],
-  'Necrotic': [
+  "Necrotic": [
     "My necrotic magic strikes true, the decay spreading rapidly across their flesh",
     "A wave of death energy washes over them, leaving their skin gray and lifeless",
     "My spell unleashes a cloud of necrotic energy that withers flesh and bone",
     "My death magic hits with such force that their life force visibly drains away",
     "Death energy bursts forth with explosive force, the decay spreading rapidly",
+    "My necrotic lands with perfect timing and unmistakable force",
+    "I capitalize on the opening and drive the hit home",
+    "The blow connects cleanly and leaves no doubt it was a crit",
   ],
-  'Radiant': [
+  "Radiant": [
     "A perfectly aimed divine spell strikes true, the holy light spreading outward",
     "My spell unleashes a torrent of radiant energy that overwhelms their defenses",
     "Holy energy bursts forth with explosive force, the radiance blinding all nearby",
     "My spell sends waves of radiant energy that tear through darkness and shadow",
     "Holy light erupts from my spell, the radiant energy burning away darkness and corruption",
+    "My radiant lands with perfect timing and unmistakable force",
+    "I capitalize on the opening and drive the hit home",
+    "The blow connects cleanly and leaves no doubt it was a crit",
   ],
-  'Acid': [
+  "Acid": [
     "My acid magic strikes true, the burning liquid dissolving armor and flesh alike",
     "My magical acid strikes with devastating force, the corrosion spreading rapidly",
     "My spell unleashes a stream of caustic liquid that eats through metal and bone",
     "My corrosive spell strikes with brutal intensity, leaving them covered in burns",
     "My acid magic hits with such force that it leaves visible trails of destruction",
+    "My acid lands with perfect timing and unmistakable force",
+    "I capitalize on the opening and drive the hit home",
+    "The blow connects cleanly and leaves no doubt it was a crit",
   ],
 };
 
 const criticalFailures = {
-  'Arrows': [
-    "My arrow disappears like a lost thing in Prismeer—here one moment, gone the next",
+  "Arrows": [
+    "My arrow disappears like a lost thing in Prismeer\\\\\\\\u2014here one moment, gone the next",
     "My arrow gets caught in a sudden gust of wind, veering wildly off course",
     "My arrow nock breaks mid-draw, sending the arrow spinning uselessly to the side",
     "I release too early, and my arrow bounces harmlessly off their shield",
     "I lose my balance and my arrow goes wide, nearly hitting a tree instead",
+    "My attack goes wrong at the worst possible moment",
+    "I fumble the strike and leave myself exposed",
+    "The attempt backfires spectacularly in front of everyone",
   ],
-  'Crossbolts': [
+  "Crossbolts": [
     "My bolt gets stuck in the track, and I waste precious seconds trying to free it",
     "My crossbolt ricochets off a nearby rock, spinning back dangerously close to me",
     "The trigger mechanism sticks, and I spend too long trying to get it to fire",
     "I misload the bolt, and it falls out just as I'm about to shoot",
     "My crossbolt gets caught in some nearby foliage, sticking harmlessly in a bush",
+    "My attack goes wrong at the worst possible moment",
+    "I fumble the strike and leave myself exposed",
+    "The attempt backfires spectacularly in front of everyone",
   ],
-  'Swords': [
+  "Swords": [
     "My blade catches on my scabbard as I draw, nearly cutting myself instead",
     "My sword gets tangled in my cloak, causing me to stumble and miss completely",
     "I overextend my swing and lose my balance, falling forward onto my face",
     "My sword gets caught on a nearby obstacle, pulling me off balance",
     "I swing wildly and my blade bounces off their shield with a jarring impact",
+    "My swing goes wide and I nearly take out an ally on the follow-through",
+    "I overextend and stumble, leaving my back wide open",
+    "My attack goes wrong at the worst possible moment",
   ],
-  'Polearms': [
+  "Polearms": [
     "My polearm catches on overhead branches, getting stuck and leaving me exposed",
     "I misjudge the reach and overextend, losing my balance and stumbling forward",
     "My weapon gets tangled with nearby allies, causing me to pull back awkwardly",
     "I swing too wide and my polearm gets caught on something behind me",
     "I trip over the long weapon, sending myself sprawling to the ground",
+    "My attack goes wrong at the worst possible moment",
+    "I fumble the strike and leave myself exposed",
+    "The attempt backfires spectacularly in front of everyone",
   ],
-  'Knives': [
+  "Knives": [
     "I fumble the grip and my knife nearly cuts my own hand instead",
     "My dagger gets caught in my sleeve as I draw, causing me to stumble",
     "I throw too hard and my knife spins end over end before landing handle-first",
     "My blade slips from my sweaty palm, falling straight down at my feet",
     "I misjudge the throw completely, my dagger sailing way over their head",
+    "My attack goes wrong at the worst possible moment",
+    "I fumble the strike and leave myself exposed",
+    "The attempt backfires spectacularly in front of everyone",
   ],
-  'Blunt Weapons': [
+  "Blunt Weapons": [
     "I swing too hard and lose my balance, stumbling forward onto my knees",
     "My weapon gets caught on my own equipment, causing me to twist awkwardly",
     "I overextend the swing and my mace bounces harmlessly off their armor",
     "My grip fails and the weapon spins in my hand, nearly hitting myself",
     "I trip over my own feet while swinging, my mace carving through empty air",
+    "My attack goes wrong at the worst possible moment",
+    "I fumble the strike and leave myself exposed",
+    "The attempt backfires spectacularly in front of everyone",
   ],
-  'Axes and Hammers': [
+  "Axes and Hammers": [
     "I swing too hard and lose my grip, my axe spinning through the air dangerously",
     "My weapon catches on overhead obstacles, getting stuck and leaving me exposed",
     "I overextend and my axe bounces harmlessly off their armor with a dull thud",
     "My grip slips on the handle, and my axe nearly flies from my hands",
     "I trip while swinging, my axe carving a useless groove in the ground",
+    "My attack goes wrong at the worst possible moment",
+    "I fumble the strike and leave myself exposed",
+    "The attempt backfires spectacularly in front of everyone",
   ],
-  'Other Weapons': [
+  "Other Weapons": [
     "My weapon slips from my grip, tumbling awkwardly before landing harmlessly",
     "I fumble the attack completely, my weapon doing nothing useful",
     "My grip fails mid-swing, sending my weapon spinning in a wrong direction",
     "I trip over my own feet, my weapon carving through empty air",
     "My weapon gets caught on something nearby, refusing to move properly",
+    "My attack goes wrong at the worst possible moment",
+    "I fumble the strike and leave myself exposed",
+    "The attempt backfires spectacularly in front of everyone",
   ],
-  'Fire': [
+  "Fire": [
     "My fire spell fizzles out pathetically, leaving only a small puff of smoke",
     "I mispronounce the incantation and my flames sputter before dying completely",
     "My spell backfires slightly, singeing my own fingers instead of my target",
     "The magical fire refuses to ignite properly, leaving only warm air",
     "My flames erupt in the wrong direction, nearly hitting an ally instead",
+    "The spell fizzles into harmless sparks that drift upward and die",
+    "I misaim and scorch the ground between us instead of my target",
+    "My attack goes wrong at the worst possible moment",
   ],
-  'Cold': [
+  "Cold": [
     "My cold spell produces only a light breeze instead of freezing magic",
     "I mispronounce the incantation and my ice magic fails completely",
     "My freezing spell backfires, leaving my own fingers slightly numb",
     "The cold magic refuses to form properly, leaving only cool air",
     "I lose concentration and my ice spell melts before reaching them",
+    "My attack goes wrong at the worst possible moment",
+    "I fumble the strike and leave myself exposed",
+    "The attempt backfires spectacularly in front of everyone",
   ],
-  'Lightning': [
+  "Lightning": [
     "My lightning spell produces only static electricity, crackling harmlessly",
     "I mispronounce the incantation and my bolt fizzles before forming",
     "My electrical magic backfires slightly, shocking my own fingers",
     "The lightning refuses to arc properly, leaving only sparks",
     "I lose concentration mid-cast and my bolt dies before reaching them",
+    "My attack goes wrong at the worst possible moment",
+    "I fumble the strike and leave myself exposed",
+    "The attempt backfires spectacularly in front of everyone",
   ],
-  'Thunder': [
+  "Thunder": [
     "My thunder spell produces only a whisper instead of a roar",
     "I mispronounce the incantation and my sonic magic fails completely",
     "My sound spell backfires slightly, leaving my own ears ringing",
     "The thunder refuses to form properly, leaving only silence",
     "I lose concentration and my sonic blast dies before reaching them",
+    "My attack goes wrong at the worst possible moment",
+    "I fumble the strike and leave myself exposed",
+    "The attempt backfires spectacularly in front of everyone",
   ],
-  'Psychic': [
+  "Psychic": [
     "My psychic spell fizzles out pathetically, leaving only a mild headache",
     "I mispronounce the incantation and my mental magic fails completely",
     "My mind attack backfires slightly, leaving my own thoughts jumbled",
     "The psychic energy refuses to form properly, leaving only confusion",
     "I lose concentration and my mental assault dies before reaching them",
+    "My attack goes wrong at the worst possible moment",
+    "I fumble the strike and leave myself exposed",
+    "The attempt backfires spectacularly in front of everyone",
   ],
-  'Force': [
+  "Force": [
     "My force spell produces only a light push instead of a powerful blast",
     "I mispronounce the incantation and my magic fails completely",
     "My force attack backfires slightly, pushing me backward instead",
     "The magical energy refuses to form properly, leaving only weak pressure",
     "I lose concentration and my force blast dies before reaching them",
+    "My attack goes wrong at the worst possible moment",
+    "I fumble the strike and leave myself exposed",
+    "The attempt backfires spectacularly in front of everyone",
   ],
-  'Necrotic': [
+  "Necrotic": [
     "My necrotic spell fizzles out pathetically, leaving only mild discomfort",
     "I mispronounce the incantation and my death magic fails completely",
     "My decay spell backfires slightly, aging my own hands slightly",
     "The dark energy refuses to form properly, leaving only disappointment",
     "I lose concentration and my necrotic magic dies before reaching them",
+    "My attack goes wrong at the worst possible moment",
+    "I fumble the strike and leave myself exposed",
+    "The attempt backfires spectacularly in front of everyone",
   ],
-  'Radiant': [
+  "Radiant": [
     "My radiant spell produces only a dim glow instead of brilliant light",
     "I mispronounce the incantation and my holy magic fails completely",
     "My divine spell backfires slightly, leaving my own eyes dazzled",
     "The holy energy refuses to form properly, leaving only weak light",
     "I lose concentration and my radiant magic dies before reaching them",
+    "My attack goes wrong at the worst possible moment",
+    "I fumble the strike and leave myself exposed",
+    "The attempt backfires spectacularly in front of everyone",
   ],
-  'Acid': [
+  "Acid": [
     "My acid spell produces only a light mist instead of corrosive liquid",
     "I mispronounce the incantation and my caustic magic fails completely",
     "My acid attack backfires slightly, leaving my own fingers slightly irritated",
     "The corrosive energy refuses to form properly, leaving only harmless vapor",
     "I lose concentration and my acid spell dissipates before reaching them",
+    "My attack goes wrong at the worst possible moment",
+    "I fumble the strike and leave myself exposed",
+    "The attempt backfires spectacularly in front of everyone",
   ],
 };
 window.BlingusData.criticalHits = criticalHits;

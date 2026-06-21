@@ -69,8 +69,16 @@
       sectionSelect.dispatchEvent(event);
     }
 
-    // Update category chips for this section
-    updateCategoryChips(section);
+    // Workflow sections use the multi-step panel instead of category chips
+    if (window.ActionWorkflow && window.ActionWorkflow.isWorkflowSection(section)) {
+      window.ActionWorkflow.showPanel(true);
+      window.ActionWorkflow.applyTabPreset(section);
+    } else if (window.ActionWorkflow) {
+      window.ActionWorkflow.showPanel(false);
+      updateCategoryChips(section);
+    } else {
+      updateCategoryChips(section);
+    }
 
     // Scroll active tab into view
     if (!isInitial) {
