@@ -1,5 +1,5 @@
 /**
- * Tab and Chip Navigation for Blingus' Bardbook
+ * Tab and Chip Navigation for Blingus's Bardbook
  * Handles visual tab/chip navigation and syncs with hidden selects
  */
 

@@ -1,5 +1,5 @@
 /**
- * Character action data for Blingus' Bardbook
+ * Character action data for Blingus's Bardbook
  * Roleplay lines by scene — expanded for workflow picker
  */
 window.BlingusData = window.BlingusData || {};

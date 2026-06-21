@@ -1,5 +1,5 @@
 /**
- * Shared utilities for Blingus' Bardbook
+ * Shared utilities for Blingus's Bardbook
  * Common functions used across multiple modules
  */
 

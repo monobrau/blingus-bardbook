@@ -1,5 +1,5 @@
 /**
- * Keyboard shortcuts for Blingus' Bardbook
+ * Keyboard shortcuts for Blingus's Bardbook
  * Provides power user shortcuts and keyboard navigation
  */
 

@@ -1,4 +1,4 @@
-# 🎭 Blingus' Bardbook
+# 🎭 Blingus's Bardbook
 
 A D&D bard's best friend! Generate hilarious song-parody lines for spells, Bardic Inspiration, Vicious Mockery, and tons of character action ideas—all tailored for Blingus, the Wayfarer Fairy Bard.
 
@@ -164,7 +164,7 @@ This bardbook is tailored for **Blingus, the Wayfarer Fairy Bard**—a wanderlus
 - Connections to the Midnight Carnival and the Feywild
 - A sharp, sarcastic wit with reluctant approval style
 
-All generators and content reflect Blingus' personality, backstory, and the Forgotten Realms setting.
+All generators and content reflect Blingus's personality, backstory, and the Forgotten Realms setting.
 
 ## 📋 Change Log
 

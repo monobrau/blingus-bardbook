@@ -1,5 +1,5 @@
 /**
- * Storage utilities for Blingus' Bardbook
+ * Storage utilities for Blingus's Bardbook
  * Handles localStorage, sessionStorage, and data persistence
  */
 

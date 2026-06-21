@@ -1,5 +1,5 @@
 /**
- * Search enhancements for Blingus' Bardbook
+ * Search enhancements for Blingus's Bardbook
  * Integrates fuzzy search, result counts, and highlighting
  */
 

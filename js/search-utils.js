@@ -1,5 +1,5 @@
 /**
- * Search utilities for Blingus' Bardbook
+ * Search utilities for Blingus's Bardbook
  * Provides fuzzy matching and text highlighting
  */
 

@@ -144,7 +144,7 @@ function serializeMockery(mockery) {
 
 function writeActions(data) {
   const header = `/**
- * Character action data for Blingus' Bardbook (curated revamp)
+ * Character action data for Blingus's Bardbook (curated revamp)
  * Organized by action category — top picks per situation
  */
 window.BlingusData = window.BlingusData || {};
@@ -233,8 +233,8 @@ const LORE_ARTISTS = new Set([
   'Mockery',
   'D&D Lore',
   'Forgotten Realms Lore',
-  "Blingus' Obsession",
-  "Blingus' Feywild Reference",
+  "Blingus's Obsession",
+  "Blingus's Feywild Reference",
   'Wild Beyond The Witchlight',
 ]);
 

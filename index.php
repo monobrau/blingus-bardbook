@@ -47,14 +47,14 @@ foreach ($moduleFiles as $file) {
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>Blingus' Bardbook</title>
+  <title>Blingus's Bardbook</title>
   <link rel="stylesheet" href="styles.css?v=<?php echo $versions['styles.css']; ?>" />
 </head>
 <body>
   <header class="banner">
     <div class="banner__wrap">
       <div class="crest" aria-hidden="true">⚔️</div>
-      <h1>Blingus' Bardbook</h1>
+      <h1>Blingus's Bardbook</h1>
       <div class="crest" aria-hidden="true">🛡️</div>
     </div>
     <p class="subtitle">Iconic song‑parody spell lines, mockery, and a step‑by‑step picker for what Blingus says, does, hits, or rolls</p>

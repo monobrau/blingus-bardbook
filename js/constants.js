@@ -1,5 +1,5 @@
 /**
- * Constants for Blingus' Bardbook
+ * Constants for Blingus's Bardbook
  * Centralized configuration values
  */
 

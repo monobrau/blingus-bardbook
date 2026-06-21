@@ -1,5 +1,5 @@
 /**
- * UI utilities for Blingus' Bardbook
+ * UI utilities for Blingus's Bardbook
  * Common DOM manipulation and UI helper functions
  */
 

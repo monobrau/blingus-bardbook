@@ -1,4 +1,4 @@
-# 🎭 **Blingus' Bardbook** 🎭
+# 🎭 **Blingus's Bardbook** 🎭
 
 A D&D bard's best friend! This app generates hilarious song-parody lines for your spells, Bardic Inspiration, Vicious Mockery, and tons of character action ideas.
 

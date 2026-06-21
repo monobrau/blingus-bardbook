@@ -43,7 +43,7 @@ const bardicCode = fs.readFileSync(path.join(root, 'js/data/bardic-data.js'), 'u
 assert((spellsCode.match(/\{t:/g) || []).length >= 40, 'spells have curated parody entries');
 assert((bardicCode.match(/\{t:/g) || []).length >= 45, 'bardic has curated entries');
 assert(!spellsCode.includes('Forgotten Realms Lore'), 'lore one-liners removed from spells');
-assert(!bardicCode.includes("Blingus' Obsession"), 'lore one-liners removed from bardic');
+assert(!bardicCode.includes("Blingus's Obsession"), 'lore one-liners removed from bardic');
 
 // Actions curated (smaller than original ~1063 lines)
 const actionsLines = fs.readFileSync(path.join(root, 'js/data/actions-data.js'), 'utf8').split('\n').length;

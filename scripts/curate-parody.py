@@ -11,8 +11,8 @@ LORE_ARTISTS = {
     "Mockery",
     "D&D Lore",
     "Forgotten Realms Lore",
-    "Blingus' Obsession",
-    "Blingus' Feywild Reference",
+    "Blingus's Obsession",
+    "Blingus's Feywild Reference",
     "Wild Beyond The Witchlight",
 }
 
