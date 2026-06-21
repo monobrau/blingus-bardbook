@@ -1,7 +1,14 @@
 """Scene-aware critical hit/fail templates for weapons and magic."""
 
+import re
+from pathlib import Path
+
 from crit_templates_v2 import CRIT_FAIL_TEMPLATES, CRIT_HIT_TEMPLATES
 from outcome_vocab import SCENE_TYPE, vocab_for
+
+ROOT = Path(__file__).resolve().parents[1]
+DATA = ROOT / 'js' / 'data'
+OUTCOME_POOL_SIZE = 32
 
 WEAPON_CATEGORIES = [
     'Arrows', 'Crossbolts', 'Swords', 'Polearms', 'Knives',
@@ -19,11 +26,11 @@ COMBAT_CATEGORIES = WEAPON_CATEGORIES + MAGIC_CATEGORIES
 CRIT_NOUNS_BY_TYPE = {
     'social': {
         'overhead_snag': 'a low ceiling beam',
-        'snag_behind': 'a shelf of tankards',
-        'floor_hazard': 'spilled ale',
-        'ally_tangle': 'a patron',
-        'backstop': 'the bar rail',
-        'miss_surface': 'the taproom floor',
+        'snag_behind': 'a shelf behind the counter',
+        'floor_hazard': 'a slick patch underfoot',
+        'ally_tangle': 'a bystander',
+        'backstop': 'a table edge',
+        'miss_surface': 'the floor',
     },
     'adventure': {
         'overhead_snag': 'a low arch or hanging banner',
@@ -101,6 +108,16 @@ SCENE_CRIT_OVERRIDES = {
     },
 }
 
+# Terms that only belong in specific scenes (validated in crit_line_is_valid).
+SCENE_EXCLUSIVE_TERMS = {
+    'taproom': {'Tavern'},
+    'chandelier': {'Tavern'},
+    'bar rail': {'Tavern'},
+    'barkeep': {'Tavern'},
+    "patron's stew": {'Tavern'},
+    'spilled ale': {'Tavern'},
+}
+
 CRIT_SCENE_BANNED = {
     'social': [
         'overhead branches', 'canopy', 'undergrowth', 'stalactite', 'quicksand',
@@ -108,7 +125,7 @@ CRIT_SCENE_BANNED = {
     ],
     'dungeon': [
         'overhead branches', 'canopy', 'chandelier', 'taproom', 'patron', 'barkeep',
-        'market stall', 'undergrowth', 'tree trunk', 'awing',
+        'market stall', 'undergrowth', 'tree trunk', 'awning',
     ],
     'wilderness': [
         'chandelier', 'taproom', 'great hall', 'throne room', 'bar rail',
@@ -133,6 +150,9 @@ def crit_vocab_for(scene_id):
 def crit_line_is_valid(scene_id, category, line, is_hit):
     stype = SCENE_TYPE[scene_id]
     lower = line.lower()
+    for term, allowed in SCENE_EXCLUSIVE_TERMS.items():
+        if term in lower and scene_id not in allowed:
+            return False
     for bad in CRIT_SCENE_BANNED.get(stype, []):
         if bad.lower() in lower:
             return False
@@ -146,6 +166,50 @@ def crit_line_is_valid(scene_id, category, line, is_hit):
     return True
 
 
+_GENERIC_CRITS = None
+
+
+def _parse_string_map(text):
+    parsed = {}
+    for key, body in re.findall(r'"([^"]+)":\s*\[(.*?)\]', text, re.S):
+        parsed[key] = [
+            bytes(x, 'utf-8').decode('unicode_escape')
+            for x in re.findall(r'"([^"\\]*(?:\\.[^"\\]*)*)"', body)
+        ]
+    return parsed
+
+
+def load_generic_crits():
+    global _GENERIC_CRITS
+    if _GENERIC_CRITS is not None:
+        return _GENERIC_CRITS
+    text = (DATA / 'criticals-data.js').read_text()
+    hits = {}
+    fails = {}
+    hit_match = re.search(r'const criticalHits = (\{[\s\S]*?\n\});', text)
+    fail_match = re.search(r'const criticalFailures = (\{[\s\S]*?\n\});', text)
+    if hit_match:
+        hits = _parse_string_map(hit_match.group(1))
+    if fail_match:
+        fails = _parse_string_map(fail_match.group(1))
+    _GENERIC_CRITS = (hits, fails)
+    return _GENERIC_CRITS
+
+
+def contextualize_crit_line(line, ctx):
+    """Wrap generic crit lines with scene place/where for extra variety."""
+    place = ctx.get('place', 'here')
+    where = ctx.get('where', 'here')
+    if not line:
+        return []
+    lead = line[0].lower() + line[1:] if len(line) > 1 else line.lower()
+    return [
+        f'In {place}, {lead}',
+        f'{line} in {where}',
+        f'{line} — {place}, naturally',
+    ]
+
+
 def generate_crit_lines(scene_id, category, suffix):
     is_hit = suffix == 'Crit Hit'
     templates = CRIT_HIT_TEMPLATES if is_hit else CRIT_FAIL_TEMPLATES
@@ -155,13 +219,24 @@ def generate_crit_lines(scene_id, category, suffix):
         line = template.format(**ctx)
         if line not in lines and crit_line_is_valid(scene_id, category, line, is_hit):
             lines.append(line)
-        if len(lines) >= 8:
+        if len(lines) >= OUTCOME_POOL_SIZE:
             break
-    if len(lines) < 8:
+    if len(lines) < OUTCOME_POOL_SIZE:
         for template in templates.get(category, []):
             line = template.format(**ctx)
             if line not in lines:
                 lines.append(line)
-            if len(lines) >= 8:
+            if len(lines) >= OUTCOME_POOL_SIZE:
                 break
-    return lines[:8]
+    if len(lines) < OUTCOME_POOL_SIZE:
+        hits, fails = load_generic_crits()
+        generic_pool = hits.get(category, []) if is_hit else fails.get(category, [])
+        for raw in generic_pool:
+            for variant in contextualize_crit_line(raw, ctx):
+                if variant not in lines and crit_line_is_valid(scene_id, category, variant, is_hit):
+                    lines.append(variant)
+                if len(lines) >= OUTCOME_POOL_SIZE:
+                    break
+            if len(lines) >= OUTCOME_POOL_SIZE:
+                break
+    return lines[:OUTCOME_POOL_SIZE]

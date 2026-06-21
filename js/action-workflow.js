@@ -415,35 +415,36 @@
     return items;
   }
 
-  function isOutcomeValid(text, workflowState = state, context = null) {
+  function sceneLinePassesTargets(haystack, workflowState, skipTargets) {
+    if (skipTargets) return true;
+    const activeTargets = getActiveTargets(workflowState);
+    if (!activeTargets.length) return true;
+    return activeTargets.some((targetId) => textMatchesTargetId(haystack, targetId));
+  }
+
+  function isOutcomeValid(text, workflowState = state, context = null, skipTargets = false) {
     const { outcomeMod } = workflowState;
     const haystack = String(text);
-    const activeTargets = getActiveTargets(workflowState);
     const ctx = context || resolveOutcomeContext(workflowState);
 
     if (outcomeMod === 'hit') {
-      if (!ENEMY_PATTERN.test(haystack)) return false;
-      if (SELF_HARM_PATTERN.test(haystack)) return false;
       if (workflowState.location && ctx?.section === 'criticalHits') {
         const sceneLines = getSceneOutcomeLines(workflowState.location, getSceneCritCategory(ctx));
         if (sceneLines.includes(text)) {
-          if (activeTargets.length) {
-            return activeTargets.some((targetId) => textMatchesTargetId(haystack, targetId));
-          }
-          return true;
+          if (SELF_HARM_PATTERN.test(haystack)) return false;
+          return sceneLinePassesTargets(haystack, workflowState, skipTargets);
         }
         if (isGenericIncompatibleWithScene(text, workflowState.location)) return false;
       }
+      if (!ENEMY_PATTERN.test(haystack)) return false;
+      if (SELF_HARM_PATTERN.test(haystack)) return false;
     }
 
     if (outcomeMod === 'fail') {
       if (workflowState.location && ctx?.section === 'criticalFailures') {
         const sceneLines = getSceneOutcomeLines(workflowState.location, getSceneCritCategory(ctx));
         if (sceneLines.includes(text)) {
-          if (activeTargets.length) {
-            return activeTargets.some((targetId) => textMatchesTargetId(haystack, targetId));
-          }
-          return true;
+          return sceneLinePassesTargets(haystack, workflowState, skipTargets);
         }
         if (isGenericIncompatibleWithScene(text, workflowState.location)) return false;
       }
@@ -454,35 +455,32 @@
     }
 
     if (outcomeMod === 'success' && ctx?.section === 'skillChecks') {
-      if (/^I attempt .* but /i.test(haystack)) return false;
       if (workflowState.location) {
         const sceneLines = getSceneOutcomeLines(workflowState.location, ctx.category);
         if (sceneLines.includes(text)) {
-          if (activeTargets.length) {
-            return activeTargets.some((targetId) => textMatchesTargetId(haystack, targetId));
-          }
-          return true;
+          return sceneLinePassesTargets(haystack, workflowState, skipTargets);
         }
         if (isGenericIncompatibleWithScene(text, workflowState.location)) return false;
       }
+      if (/^I attempt .* but /i.test(haystack)) return false;
     }
 
     if (outcomeMod === 'failure' && ctx?.section === 'skillChecks') {
-      if (/^I gracefully |^My body moves like liquid|^The creature calms|^I recognize the magical/i.test(haystack)) return false;
       if (workflowState.location) {
         const sceneLines = getSceneOutcomeLines(workflowState.location, ctx.category);
         if (sceneLines.includes(text)) {
-          if (activeTargets.length) {
-            return activeTargets.some((targetId) => textMatchesTargetId(haystack, targetId));
-          }
-          return true;
+          return sceneLinePassesTargets(haystack, workflowState, skipTargets);
         }
         if (isGenericIncompatibleWithScene(text, workflowState.location)) return false;
       }
+      if (/^I gracefully |^My body moves like liquid|^The creature calms|^I recognize the magical/i.test(haystack)) return false;
     }
 
-    if (activeTargets.length) {
-      return activeTargets.some((targetId) => textMatchesTargetId(haystack, targetId));
+    if (!skipTargets) {
+      const activeTargets = getActiveTargets(workflowState);
+      if (activeTargets.length) {
+        return activeTargets.some((targetId) => textMatchesTargetId(haystack, targetId));
+      }
     }
 
     return true;
@@ -491,7 +489,16 @@
   function filterValidOutcomes(items, workflowState = state, context = null) {
     const ctx = context || resolveOutcomeContext(workflowState);
     if (!ctx.ready) return [];
-    return items.filter((text) => isOutcomeValid(text, workflowState, ctx));
+
+    const withoutTargets = items.filter((text) => isOutcomeValid(text, workflowState, ctx, true));
+    const activeTargets = getActiveTargets(workflowState);
+    if (!activeTargets.length) return withoutTargets;
+
+    const narrowed = withoutTargets.filter((text) =>
+      activeTargets.some((targetId) => textMatchesTargetId(String(text), targetId))
+    );
+    // Prefer target matches, but never leave the user with zero outcomes.
+    return narrowed.length ? narrowed : withoutTargets;
   }
 
   function getEmptyOutcomeHint(workflowState, context, baseCount, validCount) {

@@ -243,6 +243,64 @@ window.SharedUtils = (function() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   }
 
+  const RECENT_PICKS_KEY = 'blingusRecentPicksV1';
+  const RECENT_PICK_DEPTH = 10;
+
+  function loadRecentPickMap() {
+    try {
+      return JSON.parse(localStorage.getItem(RECENT_PICKS_KEY) || '{}');
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function saveRecentPickMap(map) {
+    try {
+      localStorage.setItem(RECENT_PICKS_KEY, JSON.stringify(map));
+    } catch (e) {
+      // ignore quota errors
+    }
+  }
+
+  /**
+   * Pick from a pool while avoiding recently chosen lines for the same bucket.
+   * @param {string[]} pool
+   * @param {string} bucketKey - e.g. section|category|scene
+   * @returns {string|null}
+   */
+  function pickWithVariety(pool, bucketKey) {
+    if (!pool || !pool.length) return null;
+    if (pool.length === 1) return pool[0];
+
+    const all = loadRecentPickMap();
+    const recent = new Set(all[bucketKey] || []);
+    let candidates = pool.filter((item) => !recent.has(item));
+    if (!candidates.length) candidates = pool;
+
+    const pick = candidates[Math.floor(Math.random() * candidates.length)];
+    const next = [pick, ...(all[bucketKey] || []).filter((item) => item !== pick)];
+    all[bucketKey] = next.slice(0, Math.min(RECENT_PICK_DEPTH, Math.max(1, pool.length - 1)));
+    saveRecentPickMap(all);
+    return pick;
+  }
+
+  /**
+   * Pick an item from a heterogeneous pool (strings or objects).
+   * @param {Array} pool
+   * @param {string} bucketKey
+   * @param {(item: *) => string} [getKey]
+   * @returns {*|null}
+   */
+  function pickFromPool(pool, bucketKey, getKey) {
+    if (!pool || !pool.length) return null;
+    const keyFn = typeof getKey === 'function' ? getKey : (item) => String(item);
+    const keys = pool.map((item) => keyFn(item));
+    const pickedKey = pickWithVariety(keys, bucketKey);
+    if (pickedKey == null) return pool[Math.floor(Math.random() * pool.length)];
+    const idx = keys.indexOf(pickedKey);
+    return idx >= 0 ? pool[idx] : pool[Math.floor(Math.random() * pool.length)];
+  }
+
   // Export all utilities
   return {
     escapeHtml,
@@ -258,6 +316,8 @@ window.SharedUtils = (function() {
     isInViewport,
     smoothScrollTo,
     parseTimeToSeconds,
-    formatSecondsToTime
+    formatSecondsToTime,
+    pickWithVariety,
+    pickFromPool,
   };
 })();

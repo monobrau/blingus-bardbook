@@ -1,8 +1,13 @@
 (function(){
   // Debug mode: enable via URL parameter ?debug=true or hostname is localhost
-  const DEBUG = new URLSearchParams(window.location.search).has('debug') || 
-                window.location.hostname === 'localhost' || 
+  const DEBUG = new URLSearchParams(window.location.search).has('debug') ||
+                window.location.hostname === 'localhost' ||
                 window.location.hostname === '127.0.0.1';
+
+  const pickWithVariety = window.SharedUtils?.pickWithVariety
+    || ((pool) => (pool?.length ? pool[Math.floor(Math.random() * pool.length)] : null));
+  const pickFromPool = window.SharedUtils?.pickFromPool
+    || ((pool) => (pool?.length ? pool[Math.floor(Math.random() * pool.length)] : null));
   
   // Debug logging helper
   const debugLog = (...args) => {
@@ -1822,7 +1827,8 @@
       randomBtn.style.fontWeight = 'bold';
       randomBtn.textContent = '🎲 Feeling Chaotic? 🎲';
       randomBtn.addEventListener('click', () => {
-        const randomItem = baseList[Math.floor(Math.random() * baseList.length)];
+        const randomItem = pickFromPool(baseList, `${section}|${cat}`, (item) =>
+          typeof item === 'string' ? item : `${item.t}|${item.s}|${item.a}`);
         
         // Check if the selected item is in the filtered results
         const isInFiltered = list.some(x => {
@@ -2242,7 +2248,7 @@
       randomBtn.style.fontWeight = 'bold';
       randomBtn.textContent = '🎲 Feeling Chaotic? 🎲';
       randomBtn.addEventListener('click', () => {
-        const pick = validTexts[Math.floor(Math.random() * validTexts.length)];
+        const pick = pickWithVariety(validTexts, `workflow|${section}|${location}|${category}|${wfState.outcomeMod}|${(wfState.targets || ['any']).join('+')}`);
         const titleParts = [modalPrefix, sceneLabel];
         if (section !== 'actions') titleParts.push(category);
         showGeneratorModal(titleParts.join(' · '), pick, section);
@@ -2253,7 +2259,7 @@
       randomHint.style.fontSize = '14px';
       randomHint.style.opacity = '0.7';
       randomHint.style.textAlign = 'center';
-      randomHint.textContent = `Random pick from ${validTexts.length} valid outcome${validTexts.length === 1 ? '' : 's'}`;
+      randomHint.textContent = `Random pick from ${validTexts.length} valid outcome${validTexts.length === 1 ? '' : 's'} (skips your recent picks)`;
 
       randomCard.appendChild(randomBtn);
       randomCard.appendChild(randomHint);
@@ -2387,7 +2393,7 @@
       randomBtn.style.fontWeight = 'bold';
       randomBtn.textContent = '🎲 Feeling Chaotic? 🎲';
       randomBtn.addEventListener('click', () => {
-        const randomAction = fullActions[Math.floor(Math.random() * fullActions.length)];
+        const randomAction = pickWithVariety(fullActions, `actions|${cat}`);
         showGeneratorModal(`🎭 ${cat}`, randomAction, 'actions');
       });
       
@@ -2559,7 +2565,7 @@
       randomBtn.style.fontWeight = 'bold';
       randomBtn.textContent = '🎲 Feeling Chaotic? 🎲';
       randomBtn.addEventListener('click', () => {
-        const randomHit = fullHits[Math.floor(Math.random() * fullHits.length)];
+        const randomHit = pickWithVariety(fullHits, `criticalHits|${cat}`);
         
         // Check if the selected hit is in the filtered results
         const isInFiltered = filteredHits.includes(randomHit);
@@ -2757,7 +2763,7 @@
       randomBtn.style.fontWeight = 'bold';
       randomBtn.textContent = '🎲 Feeling Chaotic? 🎲';
       randomBtn.addEventListener('click', () => {
-        const randomFailure = fullFailures[Math.floor(Math.random() * fullFailures.length)];
+        const randomFailure = pickWithVariety(fullFailures, `criticalFailures|${cat}`);
         
         // Check if the selected failure is in the filtered results
         const isInFiltered = filteredFailures.includes(randomFailure);
@@ -2955,7 +2961,7 @@
       randomBtn.style.fontWeight = 'bold';
       randomBtn.textContent = '🎲 Random Skill Check 🎲';
       randomBtn.addEventListener('click', () => {
-        const randomCheck = fullChecks[Math.floor(Math.random() * fullChecks.length)];
+        const randomCheck = pickWithVariety(fullChecks, `skillChecks|${cat}`);
         
         // Check if the selected check is in the filtered results
         const isInFiltered = filteredChecks.includes(randomCheck);

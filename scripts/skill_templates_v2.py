@@ -39,7 +39,7 @@ SKILL_TEMPLATES = {
             "I misread {animal2} and nearly take a bite for assuming charisma works on teeth",
             "I reach for {animal} too quickly and it lashes out like I insulted its ancestors",
             "I offer {treat} at the worst moment and make {animal} more agitated than before",
-            "I miss the fear in {animal}'s body language and startle it into legend-worthy noise",
+            "I miss how frightened {animal} looks and startle it into legend-worthy noise",
             "My attempt with {animal2} in {place} turns into a slapstick routine nobody asked for",
             "I speak too loud near {animal} and every beast nearby panics on cue",
             "I grab at {animal} at the wrong moment and lose its trust—and a little pride",
@@ -179,7 +179,7 @@ SKILL_TEMPLATES = {
     },
     'Investigation': {
         'Success': [
-            "I find {clue} in {place} that everyone else walked past like bad lyrics in a draft",
+            "I find {clue} in {where} that everyone else walked past like bad lyrics in a draft",
             "I connect {evidence} to {hidden} and the picture clears like a final chorus",
             "I search {where} methodically and turn up what we need without theatrics",
             "I notice what's missing in {place}, not just what's present—absence is a clue too",
@@ -201,7 +201,7 @@ SKILL_TEMPLATES = {
     },
     'Medicine': {
         'Success': [
-            "I diagnose {patient}'s {symptom} in {place} and know the treatment—not my usual gig, but fine",
+            "I diagnose {symptom} in {patient} in {place} and know the treatment—not my usual gig, but fine",
             "I stabilize {injury} near {who} before it worsens into a ballad nobody wants",
             "I recognize poison in {symptom} and act fast before the drama escalates",
             "I clean and bind {injury} with what we have and a steady hand I'm surprised to own",
@@ -211,7 +211,7 @@ SKILL_TEMPLATES = {
             "I talk {patient} through shock in {place} until color returns and panic fades",
         ],
         'Failure': [
-            "I misdiagnose {patient}'s {symptom} in {place} and treat the wrong thing—classic",
+            "I misdiagnose {symptom} in {patient} in {place} and treat the wrong thing—classic",
             "I fumble the bandage on {injury} and cause more pain than the original injury",
             "I can't tell poison from exhaustion in {symptom} and guess with confidence",
             "My hands shake in {where} and {patient} worsens while I wish I were singing instead",
@@ -223,9 +223,9 @@ SKILL_TEMPLATES = {
     },
     'Nature': {
         'Success': [
-            "I identify {flora} in {place} instantly and know if it's lunch or a mistake",
+            "I identify {flora} in {where} instantly and know if it's lunch or a mistake",
             "I read {fauna} sign in {terrain_nat} and know what's nearby before it introduces itself",
-            "I recognize {weather} building over {place} before it ruins everyone's hair",
+            "I recognize {weather} over {place} before it ruins everyone's hair",
             "I explain {flora} to {who} before anyone eats the wrong thing and writes a complaint",
             "I predict danger from {fauna} in {where} and reroute us like a sensible headliner",
             "I know which path through {terrain_nat} won't collapse, flood, or embarrass us",
@@ -233,7 +233,7 @@ SKILL_TEMPLATES = {
             "I hear {fauna} go quiet in {place} and know predators are close—nature's bad preview",
         ],
         'Failure': [
-            "I misidentify {flora} in {place} and nearly poison us with confidence",
+            "I misidentify {flora} in {where} and nearly poison us with confidence",
             "I read {fauna} sign wrong in {terrain_nat} and choose a route worth a tragic ballad",
             "I dismiss {weather} signs in {where} and we pay for it like an unpaid bar tab",
             "I touch the wrong {flora} and itch for hours while {who} try not to comment",
@@ -392,7 +392,7 @@ SKILL_TEMPLATES = {
             "I choose the wrong camp in {where} and we pay for it in cold and regret",
             "I waste hours in {terrain_nat} chasing a false {trail} like a bad rumor",
             "I eat the wrong {forage} and feel it later in ways performance can't fix",
-            "I ignore {weather} signs in {place} until we're in trouble and I'm out of quips",
+            "I ignore signs of {weather} in {place} until we're in trouble and I'm out of quips",
             "I lose the path in {where} and panic sets in among {who}",
             "The wilds around {place} beat my survival instincts today—humbling and damp",
         ],

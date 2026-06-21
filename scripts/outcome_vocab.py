@@ -93,10 +93,10 @@ TYPE_NOUNS = {
         'patient': 'someone with a nasty cut',
         'injury': 'a bleeding arm',
         'symptom': 'the feverish flush in their cheeks',
-        'flora': 'herbs drying in the rafters',
-        'fauna': 'chickens pecking in the yard',
-        'weather': 'clouds stacking on the horizon',
-        'terrain_nat': 'the muddy road',
+        'flora': 'local plants and fungi',
+        'fauna': 'tracks in the dirt',
+        'weather': 'rain on the way',
+        'terrain_nat': 'the ground nearby',
         'hidden_thing': 'a purse changing hands too quickly',
         'noise': 'footsteps on the stair',
         'scent': 'cheap perfume and sweat',
@@ -363,12 +363,15 @@ TYPE_NOUNS = {
 
 SCENE_NOUN_OVERRIDES = {
     'Village': {
-        'animal': 'the village dog everyone knows by name',
-        'animal2': 'a farmer\'s cow blocking the lane',
+        'animal': 'the village dog',
+        'animal2': 'a cow blocking the lane',
         'beast_trouble': 'the cow kicking at a fence post',
         'treat': 'a carrot from a villager\'s garden',
         'magic': 'a hedge witch\'s charm on the gate',
-        'clue': 'fresh wagon tracks in the mud',
+        'clue': 'fresh wagon tracks',
+        'flora': 'herbs drying in the rafters',
+        'fauna': 'chickens pecking in the yard',
+        'terrain_nat': 'the muddy road',
     },
     'Town Square': {
         'animal': 'a guard dog tied to the notice board',
@@ -388,6 +391,9 @@ SCENE_NOUN_OVERRIDES = {
         'stage': 'the space in front of the hearth',
         'negotiator': 'whoever is running the place',
         'shadow': 'the corner booth in the back',
+        'flora': 'herbs hanging behind the bar',
+        'fauna': 'rats in the cellar',
+        'terrain_nat': 'the sawdust-strewn floor',
     },
     'Inn': {
         'animal': 'the inn cat stalking a mouse in the wall',
@@ -399,6 +405,9 @@ SCENE_NOUN_OVERRIDES = {
         'animal': 'a merchant\'s exotic bird in a cage',
         'animal2': 'a donkey overloaded with bolts of cloth',
         'evidence': 'a vendor\'s ledger left open too long',
+        'flora': 'spices piled in open sacks',
+        'fauna': 'pigeons fighting over dropped crumbs',
+        'terrain_nat': 'the cobblestones between stalls',
     },
     'Shop': {
         'animal': 'a shop cat guarding the yarn shelves',
@@ -570,7 +579,7 @@ SKILL_TEMPLATES = {
             "I misread {animal2} and nearly take a bite for my trouble",
             "I reach for {animal} too quickly and it lashes out",
             "I offer {treat} at the worst moment and make {animal} more agitated",
-            "I miss the fear in {animal}'s body language and startle it badly",
+            "I miss how frightened {animal} looks and startle it badly",
             "My attempt with {animal2} in {place} turns into chaos",
             "I speak too loud near {animal} and every beast nearby panics",
             "I grab at {animal} at the wrong moment and lose its trust entirely",
@@ -1013,7 +1022,7 @@ for _skill, _templates in SKILL_TEMPLATES.items():
             _line = _t.format(**_neutral)
             if _line not in _lines:
                 _lines.append(_line)
-            if len(_lines) >= 8:
+            if len(_lines) >= 16:
                 break
         GENERIC_SKILL_LINES[_skill][_suffix] = _lines
 
@@ -1044,7 +1053,7 @@ SKILL_BANNED = {
     'Persuasion': ['beast calms', 'giant rat', 'sigil on the floor'],
     'Sleight of Hand': ['doctrine', 'prayer', 'beast calms'],
     'Stealth': ['doctrine', 'beast calms', 'negotiate'],
-    'Survival': ['barroom', 'gossip', 'sigil on the bar', 'courtier'],
+    'Survival': ['barroom', 'gossip', 'sigil on the bar'],
     'Investigation': ['beast calms', 'doctrine'],
     'Insight': ['beast calms', 'sigil'],
     'Intimidation': ['beast calms', 'doctrine'],

@@ -13,6 +13,11 @@ const criticalHits = {
     "My arrow punches through leather and keeps going until it finds bone",
     "I loose a shot that threads between allies and nails the target square in the chest",
     "My arrows lands with perfect timing and unmistakable force",
+    "My arrows lands with perfect timing and unmistakable force",
+    "I capitalize on the opening and drive the hit home",
+    "The blow connects cleanly and leaves no doubt it was a crit",
+    "My arrows lands with perfect timing and unmistakable force",
+    "My arrows lands with perfect timing and unmistakable force",
   ],
   "Crossbolts": [
     "My bolt strikes with a thunderous impact, the sound echoing as it pierces deep into my target",
@@ -23,6 +28,9 @@ const criticalHits = {
     "My crossbolts lands with perfect timing and unmistakable force",
     "I capitalize on the opening and drive the hit home",
     "The blow connects cleanly and leaves no doubt it was a crit",
+    "My crossbolts lands with perfect timing and unmistakable force",
+    "My crossbolts lands with perfect timing and unmistakable force",
+    "My crossbolts lands with perfect timing and unmistakable force",
   ],
   "Swords": [
     "My sword strikes true, its edge finding a gap and biting deep into their side",
@@ -32,6 +40,11 @@ const criticalHits = {
     "My sword cuts cleanly through, leaving a perfect slice that immediately begins to weep crimson",
     "My blade opens a line across their guard and blood follows immediately",
     "I riposte so cleanly the steel sings and their weapon skitters away",
+    "My swords lands with perfect timing and unmistakable force",
+    "My swords lands with perfect timing and unmistakable force",
+    "I capitalize on the opening and drive the hit home",
+    "The blow connects cleanly and leaves no doubt it was a crit",
+    "My swords lands with perfect timing and unmistakable force",
     "My swords lands with perfect timing and unmistakable force",
   ],
   "Polearms": [
@@ -43,6 +56,9 @@ const criticalHits = {
     "My polearms lands with perfect timing and unmistakable force",
     "I capitalize on the opening and drive the hit home",
     "The blow connects cleanly and leaves no doubt it was a crit",
+    "My polearms lands with perfect timing and unmistakable force",
+    "My polearms lands with perfect timing and unmistakable force",
+    "My polearms lands with perfect timing and unmistakable force",
   ],
   "Knives": [
     "My dagger cuts deep, drawing a line of crimson as it slides along bone",
@@ -53,6 +69,9 @@ const criticalHits = {
     "My knives lands with perfect timing and unmistakable force",
     "I capitalize on the opening and drive the hit home",
     "The blow connects cleanly and leaves no doubt it was a crit",
+    "My knives lands with perfect timing and unmistakable force",
+    "My knives lands with perfect timing and unmistakable force",
+    "My knives lands with perfect timing and unmistakable force",
   ],
   "Blunt Weapons": [
     "My weapon strikes with bone-crushing force, the impact audible even over the sounds of battle",
@@ -63,6 +82,9 @@ const criticalHits = {
     "My blunt weapons lands with perfect timing and unmistakable force",
     "I capitalize on the opening and drive the hit home",
     "The blow connects cleanly and leaves no doubt it was a crit",
+    "My blunt weapons lands with perfect timing and unmistakable force",
+    "My blunt weapons lands with perfect timing and unmistakable force",
+    "My blunt weapons lands with perfect timing and unmistakable force",
   ],
   "Axes and Hammers": [
     "My axe cleaves through armor and flesh with brutal force, leaving a gaping wound in its wake",
@@ -73,6 +95,9 @@ const criticalHits = {
     "My axes and hammers lands with perfect timing and unmistakable force",
     "I capitalize on the opening and drive the hit home",
     "The blow connects cleanly and leaves no doubt it was a crit",
+    "My axes and hammers lands with perfect timing and unmistakable force",
+    "My axes and hammers lands with perfect timing and unmistakable force",
+    "My axes and hammers lands with perfect timing and unmistakable force",
   ],
   "Other Weapons": [
     "My weapon strikes with brutal force, leaving a trail of destruction in its wake",
@@ -83,6 +108,9 @@ const criticalHits = {
     "My other weapons lands with perfect timing and unmistakable force",
     "I capitalize on the opening and drive the hit home",
     "The blow connects cleanly and leaves no doubt it was a crit",
+    "My other weapons lands with perfect timing and unmistakable force",
+    "My other weapons lands with perfect timing and unmistakable force",
+    "My other weapons lands with perfect timing and unmistakable force",
   ],
   "Fire": [
     "My fire magic strikes with such heat that steam rises from their wet armor",
@@ -92,6 +120,11 @@ const criticalHits = {
     "The fire erupts with brutal efficiency, consuming everything in its path",
     "Flames wrap my target and cling where armor gaps open",
     "My spell detonates in a bloom of heat that leaves scorch marks on stone behind them",
+    "My fire lands with perfect timing and unmistakable force",
+    "My fire lands with perfect timing and unmistakable force",
+    "I capitalize on the opening and drive the hit home",
+    "The blow connects cleanly and leaves no doubt it was a crit",
+    "My fire lands with perfect timing and unmistakable force",
     "My fire lands with perfect timing and unmistakable force",
   ],
   "Cold": [
@@ -103,6 +136,9 @@ const criticalHits = {
     "My cold lands with perfect timing and unmistakable force",
     "I capitalize on the opening and drive the hit home",
     "The blow connects cleanly and leaves no doubt it was a crit",
+    "My cold lands with perfect timing and unmistakable force",
+    "My cold lands with perfect timing and unmistakable force",
+    "My cold lands with perfect timing and unmistakable force",
   ],
   "Lightning": [
     "My magical bolt strikes with thunderous force, leaving them smoking and stunned",
@@ -113,6 +149,9 @@ const criticalHits = {
     "My lightning lands with perfect timing and unmistakable force",
     "I capitalize on the opening and drive the hit home",
     "The blow connects cleanly and leaves no doubt it was a crit",
+    "My lightning lands with perfect timing and unmistakable force",
+    "My lightning lands with perfect timing and unmistakable force",
+    "My lightning lands with perfect timing and unmistakable force",
   ],
   "Thunder": [
     "A wave of sonic force crashes into them, the impact audible for miles around",
@@ -123,6 +162,9 @@ const criticalHits = {
     "My thunder lands with perfect timing and unmistakable force",
     "I capitalize on the opening and drive the hit home",
     "The blow connects cleanly and leaves no doubt it was a crit",
+    "My thunder lands with perfect timing and unmistakable force",
+    "My thunder lands with perfect timing and unmistakable force",
+    "My thunder lands with perfect timing and unmistakable force",
   ],
   "Psychic": [
     "My spell unleashes a storm of psychic energy that batters their mind",
@@ -133,6 +175,9 @@ const criticalHits = {
     "My psychic lands with perfect timing and unmistakable force",
     "I capitalize on the opening and drive the hit home",
     "The blow connects cleanly and leaves no doubt it was a crit",
+    "My psychic lands with perfect timing and unmistakable force",
+    "My psychic lands with perfect timing and unmistakable force",
+    "My psychic lands with perfect timing and unmistakable force",
   ],
   "Force": [
     "My spell unleashes a wave of pure energy that tears through armor and flesh",
@@ -143,6 +188,9 @@ const criticalHits = {
     "My force lands with perfect timing and unmistakable force",
     "I capitalize on the opening and drive the hit home",
     "The blow connects cleanly and leaves no doubt it was a crit",
+    "My force lands with perfect timing and unmistakable force",
+    "My force lands with perfect timing and unmistakable force",
+    "My force lands with perfect timing and unmistakable force",
   ],
   "Necrotic": [
     "My necrotic magic strikes true, the decay spreading rapidly across their flesh",
@@ -153,6 +201,9 @@ const criticalHits = {
     "My necrotic lands with perfect timing and unmistakable force",
     "I capitalize on the opening and drive the hit home",
     "The blow connects cleanly and leaves no doubt it was a crit",
+    "My necrotic lands with perfect timing and unmistakable force",
+    "My necrotic lands with perfect timing and unmistakable force",
+    "My necrotic lands with perfect timing and unmistakable force",
   ],
   "Radiant": [
     "A perfectly aimed divine spell strikes true, the holy light spreading outward",
@@ -163,6 +214,9 @@ const criticalHits = {
     "My radiant lands with perfect timing and unmistakable force",
     "I capitalize on the opening and drive the hit home",
     "The blow connects cleanly and leaves no doubt it was a crit",
+    "My radiant lands with perfect timing and unmistakable force",
+    "My radiant lands with perfect timing and unmistakable force",
+    "My radiant lands with perfect timing and unmistakable force",
   ],
   "Acid": [
     "My acid magic strikes true, the burning liquid dissolving armor and flesh alike",
@@ -173,6 +227,9 @@ const criticalHits = {
     "My acid lands with perfect timing and unmistakable force",
     "I capitalize on the opening and drive the hit home",
     "The blow connects cleanly and leaves no doubt it was a crit",
+    "My acid lands with perfect timing and unmistakable force",
+    "My acid lands with perfect timing and unmistakable force",
+    "My acid lands with perfect timing and unmistakable force",
   ],
 };
 
@@ -206,6 +263,8 @@ const criticalFailures = {
     "My swing goes wide and I nearly take out an ally on the follow-through",
     "I overextend and stumble, leaving my back wide open",
     "My attack goes wrong at the worst possible moment",
+    "I fumble the strike and leave myself exposed",
+    "The attempt backfires spectacularly in front of everyone",
   ],
   "Polearms": [
     "My polearm catches on overhead branches, getting stuck and leaving me exposed",
@@ -266,6 +325,8 @@ const criticalFailures = {
     "The spell fizzles into harmless sparks that drift upward and die",
     "I misaim and scorch the ground between us instead of my target",
     "My attack goes wrong at the worst possible moment",
+    "I fumble the strike and leave myself exposed",
+    "The attempt backfires spectacularly in front of everyone",
   ],
   "Cold": [
     "My cold spell produces only a light breeze instead of freezing magic",

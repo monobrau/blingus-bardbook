@@ -19,10 +19,55 @@ from outcome_vocab import (  # noqa: E402
     SCENE_TYPE,
     SKILL_BANNED,
     SKILLS,
+    TYPE_NOUNS,
+    SKILL_TEMPLATES as LEGACY_SKILL_TEMPLATES,
     line_is_valid,
     vocab_for,
 )
 from skill_templates_v2 import SKILL_TEMPLATES  # noqa: E402
+
+from scene_flavor import flavor_lines_for  # noqa: E402
+from scene_crit_unique import scene_crit_lines, type_crit_lines  # noqa: E402
+
+OUTCOME_POOL_SIZE = 32
+
+
+def line_signature(line, ctx):
+    """Normalize a line so near-duplicate templates collapse."""
+    sig = line.lower()
+    for val in sorted((v for v in ctx.values() if isinstance(v, str)), key=len, reverse=True):
+        if len(val) > 3:
+            sig = sig.replace(val.lower(), '§')
+    sig = re.sub(r'\s+', ' ', sig).strip()
+    return sig
+
+
+def append_line(lines, seen_sigs, line, sig=None):
+    if not line or line in lines:
+        return False
+    if sig and sig in seen_sigs:
+        return False
+    lines.append(line)
+    if sig:
+        seen_sigs.add(sig)
+    return True
+
+
+def append_from_templates(lines, seen_sigs, templates, ctx, skill, require_valid=True):
+    for template in templates:
+        try:
+            line = template.format(**ctx)
+        except KeyError:
+            continue
+        sig = line_signature(line, ctx)
+        if sig in seen_sigs:
+            continue
+        if require_valid and not line_is_valid(skill, line):
+            continue
+        if append_line(lines, seen_sigs, line, sig):
+            pass
+        if len(lines) >= OUTCOME_POOL_SIZE:
+            break
 
 # Hand-written high-quality overrides (merged first).
 CUSTOM = {
@@ -186,6 +231,76 @@ CUSTOM = {
         "I convince the officer of the watch that stopping us would be more embarrassing than letting us pass",
         "I redirect the conversation before anyone connects dots I'd rather keep loose",
     ],
+    ('Inn', 'Stealth', 'Success'): [
+        "I slip upstairs without the floorboards betraying me to the guests below",
+        "I read the guest ledger while the innkeeper's back is turned and nobody notices",
+        "I pass the common room through the press of bodies like I was never there",
+        "I reach the linen closet and back away before the creaking stair complains",
+        "I hold still in the shadow by the coat rack until the late-night whisperers move on",
+        "I lift the spare key from the hook with a misdirection about breakfast",
+        "I cross the inn leaving no sign except maybe a good rumor later",
+        "I eavesdrop on the argument in 4B without the door latch clicking",
+    ],
+    ('Inn', 'Investigation', 'Success'): [
+        "I find the guest book page torn out and hidden under the blotter",
+        "I match the mud on the carpet to boots drying by the wrong door",
+        "I notice the window latch scratched from the outside not the inside",
+        "I connect the candle wax trail to the room nobody admits is occupied",
+        "I find the spare key impression in the wax left on the desk",
+        "I read the chalk tally on the kitchen board and know who skipped paying",
+        "I spot the luggage tag that does not match the name on the register",
+        "I piece together whispers, mud, and wax into one uncomfortable answer",
+    ],
+    ('Market', 'Sleight of Hand', 'Success'): [
+        "I palm a sample coin from the scale while the vendor haggles with someone else",
+        "I swap the loaded die for a fair one during the confusion at the spice stall",
+        "I lift the merchant's seal ring while they gesture at bolt after bolt of cloth",
+        "I plant a folded note on the pickpocket watching us from the awning shade",
+        "I tie and untie a sample pouch before the guard's patrol completes its loop",
+        "I cheat at the shell game just long enough to learn how they cheat back",
+        "I conceal a purchase in my sleeve until the crowd shifts toward the crier",
+        "I switch price tags on two stalls while everyone watches the fistfight that is not a fistfight",
+    ],
+    ('Crypt', 'Religion', 'Success'): [
+        "I recognize the burial rite and perform the gesture that keeps the dead quiet",
+        "I identify the desecrated symbol and know which prayer calms the air",
+        "I read the epitaph and explain why the party should not open that sarcophagus yet",
+        "I cite the order's doctrine about uninvited feet in consecrated ground",
+        "I interpret the omen of the extinguished candle without inventing heresy",
+        "I calm the party with the right verse when the whispers start",
+        "I know which taboo we are one step from breaking and steer us sideways",
+        "I translate the warning on the lintel accurately and resist adding a joke—mostly",
+    ],
+    ('Sewers', 'Athletics', 'Success'): [
+        "I haul myself up the rusted ladder before the runoff surge catches my boots",
+        "I leap the gap between walkways while the party still argues about the smell",
+        "I brace the collapsing timber long enough for everyone to scramble through",
+        "I swim the channel when the path ends and climb out still complaining poetically",
+        "I push through the grate rust with brute stubbornness and a nasty grunt",
+        "I carry the torch and the injured both without slipping on the slime",
+        "I break the jammed wheel gate before the water level wins",
+        "I sprint the straight pipe when the echo behind us grows footsteps",
+    ],
+    ('Carnival / Feywild (Wild Beyond The Witchlight)', 'Arcana', 'Success'): [
+        "I recognize the illusion woven into the ticket stub before we pay twice for one ride",
+        "I name the school of magic on the rigged game booth and explain why the dice always win",
+        "I sense the time distortion around the carousel and know how long we actually have",
+        "I decode the fey sigil on the mirror maze and tell everyone which reflection is real",
+        "I spot unstable glamour on the strongman bell and know not to touch the rope",
+        "I identify the witchlight residue on the confetti and what it wants from us",
+        "I explain the carnival rule about unpaid debts before we owe something worse than coin",
+        "I read the impossible geometry of the tent and find the exit that exits",
+    ],
+    ('Coast', 'Nature', 'Success'): [
+        "I read the tide tables from the wet line on the rocks and know when the cave mouth closes",
+        "I identify which shellfish are lunch and which are a trip to the medic",
+        "I spot the rip current before the party wades in for a shortcut",
+        "I predict the fog bank rolling in and get us off the exposed jetty",
+        "I know which gull behavior means fish and which means sharks",
+        "I find fresh water seeping from the cliff face when the casks run low",
+        "I read the wind shift over the harbor and warn the sailors before the squall",
+        "I explain why the kelp is laid in a line pointing at the wrong inlet",
+    ],
 }
 
 SOCIAL_INCOMPATIBLE = [
@@ -266,35 +381,53 @@ CRIT_CUSTOM = {
 
 def generate_lines(scene_id, skill, suffix):
     custom = CUSTOM.get((scene_id, skill, suffix))
-    if custom:
-        return list(custom)
+    lines = list(custom) if custom else []
+    seen = {line_signature(l, vocab_for(scene_id)) for l in lines}
 
     ctx = vocab_for(scene_id)
     outcome = 'Success' if suffix == 'Success' else 'Failure'
-    templates = SKILL_TEMPLATES[skill][outcome]
-    lines = []
-    for template in templates:
-        line = template.format(**ctx)
-        if line not in lines and line_is_valid(skill, line):
-            lines.append(line)
-        if len(lines) >= 8:
-            break
-    # Fill from extra templates if validation removed too many
-    if len(lines) < 8:
-        for template in templates:
-            line = template.format(**ctx)
-            if line not in lines:
-                lines.append(line)
-            if len(lines) >= 8:
-                break
-    return lines[:8]
+
+    # Beat-driven lines first — most distinct per scene.
+    for line in flavor_lines_for(scene_id, skill, suffix, ctx, line_is_valid, limit=24):
+        sig = line_signature(line, ctx)
+        if sig not in seen and line_is_valid(skill, line):
+            append_line(lines, seen, line, sig)
+        if len(lines) >= OUTCOME_POOL_SIZE:
+            return lines[:OUTCOME_POOL_SIZE]
+
+    append_from_templates(lines, seen, SKILL_TEMPLATES[skill][outcome], ctx, skill)
+    if len(lines) < OUTCOME_POOL_SIZE:
+        append_from_templates(
+            lines, seen, LEGACY_SKILL_TEMPLATES[skill][outcome], ctx, skill, require_valid=False
+        )
+
+    return lines[:OUTCOME_POOL_SIZE]
 
 
 def generate_crit_outcome_lines(scene_id, category, suffix):
-    custom = CRIT_CUSTOM.get((scene_id, category, suffix))
-    if custom:
-        return list(custom)
-    return generate_crit_lines(scene_id, category, suffix)
+    stype = SCENE_TYPE[scene_id]
+    lines = []
+    seen = set()
+
+    for source in (
+        CRIT_CUSTOM.get((scene_id, category, suffix), []),
+        scene_crit_lines(scene_id, category, suffix),
+        type_crit_lines(scene_id, category, suffix, stype),
+    ):
+        for line in source:
+            append_line(lines, seen, line)
+            if len(lines) >= OUTCOME_POOL_SIZE:
+                return lines[:OUTCOME_POOL_SIZE]
+
+    ctx = vocab_for(scene_id)
+    for line in generate_crit_lines(scene_id, category, suffix):
+        sig = line_signature(line, ctx)
+        if sig in seen:
+            continue
+        append_line(lines, seen, line, sig)
+        if len(lines) >= OUTCOME_POOL_SIZE:
+            break
+    return lines[:OUTCOME_POOL_SIZE]
 
 
 def generate_scene_outcomes():
@@ -383,11 +516,24 @@ window.BlingusData.sceneIncompatiblePatterns = {{
 
 
 def expand_skill_checks():
+    from skill_templates_v2 import SKILL_TEMPLATES as V2_SKILL_TEMPLATES  # noqa: WPS433
+
+    _neutral = {**TYPE_NOUNS['wilderness'], 'place': 'the area', 'where': 'here', 'who': 'the party'}
     expanded = {}
     for skill in SKILLS:
         for suffix in ('Success', 'Failure'):
             key = f'{skill} - {suffix}'
-            expanded[key] = list(GENERIC_SKILL_LINES[skill][suffix][:8])
+            lines = list(GENERIC_SKILL_LINES.get(skill, {}).get(suffix, []))
+            for templates in (V2_SKILL_TEMPLATES[skill][suffix], LEGACY_SKILL_TEMPLATES[skill][suffix]):
+                for template in templates:
+                    line = template.format(**_neutral)
+                    if line not in lines:
+                        lines.append(line)
+                    if len(lines) >= OUTCOME_POOL_SIZE:
+                        break
+                if len(lines) >= OUTCOME_POOL_SIZE:
+                    break
+            expanded[key] = lines[:OUTCOME_POOL_SIZE]
 
     header = """/**
  * Skill check results (expanded)
@@ -460,22 +606,22 @@ def expand_criticals():
             if line not in items:
                 items.append(line)
         for pad in hit_pad:
-            if len(items) >= 8:
+            if len(items) >= OUTCOME_POOL_SIZE:
                 break
             if pad not in items:
                 items.append(pad.replace('attack', key.lower()))
-        hits[key] = items[:8]
+        hits[key] = items[:OUTCOME_POOL_SIZE]
 
     for key, items in fails.items():
         for line in extra_fails.get(key, []):
             if line not in items:
                 items.append(line)
         for pad in fail_pad:
-            if len(items) >= 8:
+            if len(items) >= OUTCOME_POOL_SIZE:
                 break
             if pad not in items:
                 items.append(pad)
-        fails[key] = items[:8]
+        fails[key] = items[:OUTCOME_POOL_SIZE]
 
     header = """/**
  * Critical hit/failure data (expanded)
@@ -517,7 +663,7 @@ def expand_actions():
             for line in src_lines:
                 if line not in merged:
                     merged.append(line)
-            parsed[dest] = merged[:20]
+        parsed[dest] = merged[:40]
 
     roleplay_templates = [
         "Scanning {place} for trouble while pretending to look casual (and cataloging exits for the ballad)",
@@ -532,6 +678,13 @@ def expand_actions():
         "Polishing your buckles in {place} because rust monsters could be anywhere (you're not paranoid, you're prepared)",
         "Narrating your own actions in {place} under your breath like you're already on stage",
         "Flirting with danger in {place} the way you flirt with a chorus—loudly and on purpose",
+        "People-watching in {place} and assigning everyone a chorus name",
+        "Rehearsing a dramatic monologue in {place} under your breath",
+        "Offering unsolicited performance notes to {who} in {place}",
+        "Testing acoustics in {place} with a quiet hum",
+        "Looking for a stage, a story, or trouble in {place}— ideally all three",
+        "Making up nicknames for {who} in {place} and hoping they stick",
+        "Pretending to read labels, signs, or menus in {place} while actually eavesdropping",
     ]
     for scene_id in parsed:
         ctx = vocab_for(scene_id)
@@ -545,7 +698,7 @@ def expand_actions():
         for line in extras:
             if line not in merged:
                 merged.append(line)
-        parsed[scene_id] = merged[:20]
+        parsed[scene_id] = merged[:40]
 
     header = """/**
  * Character action data for Blingus's Bardbook
