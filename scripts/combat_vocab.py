@@ -3,6 +3,7 @@
 import re
 from pathlib import Path
 
+from crit_flavor import crit_hit_flavor_lines
 from crit_templates_v2 import CRIT_FAIL_TEMPLATES, CRIT_HIT_TEMPLATES
 from outcome_vocab import SCENE_TYPE, vocab_for
 
@@ -136,7 +137,20 @@ CRIT_SCENE_BANNED = {
 }
 
 
-HIT_REQUIRED = ('my target', 'my foe', 'their', 'them', 'they', 'foe', 'enemy', 'opponent', 'adversary')
+HIT_REQUIRED = (
+    'my target', 'my foe', 'my enemy', 'their', 'them', 'they', 'foe', 'foes',
+    'enemy', 'enemies', 'opponent', 'adversary', 'target',
+    'finds its mark', 'finds flesh', 'finds bone', 'finds the gap', 'find flesh',
+    'strikes true', 'strike true', 'drive the hit home', 'connects cleanly',
+    'bites deep', 'bite deep', 'sinks in', 'sink in', 'punches through',
+    'into their', 'through their', 'through fabric', 'through leather', 'through armor',
+    'their guard', 'their flesh', 'their ribs', 'their side', 'their armor',
+    'their defense', 'their leg', 'they stagger', 'they gasp', 'they drop',
+    'they reel', 'they crumple', 'foe crumples', 'target staggers',
+    'lands clean', 'lands true', 'connects with', 'buried in their', 'embeds in their',
+    'opens a line', 'drawing a line', 'sends steel through', 'sends the blade through',
+    'wrap my target', 'wrap them', 'scorch my foe', 'scorch them', 'against my target',
+)
 
 
 def crit_vocab_for(scene_id):
@@ -224,7 +238,13 @@ def generate_crit_lines(scene_id, category, suffix):
     if len(lines) < OUTCOME_POOL_SIZE:
         for template in templates.get(category, []):
             line = template.format(**ctx)
-            if line not in lines:
+            if line not in lines and crit_line_is_valid(scene_id, category, line, is_hit):
+                lines.append(line)
+            if len(lines) >= OUTCOME_POOL_SIZE:
+                break
+    if len(lines) < OUTCOME_POOL_SIZE and is_hit:
+        for line in crit_hit_flavor_lines(scene_id, ctx, category, limit=20):
+            if line not in lines and crit_line_is_valid(scene_id, category, line, is_hit):
                 lines.append(line)
             if len(lines) >= OUTCOME_POOL_SIZE:
                 break
