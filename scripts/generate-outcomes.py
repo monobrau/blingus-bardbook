@@ -108,7 +108,7 @@ CUSTOM = {
     ],
     ('Castle', 'Persuasion', 'Success'): [
         "I convince the guard I'm expected in the courtyard without showing papers",
-        "I talk my way past a steward who was ready to throw us out",
+        "I talk my way past whoever was ready to throw us out",
         "I flatter the right noble and get an invitation to the feast",
         "I negotiate access to the archives with charm instead of coin",
         "I persuade a courtier to introduce us as respectable visitors",
@@ -164,7 +164,7 @@ CUSTOM = {
         "I try to hide behind a statue and stand out like a fairy in a crypt",
         "I misjudge the shadows and glow faintly at the worst possible moment",
         "I curse at a rat and the whole corridor hears my vocabulary",
-        "I thought I was hidden in the recess—I wasn't, and the hobgoblin agrees",
+        "I thought I was hidden in the recess—I wasn't, and whoever was listening agrees",
     ],
     ('Forest', 'Nature', 'Success'): [
         "I identify the edible berries and the poisonous look-alike before anyone writes a complaint",
@@ -179,7 +179,7 @@ CUSTOM = {
     ('Castle', 'Deception', 'Success'): [
         "I sell our cover story in the courtyard with the confidence of someone who belongs in tapestries",
         "I convince the guard we are expected guests despite lacking papers, polish, or patience",
-        "I misdirect the steward with a dropped gauntlet while the truth walks past",
+        "I misdirect whoever was watching with a dropped gauntlet while the truth walks past",
         "I play the part of respectable visitors so well even I almost believe the lie",
         "I answer the herald's questions without a tell—years of bardic training finally pays rent",
         "I weave a harmless cover story around the nosy courtier and send attention elsewhere",
