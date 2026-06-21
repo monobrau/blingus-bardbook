@@ -4,6 +4,10 @@
  * Automatically generates cache-busting versions based on file modification times
  */
 
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: 0');
+
 // Get version numbers based on file modification times
 $moduleFiles = [
   'constants.js',
