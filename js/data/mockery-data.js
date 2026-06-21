@@ -1,6 +1,5 @@
 /**
- * Vicious mockery data for Blingus' Bardbook
- * Organized by mockery category
+ * Vicious mockery data (curated revamp)
  */
 window.BlingusData = window.BlingusData || {};
 
@@ -18,55 +17,8 @@ const mockery = {
     {t:"Keep trying—failure needs a champion.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Your critical thinking just failed spectacularly.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"I've seen mimics with better acting skills than your combat moves.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Your strategy is a tangled mess where all paths lead to failure.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Even your attacks have commitment issues.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"You're competing in a contest of incompetence—and losing.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"You're not the Tarrasque—I checked. Twice. (Why am I checking?)", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"If the Tarrasque showed up right now, it would ignore you. That's how bad you are.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"At least you're not a rust monster. (I keep my gear oiled. Just in case. Always.)", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"You're less threatening than a rust monster—and those things are terrifying! (Don't touch my buckles!)", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Your attack roll was so low, it's trying to dig to the center of the earth.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"I've seen gelatinous cubes with better decision-making skills.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Your strategy is like a mimic—looks like a plan, but it's actually just disappointment.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Even your critical failures are failing critically.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"You're the reason bards write cautionary tales.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Your AC is lower than your self-esteem—and that's saying something.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"I'd feel bad roasting you, but you're already well-done.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"You're not the Tarrasque—I checked. Three times. (I'm not obsessed, I'm thorough!)", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"At least rust monsters have a purpose—what's yours?", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Your performance is shorter than my attention span—and I'm easily distracted.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"You couldn't hit the broad side of a barn—and I've seen you try.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Your aim is like your love life—consistently disappointing.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"I've seen more action from a training dummy—and they don't move.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Your combat skills are like your social skills—nonexistent.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Even the Witchlight Carnival would reject you—and they let hags in.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"You're about as magical as a carnival ticket stub—and just as useful.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Your contract with failure is more binding than anything in Prismeer.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Even Bavlorna's swamp has more charm than you—and it's literally a swamp.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"You're the lost thing nobody's looking for.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Your time distortion is just you moving slower than everyone else.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Even Endelyn's puppets have more personality—and they're made of string.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Skabatha's toys are more threatening than you—and they're for children.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"You're the fey equivalent of a carnival game nobody wins.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Your deal is worse than a hag's bargain—and that's saying something.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"I know something about this—you're terrible at it!", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Thindary's axe would shine brighter than your future—and it's just metal.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Bantar did 150 damage in one hit—you can't even do 15.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Latani's Plantlance was nerfed and still better than your best move.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Even Khalim Chaos's Undead Index would reject you—and it's just a book.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Laura's songbook has better lyrics than your combat has strategy.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"T-Bone would protect you, but even he has standards.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Ahab died with more dignity than you're showing right now.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Glandor's greatsword has more edge than your entire personality.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Even the forest gnomes' Tree Steed has more dignity than you—and it's a log with legs.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Nissan The Pathfinder would be too proud to acknowledge your existence.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Katika The Clean-Shaven's log has more mobility than your combat skills.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"You're less impressive than a log with legs—and those gnomes are proud of that log.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"The forest gnomes are too proud to walk—you're too pathetic to stand.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Your insults bounce off like they bounce off those gnomes—indifferent and unimpressed.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Even a Tree Steed would be too proud to carry you—and it's just a log.", s:"Blingus' Battle Burns", a:"Mockery"}
   ],
-  "Brawn O’Neil — Dwarven Monk": [
+  'Brawn O’Neil — Dwarven Monk': [
     {t:"Brawn warms up with problems tougher than you; he calls them pebbles.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"His fists have names—‘Reason’ and ‘Consequences’—meet both.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"You’re about to learn what ‘stunning strike’ feels like: educational.", s:"Blingus' Battle Burns", a:"Mockery"},
@@ -79,15 +31,8 @@ const mockery = {
     {t:"He could stun you with a disappointed look—and he's trying.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Brawn's ale has better aim than you—and it's a liquid.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Even Brawn's hangover hits harder than your best attack.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"His fists have more staying power than your entire combat presence.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Brawn's technique is flawless—yours looks like interpretive stumbling.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"He finishes what he starts—something you clearly don't understand.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Brawn knows how to handle his weapon—unlike you.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"His strikes have more staying power than your entire existence.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Brawn could drop a dragon—you're still negotiating with stairs.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"His footwork's a sermon; yours is a stumble with footnotes.", s:"Blingus' Battle Burns", a:"Mockery"}
   ],
-  "Puck Pinewhistle — Fairy Sorcerer": [
+  'Puck Pinewhistle — Fairy Sorcerer': [
     {t:"Puck’s sparkles hit harder than your best ideas.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"He bends the weave; you trip over it.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Your charisma check just failed against his wingspan.", s:"Blingus' Battle Burns", a:"Mockery"},
@@ -100,15 +45,8 @@ const mockery = {
     {t:"Even Puck's failed spells are more impressive than your successes.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Puck could twinspell 'disappointment' and you'd still be the target.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"His wingspan covers more ground than your entire combat strategy.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Puck's magic has more impact than your entire existence.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"He knows how to make things last—unlike your attacks.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"His spells land with style—yours arrive by certified mail, weeks late.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Puck could Quicken a yawn and still outpace your whole turn.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"His cantrips have narrative arcs; yours have plot holes.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Puck's sparkles hit harder than your entire performance.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"He knows how to finish—you don't even know how to begin.", s:"Blingus' Battle Burns", a:"Mockery"}
   ],
-  "Vadania Amakiir — Elven Ranger": [
+  'Vadania Amakiir — Elven Ranger': [
     {t:"Vadania tracks problems to their source; hello, source.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Your stealth is a love letter to her arrows.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Even her footprints leave less trace than your excuses.", s:"Blingus' Battle Burns", a:"Mockery"},
@@ -121,16 +59,8 @@ const mockery = {
     {t:"Even her missed shots are closer than your hits.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"She could track you by your incompetence—and she probably is.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Her bowstring has more tension than your entire combat presence.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Vadania knows how to hit her target—unlike you.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Her arrows have more staying power than your attacks.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"She finishes what she starts—something you've never managed.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Vadania's aim is always on point—yours is always off.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"She knows how to hit her target—you can't even find yours.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Her arrows have more staying power than your entire performance.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Vadania finishes what she starts—you finish before you start.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"She could thread a needle in a windstorm—you're still looking for the thread.", s:"Blingus' Battle Burns", a:"Mockery"}
   ],
-  "Blingus — Signature Lines": [
+  'Blingus — Signature Lines': [
     {t:"I'm Blingus; the way is far, your end is near.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"My words cut deep; the blade is economy-sized.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Wayfarer rule: mock first, loot later.", s:"Blingus' Battle Burns", a:"Mockery"},
@@ -143,28 +73,6 @@ const mockery = {
     {t:"You're not worth the Tarrasque's time. (I'm not obsessed, I'm just… aware.)", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"If the Tarrasque showed up right now, I'd be prepared. (What? No reason.)", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Stay away from my buckles! (What? Rust monsters could be anywhere!)", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"I keep all my metal polished. Always. (You can never be too careful with rust monsters.)", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"At least you're not a rust monster. (Those things are nightmares! Absolute nightmares!)", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"I'm Blingus—small package, big attitude, your funeral.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"My wingspan may be small, but my insults are economy-sized.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"I don't need to be tall to look down on you—you're doing that yourself.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"The Tarrasque would step on you and not notice. (Not that I've thought about this.)", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"I keep my gear polished because rust monsters are everywhere. (They are! I've seen them! Maybe!)", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"You're not worth the Tarrasque's time—but you're worth mine, apparently.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Stay away from my buckles! (Rust monsters! They're real! Probably!)", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"My words cut deep; the blade is economy-sized, but the impact is huge.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"I may be small, but I know how to finish what I start—unlike you.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Size doesn't matter when you know how to use it—and you clearly don't.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"I've got more stamina in my pinky than you have in your entire body.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"My insults last longer than your attacks—and they're more satisfying.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"I know how to hit my target—something you've never mastered.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"I may be small, but I know how to use what I've got—unlike you.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"My insults have more staying power than your entire existence.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"I finish what I start—you don't even know how to start.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"I could satisfy a dragon—you couldn't satisfy a goblin.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"My technique is flawless—yours is flaccid.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"I know how to make things last—you finish before you begin.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"My performance is always satisfying—yours is always disappointing.", s:"Blingus' Battle Burns", a:"Mockery"}
   ],
   'Dragons': [
     {t:"Big wings, small self-control—compensating, are we?", s:"Blingus' Battle Burns", a:"Mockery"},
@@ -179,16 +87,6 @@ const mockery = {
     {t:"You're the dragon equivalent of a participation trophy—shiny, empty, mandatory.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Even Tiamat's kids are embarrassed—and they're chaotic evil.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Bahamut called—he wants to revoke your draconic license.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"The Cult of the Dragon wants a refund—from you.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"You're about as threatening as… wait, is that the Tarrasque? No? Carry on.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"The Tarrasque could step on you and not notice. (I'm just saying. Hypothetically.)", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Your breath weapon is less threatening than my morning breath—and I'm a fairy.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"A dragon's hoard has more personality than your opening speech.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Even chromatic dragons are embarrassed for you—and they're evil.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Your age category is 'adolescent ego' with a legendary save DC on denial.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"You fly like you fight—lots of noise, questionable landing clearance.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"I've seen wyrmlings with tighter turn radius and better threat assessment.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Your breath recharges faster than your dignity—and neither's impressive.", s:"Blingus' Battle Burns", a:"Mockery"}
   ],
   'Nobles': [
     {t:"That title is doing all the heavy lifting.", s:"Blingus' Battle Burns", a:"Mockery"},
@@ -202,7 +100,7 @@ const mockery = {
     {t:"You couldn't satisfy your own court—and they're paid to pretend.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Your reign is shorter than your sword—and just as ineffective.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Your bloodline's a footnote; your ego's the whole appendix.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"The heralds gave up halfway through your honorifics—they're on break.", s:"Blingus' Battle Burns", a:"Mockery"}
+    {t:"The heralds gave up halfway through your honorifics—they're on break.", s:"Blingus' Battle Burns", a:"Mockery"},
   ],
   'Liches': [
     {t:"Congratulations on immortality; shame about the personality.", s:"Blingus' Battle Burns", a:"Mockery"},
@@ -216,10 +114,7 @@ const mockery = {
     {t:"Your magic has the structural integrity of wet parchment.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Even necromancy couldn't revive your performance—and it raises the dead.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"You've had eternity to practice and you're still terrible.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Your phylactery has more staying power than your entire existence.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Your spell list reads like a yard sale—mostly regrets.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"You finish faster than a zombie's attention span.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Your technique is deader than you are—and that's saying something.", s:"Blingus' Battle Burns", a:"Mockery"}
   ],
   'Undead': [
     {t:"I've met livelier corpses—and they were you moments ago.", s:"Blingus' Battle Burns", a:"Mockery"},
@@ -234,19 +129,6 @@ const mockery = {
     {t:"The only thing you're raising is questions about your life choices.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Kelemvor's sorting you into the 'try again later' pile.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Even Myrkul's minions passed on you—and they're not picky.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"The Wall of the Faithless has better company than you.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Even Eye of the Beholder's skeletons have better coordination.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Thindary's axe would shine right through you—and he's an undead hunter, so that's saying something.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Khalim Chao's guide says undead take double damage from fire—and you're about to find out why.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Even Khalim Chaos's Undead Index would list you as 'easily dispatched'—and it's just a book.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Thindary hunted undead with a shining axe—you're about to meet something similar.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Laura's songbook has a section on undead—you're in the 'comedy relief' chapter.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Bantar killed the Tarrasque—you're not even worth his No-Daiche.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"T-Bone protects his friends from threats—you're not even a threat.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Ahab died stoically in Dragon Mountain—you're just going to die pathetically here.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Latani's Plantlance was nerfed and still better than your entire undead existence.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Glandor's greatsword has cut down worse—and you're worse.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"I know something about this—you're about to be very, very dead. Again.", s:"Blingus' Battle Burns", a:"Mockery"}
   ],
   'Demons & Devils': [
     {t:"Contracts? I prefer results; you prefer loopholes.", s:"Blingus' Battle Burns", a:"Mockery"},
@@ -257,7 +139,7 @@ const mockery = {
     {t:"Your infernal plan's just a waffle of maybes.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Asmodeus filed a complaint—you're embarrassing the Nine Hells.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"The Blood War needs soldiers—you're not invited.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Even Zariel's rejects rejected you.", s:"Blingus' Battle Burns", a:"Mockery"}
+    {t:"Even Zariel's rejects rejected you.", s:"Blingus' Battle Burns", a:"Mockery"},
   ],
   'Giants': [
     {t:"You're tall enough to miss from farther away.", s:"Blingus' Battle Burns", a:"Mockery"},
@@ -267,7 +149,7 @@ const mockery = {
     {t:"The ground shakes because it's laughing.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"You're a siege tower with stage fright.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"You're big, but you're no Tarrasque. (Not that I'm measuring. Or tracking it.)", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"If the Tarrasque woke up right now, it would ask 'where's the threat?' and ignore you.", s:"Blingus' Battle Burns", a:"Mockery"}
+    {t:"If the Tarrasque woke up right now, it would ask 'where's the threat?' and ignore you.", s:"Blingus' Battle Burns", a:"Mockery"},
   ],
   'Goblins & Kobolds': [
     {t:"Small, loud, and wrong—triple threat.", s:"Blingus' Battle Burns", a:"Mockery"},
@@ -279,17 +161,16 @@ const mockery = {
     {t:"Your tribe's survival strategy is 'hope the adventurers are tired.'", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"You're the goblin equivalent of a participation ribbon—small, pointless, everywhere.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Your war cry sounds like a suggestion with stage fright.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Even your shinies are disappointed in you.", s:"Blingus' Battle Burns", a:"Mockery"}
+    {t:"Even your shinies are disappointed in you.", s:"Blingus' Battle Burns", a:"Mockery"},
   ],
   'Constructs': [
     {t:"I've met gears with more drive.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Your maker left a bug report: 'Does not compute competence.'", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Hinges squeak; you squeal.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Even rust monsters pass you like an unopened letter.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"You were built to last—and to disappoint.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Processing… error: purpose not found.", s:"Blingus' Battle Burns", a:"Mockery"},
+    {t:"Even rust monsters pass you like an unopened letter.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Wait—are you metal? Because if you're metal and there are rust monsters nearby, I need to know! (I'm just asking! For safety!)", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"You're less scary than rust monsters. (Nothing is scarier than rust monsters. Nothing!)", s:"Blingus' Battle Burns", a:"Mockery"}
   ],
   'Beasts': [
     {t:"Bad dog. Worse strategy.", s:"Blingus' Battle Burns", a:"Mockery"},
@@ -304,7 +185,6 @@ const mockery = {
     {t:"Your pack leader is having second thoughts—and third, and fourth.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"The Tarrasque is a beast. You're… something else. (Not that I'm comparing. Often.)", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"At least you're not a rust monster! (Those things destroy everything! My beautiful buckles! My lovely clasps!)", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"If you were a rust monster, I'd already be three miles away. (I'm not paranoid, I'm prepared!)", s:"Blingus' Battle Burns", a:"Mockery"}
   ],
   'Bandits & Mercs': [
     {t:"For hire and still overpaid.", s:"Blingus' Battle Burns", a:"Mockery"},
@@ -316,7 +196,7 @@ const mockery = {
     {t:"The Zhentarim rejected you—and they recruit anyone.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Even Waterdeep's City Watch laughs at your technique.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"You'd fail to rob a merchant in Luskan—and that's saying something.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Your party would've ditched you in Curse of the Azure Bonds—and that's saying something.", s:"Blingus' Battle Burns", a:"Mockery"}
+    {t:"Your party would've ditched you in Curse of the Azure Bonds—and that's saying something.", s:"Blingus' Battle Burns", a:"Mockery"},
   ],
   'Caster-Bait': [
     {t:"Are those somatic components or interpretive flailing?", s:"Blingus' Battle Burns", a:"Mockery"},
@@ -331,10 +211,6 @@ const mockery = {
     {t:"Your concentration check is a cry for help disguised as spellcasting.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"The Red Wizards of Thay wouldn't recruit you—and they're desperate.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Even Khelben Blackstaff's apprentices have better spell selection.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Mystra's Weave has a restraining order—against your magic.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"You cast like someone who learned magic from Candlekeep's rejected applicants.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Your spell menu is empty—even Eye of the Beholder gives you options.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"The Azure Bonds would reject you—and they bond to anyone.", s:"Blingus' Battle Burns", a:"Mockery"}
   ],
   'Martial Mockery': [
     {t:"Nice stance. Is 'wobble' a new school?", s:"Blingus' Battle Burns", a:"Mockery"},
@@ -346,7 +222,7 @@ const mockery = {
     {t:"Even a blindfolded archer is more accurate.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Your battle record reads like a list of failures—all misses.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"At least your weapon isn't rusted. (Rust monsters could be anywhere! I check mine daily!)", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"You swing like you're afraid of rust monsters. (Wait, that's reasonable. Never mind.)", s:"Blingus' Battle Burns", a:"Mockery"}
+    {t:"You swing like you're afraid of rust monsters. (Wait, that's reasonable. Never mind.)", s:"Blingus' Battle Burns", a:"Mockery"},
   ],
   'Boss & Leader Burns': [
     {t:"Is that a command or a wish with stage fright?", s:"Blingus' Battle Burns", a:"Mockery"},
@@ -360,7 +236,7 @@ const mockery = {
     {t:"You're weaker than a training dummy.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"The Azure Bonds wouldn't even bother controlling you—too much work.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"The Tarrasque would be a better boss than you. (Just an observation. Not that I've thought about it.)", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"If you were the Tarrasque, I'd be terrified. You're not. (I'm fine. Everything's fine.)", s:"Blingus' Battle Burns", a:"Mockery"}
+    {t:"If you were the Tarrasque, I'd be terrified. You're not. (I'm fine. Everything's fine.)", s:"Blingus' Battle Burns", a:"Mockery"},
   ],
   'Skill Checks & Dice': [
     {t:"That was a bold choice—rolling performance with your face.", s:"Blingus' Battle Burns", a:"Mockery"},
@@ -374,7 +250,7 @@ const mockery = {
     {t:"You rolled so low, the dice are filing for unemployment.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Your proficiency bonus is currently on sabbatical.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Even random chance favors you more than your own skill.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Your saves are worse than random roadside encounters.", s:"Blingus' Battle Burns", a:"Mockery"}
+    {t:"Your saves are worse than random roadside encounters.", s:"Blingus' Battle Burns", a:"Mockery"},
   ],
   'Hygiene & Style (PG-13)': [
     {t:"You smell like an owlbear's regret.", s:"Blingus' Battle Burns", a:"Mockery"},
@@ -384,7 +260,7 @@ const mockery = {
     {t:"Those boots say 'ran away a lot.'", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Your aesthetic is 'found in a ditch.'", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Your metal gear looks like rust monsters got to it. (Oh no! Are rust monsters nearby?! I need to check my buckles!)", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"I polish my belt buckles three times a day. (Rust monsters don't wait for convenient times!)", s:"Blingus' Battle Burns", a:"Mockery"}
+    {t:"I polish my belt buckles three times a day. (Rust monsters don't wait for convenient times!)", s:"Blingus' Battle Burns", a:"Mockery"},
   ],
   'Mind & Wit': [
     {t:"Your thoughts arrive out of breath.", s:"Blingus' Battle Burns", a:"Mockery"},
@@ -395,7 +271,6 @@ const mockery = {
     {t:"Even your inner monologue needs subtitles.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"The Tarrasque could outthink you. (It's a primal force of destruction, but still.)", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Your strategy is worse than fighting the Tarrasque head-on. (Not that I've… never mind.)", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"You think like someone who's never had their favorite buckles destroyed by rust monsters. (The horror! The absolute horror!)", s:"Blingus' Battle Burns", a:"Mockery"}
   ],
   'Divine & Doomsday': [
     {t:"Even your gods dodge your prayers.", s:"Blingus' Battle Burns", a:"Mockery"},
@@ -409,7 +284,7 @@ const mockery = {
     {t:"Even Shar's shadows avoid you—too dark, even for her.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"The Spellplague wouldn't take you—and it took everything.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"The Tarrasque's awakening would be more interesting than your existence. (Just hypothetically speaking.)", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"If the Tarrasque destroyed the world, you'd still be the least threatening thing here.", s:"Blingus' Battle Burns", a:"Mockery"}
+    {t:"If the Tarrasque destroyed the world, you'd still be the least threatening thing here.", s:"Blingus' Battle Burns", a:"Mockery"},
   ],
   'Roguish Razz': [
     {t:"Your sneak attack is more sneak than attack.", s:"Blingus' Battle Burns", a:"Mockery"},
@@ -419,7 +294,7 @@ const mockery = {
     {t:"Even traps wave you through.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"You couldn't backstab a chair.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Even the Shadow Thieves wouldn't recruit you—and they're shady.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"You'd fail to sneak into Baldur's Gate—and the guards are sleeping.", s:"Blingus' Battle Burns", a:"Mockery"}
+    {t:"You'd fail to sneak into Baldur's Gate—and the guards are sleeping.", s:"Blingus' Battle Burns", a:"Mockery"},
   ],
   'Ranger & Nature': [
     {t:"Even the forest wants you to get lost.", s:"Blingus' Battle Burns", a:"Mockery"},
@@ -428,7 +303,7 @@ const mockery = {
     {t:"Your bowstring fears commitment to you.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"You track like a drunk cartographer.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Foraging? You found disappointment in abundance.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Even Prismeer's forests reject you—and they're chaotic neutral.", s:"Blingus' Battle Burns", a:"Mockery"}
+    {t:"Even Prismeer's forests reject you—and they're chaotic neutral.", s:"Blingus' Battle Burns", a:"Mockery"},
   ],
   'Warlock & Weird': [
     {t:"Your patron's refund is pending.", s:"Blingus' Battle Burns", a:"Mockery"},
@@ -436,7 +311,7 @@ const mockery = {
     {t:"Your eldritch blast has separation anxiety.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Your book of shadows is a coloring book.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Even a hag's pact is better than your deal—and they're notorious.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Your pact boon is 'unsubscribe.'", s:"Blingus' Battle Burns", a:"Mockery"}
+    {t:"Your pact boon is 'unsubscribe.'", s:"Blingus' Battle Burns", a:"Mockery"},
   ],
   'Barbarian Banter': [
     {t:"Is that rage or just poor impulse control?", s:"Blingus' Battle Burns", a:"Mockery"},
@@ -444,7 +319,7 @@ const mockery = {
     {t:"Reckless Attack? Bold to announce your brand.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"You threaten like a storm that forgot the rain.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"You make smashing look like a cry for help.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Try raging against expectations instead.", s:"Blingus' Battle Burns", a:"Mockery"}
+    {t:"Try raging against expectations instead.", s:"Blingus' Battle Burns", a:"Mockery"},
   ],
   'Bard-on-Bard Crime': [
     {t:"I've heard better notes from falling cookware.", s:"Blingus' Battle Burns", a:"Mockery"},
@@ -454,7 +329,7 @@ const mockery = {
     {t:"Your solo is a group effort—and they declined.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Your audience claps when you stop.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Your lute is considering early retirement—and a restraining order.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Your performance check rolled a 'please stop.'", s:"Blingus' Battle Burns", a:"Mockery"}
+    {t:"Your performance check rolled a 'please stop.'", s:"Blingus' Battle Burns", a:"Mockery"},
   ],
   'Fey & Hags (Wild Beyond The Witchlight)': [
     {t:"Even Bavlorna's swamp water has more charm than you—and it's literally sewage.", s:"Blingus' Battle Burns", a:"Mockery"},
@@ -469,18 +344,6 @@ const mockery = {
     {t:"Even a pixie's prank is more threatening than your best attack.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Your contract with failure is more binding than anything Zybilna wrote.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"You're about as magical as a carnival ticket stub—and just as useful.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Even Sir Talavar would reject you—and he's trapped in a cage.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"You're less useful than Glim's mushroom 'sausage'—and that was a mistake.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Clapperclaw could guide you to failure—and he'd still get lost.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"You're not even worthy of the Stinky Court—and that's saying something.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Even a mud muffin has more substance than you—and they're just mud.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"The will-o'-wisps would ignore you—and they're spirits of the drowned.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"You're about as welcome as Bavlorna at the Walking Inn—not at all.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Even Igwil's Cauldron wouldn't freeze you—you're already frozen in incompetence.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"You're running in place like Wittershin's—going nowhere fast.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Loomlurch's tree has more personality than you—and it's hollow.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"You're less threatening than Thistlewhisk—and he's a guide.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"Even the Bullywug king has better fashion sense—and he's a frog.", s:"Blingus' Battle Burns", a:"Mockery"}
   ],
   'Closing Criticals': [
     {t:"You're not a challenge—you're cardio.", s:"Blingus' Battle Burns", a:"Mockery"},
@@ -495,12 +358,6 @@ const mockery = {
     {t:"You came, you saw, you missed—the trilogy nobody wanted.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Even random roadside encounters handled you better.", s:"Blingus' Battle Burns", a:"Mockery"},
     {t:"Your party would've left you in Waterdeep—even a desperate band of adventurers.", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"The Tarrasque wouldn't even register you as a snack. (Not that I've researched this. Much.)", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"If the Tarrasque appeared right now, I'd know exactly what to do. (I'm prepared. Always prepared.)", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"You're not worth the Tarrasque's attention. (I mean, who is? But especially you.)", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"At least you're not a rust monster. (Those things destroy everything! My precious buckles! My beautiful clasps!)", s:"Blingus' Battle Burns", a:"Mockery"},
-    {t:"I keep all my metal gear oiled and polished. Always. (Rust monsters are everywhere! I've seen them! Maybe!)", s:"Blingus' Battle Burns", a:"Mockery"}
-  ]
+  ],
 };
-
 window.BlingusData.mockery = mockery;

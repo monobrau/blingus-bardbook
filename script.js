@@ -129,6 +129,7 @@
   const youtubeSuggestion = $('#youtubeSuggestion');
   const youtubeSuggestionText = $('#youtubeSuggestionText');
   const youtubeSearchBtn = $('#youtubeSearchBtn');
+  const localKaraokeStatus = $('#localKaraokeStatus');
   const generatorModal = $('#generatorModal');
   const generatorTitle = $('#generatorTitle');
   const generatorText = $('#generatorText');
@@ -752,9 +753,9 @@
       history: JSON.parse(localStorage.getItem(historyKey) || '[]'),
       
       // Metadata
-      version: '1.3',
+      version: '1.4',
       timestamp: new Date().toISOString(),
-      exportNote: 'Complete export including all default items (spells, bardic, mockery, actions, criticalHits, criticalFailures, skillChecks, generators) plus all user customizations (favorites, custom items, edits, deletions, history, YouTube karaoke settings).'
+      exportNote: 'Complete export including all default items (spells, bardic, mockery, actions, criticalHits, criticalFailures, skillChecks, generators) plus all user customizations (favorites, custom items, edits, deletions, history, YouTube and local karaoke settings).'
     };
   }
   
@@ -1927,31 +1928,30 @@
       copyBtn.textContent = 'Copy';
       copyBtn.addEventListener('click', (e) => { e.stopPropagation(); copyLine(item); });
       
-      // Add YouTube button if YouTube link exists
-      // Use an anchor tag so RedirectTube extension can intercept it
+      // Add karaoke play button if YouTube or local karaoke exists
       let youtubeBtn = null;
-      if (item.youtube) {
+      if (item.youtube || item.localKaraoke) {
         const startTime = item.startTime || 0;
-        const videoId = item.youtube;
-        const startSeconds = Math.floor(startTime || 0);
-        const watchParams = new URLSearchParams();
-        watchParams.set('v', videoId);
-        if (startSeconds > 0) {
-          watchParams.set('t', startSeconds.toString());
-        }
-        watchParams.set('autoplay', '1');
-        const watchUrl = `https://www.youtube.com/watch?${watchParams.toString()}`;
+        const videoId = item.localKaraoke || item.youtube;
+        const hasLocal = !!item.localKaraoke;
         
-        youtubeBtn = document.createElement('a');
+        youtubeBtn = document.createElement('button');
+        youtubeBtn.type = 'button';
         youtubeBtn.className = 'card__youtube';
-        youtubeBtn.textContent = '▶️';
-        youtubeBtn.title = 'Play karaoke track';
-        youtubeBtn.href = watchUrl;
-        youtubeBtn.target = '_blank';
-        youtubeBtn.rel = 'noopener noreferrer';
+        youtubeBtn.textContent = hasLocal ? '🎤' : '▶️';
+        youtubeBtn.title = hasLocal ? 'Play local karaoke' : 'Play karaoke track';
         youtubeBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          // Let RedirectTube extension intercept the link
+          if (window.BlingusKaraoke) {
+            window.BlingusKaraoke.playItem(item, item.s || 'Karaoke Track');
+          } else {
+            const startSeconds = Math.floor(startTime || 0);
+            const watchParams = new URLSearchParams();
+            watchParams.set('v', videoId);
+            if (startSeconds > 0) watchParams.set('t', startSeconds.toString());
+            watchParams.set('autoplay', '1');
+            window.open(`https://www.youtube.com/watch?${watchParams.toString()}`, '_blank');
+          }
         });
       }
       
@@ -3445,22 +3445,26 @@
     showToast(`Opening ${title}...`);
   }
   
-  // Show YouTube player - opens in FreeTube if available, otherwise YouTube
-  function showYouTubePlayer(videoId, startTime = 0, title = 'Karaoke Track') {
+  // Show YouTube player — prefers local karaoke via BlingusKaraoke
+  function showYouTubePlayer(videoId, startTime = 0, title = 'Karaoke Track', localKaraoke = null) {
     if (!videoId) {
       showToast('Invalid YouTube video ID');
       return;
     }
     
-    // Clean video ID (remove any remaining query parameters or fragments)
     const cleanVideoId = videoId.split('?')[0].split('&')[0].trim();
     
     if (!/^[a-zA-Z0-9_-]{11}$/.test(cleanVideoId)) {
       showToast('Invalid YouTube video ID format');
       return;
     }
+
+    const item = { youtube: cleanVideoId, localKaraoke: localKaraoke || null, startTime: startTime || 0, s: title };
+    if (window.BlingusKaraoke) {
+      window.BlingusKaraoke.playItem(item, title);
+      return;
+    }
     
-    // Build watch URL with start time parameter
     const startSeconds = Math.floor(startTime || 0);
     const watchParams = new URLSearchParams();
     watchParams.set('v', cleanVideoId);
@@ -3470,13 +3474,15 @@
     watchParams.set('autoplay', '1');
     
     const watchUrl = `https://www.youtube.com/watch?${watchParams.toString()}`;
-    
-    // Open in FreeTube if available, otherwise YouTube
     openYouTubeVideo(watchUrl, title);
   }
   
-  // Close YouTube player modal
+  // Close YouTube/karaoke player modal
   function closeYouTubePlayer() {
+    if (window.BlingusKaraoke) {
+      window.BlingusKaraoke.closePlayer();
+      return;
+    }
     youtubePlayerModal.classList.remove('show');
     youtubePlayerModal.setAttribute('aria-hidden', 'true');
     // Stop video by clearing src
@@ -3579,21 +3585,29 @@
       const startTime = item?.startTime;
       editYoutube.value = youtubeUrl;
       editStartTime.value = startTime ? (typeof startTime === 'number' ? formatTime(startTime) : startTime.toString()) : '';
+
+      if (window.BlingusKaraoke) {
+        window.BlingusKaraoke.setPendingFromItem(item);
+      }
+
+      if (localKaraokeStatus) {
+        if (item?.localKaraoke) {
+          localKaraokeStatus.style.display = 'block';
+          localKaraokeStatus.textContent = '✅ Local karaoke saved on server (' + item.localKaraoke + ')';
+        } else {
+          localKaraokeStatus.style.display = 'none';
+        }
+      }
       
-      // Generate karaoke suggestion if no YouTube URL exists
-      // Check for song and artist properties (item.s and item.a)
+      // Karaoke search when song + artist are set
       if (youtubeSuggestion && youtubeSuggestionText) {
-        const song = item?.s || item?.song || '';
-        const artist = item?.a || item?.artist || '';
-        if (!youtubeUrl && song && artist) {
-          const searchUrl = findKaraokeVideo(song, artist);
-          if (searchUrl) {
-            youtubeSuggestionText.textContent = `Find karaoke for "${song}" by ${artist}`;
-            youtubeSuggestion.dataset.searchUrl = searchUrl;
-            youtubeSuggestion.style.display = 'block';
-          } else {
-            youtubeSuggestion.style.display = 'none';
-          }
+        const song = item?.s || item?.song || editSong.value.trim() || '';
+        const artist = item?.a || item?.artist || editArtist.value.trim() || '';
+        if (song && artist && artist !== 'Mockery' && song !== 'Forgotten Realms Lore') {
+          youtubeSuggestionText.textContent = item?.localKaraoke
+            ? `Re-download or change karaoke for "${song}" by ${artist}`
+            : `Find and download karaoke for "${song}" by ${artist}`;
+          youtubeSuggestion.style.display = 'block';
         } else {
           youtubeSuggestion.style.display = 'none';
         }
@@ -3623,6 +3637,13 @@
     // editAdult.checked = false; // Removed: adult content UI removed
     editYoutube.value = '';
     editStartTime.value = '';
+    
+    if (window.BlingusKaraoke) {
+      window.BlingusKaraoke.clearPending();
+    }
+    if (localKaraokeStatus) {
+      localKaraokeStatus.style.display = 'none';
+    }
     
     // Hide YouTube suggestion
     if (youtubeSuggestion) {
@@ -3782,6 +3803,14 @@
       if (startTime !== null && startTime !== undefined) {
         newItem.startTime = startTime;
         console.log('Added startTime property:', startTime);
+      }
+
+      const pending = window.BlingusKaraoke?.getPending?.();
+      if (pending?.localKaraoke) {
+        newItem.localKaraoke = pending.localKaraoke;
+        if (!newItem.youtube) newItem.youtube = pending.youtube || pending.localKaraoke;
+      } else if (currentEditingItem?.localKaraoke) {
+        newItem.localKaraoke = currentEditingItem.localKaraoke;
       }
       
       console.log('Final newItem:', newItem);
@@ -4102,7 +4131,7 @@
       const startTimeInput = editStartTime.value.trim();
       
       if (!youtubeInput) {
-        showToast('Please enter a YouTube URL or video ID');
+        showToast('Please enter a YouTube URL or video ID, or search for karaoke');
         return;
       }
       
@@ -4114,19 +4143,34 @@
       
       const startTime = startTimeInput ? parseTime(startTimeInput) : 0;
       const title = editSong.value.trim() || 'Karaoke Track';
-      showYouTubePlayer(videoId, startTime || 0, title);
+      const pending = window.BlingusKaraoke?.getPending?.();
+      const localId = pending?.localKaraoke || currentEditingItem?.localKaraoke || null;
+      showYouTubePlayer(videoId, startTime || 0, title, localId);
     });
   }
   
-  // YouTube karaoke search button
+  // Karaoke search — in-app search and download
   if (youtubeSearchBtn) {
     youtubeSearchBtn.addEventListener('click', () => {
-      const suggestion = youtubeSuggestion;
-      const searchUrl = suggestion?.dataset?.searchUrl;
-      if (searchUrl) {
-        window.open(searchUrl, '_blank');
-        showToast('Opening YouTube search...');
+      const song = editSong.value.trim();
+      const artist = editArtist.value.trim();
+      if (!song || !artist) {
+        showToast('Enter song and artist first');
+        return;
       }
+      if (!window.BlingusKaraoke) {
+        const searchUrl = findKaraokeVideo(song, artist);
+        if (searchUrl) window.open(searchUrl, '_blank');
+        return;
+      }
+      window.BlingusKaraoke.openSearch(song, artist, (pending, row) => {
+        editYoutube.value = pending.youtube || pending.localKaraoke;
+        if (localKaraokeStatus) {
+          localKaraokeStatus.style.display = 'block';
+          localKaraokeStatus.textContent = '✅ Downloaded: ' + (row.title || pending.localKaraoke);
+        }
+        showToast('Karaoke ready — save item to keep link');
+      });
     });
   }
   
@@ -4295,7 +4339,7 @@
                   Object.keys(data.userItems[section]).forEach(category => {
                     if (Array.isArray(data.userItems[section][category])) {
                       data.userItems[section][category].forEach(item => {
-                        if (item.youtube || item.startTime !== undefined) {
+                        if (item.youtube || item.localKaraoke || item.startTime !== undefined) {
                           youtubeItems.push({ section, category, item });
                         }
                       });
@@ -4306,7 +4350,7 @@
               if (youtubeItems.length > 0) {
                 console.log('Found YouTube settings in import:', youtubeItems.length, 'items with YouTube data');
                 debugLog('YouTube items:', youtubeItems);
-                importedCategories.push(`${youtubeItems.length} items with YouTube karaoke settings`);
+                importedCategories.push(`${youtubeItems.length} items with karaoke settings (YouTube/local)`);
               } else {
                 console.log('No YouTube settings found in imported userItems');
               }

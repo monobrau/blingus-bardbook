@@ -51,7 +51,9 @@ window.BlingusConstants = (function() {
   const API = {
     SAVE_ENDPOINT: '/api/save.php',
     LOAD_ENDPOINT: '/api/load.php',
-    VERSION_ENDPOINT: '/api/version.php'
+    VERSION_ENDPOINT: '/api/version.php',
+    KARAOKE_ENDPOINT: '/api/karaoke.php',
+    DATA_ENDPOINT: '/api/blingus-data.php'
   };
 
   // Keyboard shortcuts

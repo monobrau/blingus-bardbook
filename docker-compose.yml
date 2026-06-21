@@ -1,0 +1,15 @@
+services:
+  bardbook:
+    build: .
+    container_name: blingus-bardbook
+    restart: unless-stopped
+    ports:
+      - "8088:80"
+    volumes:
+      - bardbook-data:/var/www/html/data
+    environment:
+      - BLINGUS_API_KEY=${BLINGUS_API_KEY:-}
+      - YTDLP_PATH=/usr/local/bin/yt-dlp
+
+volumes:
+  bardbook-data:

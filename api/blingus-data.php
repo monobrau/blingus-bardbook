@@ -24,8 +24,10 @@ header('Content-Type: application/json');
 $allowedOrigins = [
     'http://localhost',
     'http://127.0.0.1',
-    // Add your production domain here:
-    // 'https://yourdomain.com',
+    'https://blingus.knospe.org',
+    'http://blingus.knospe.org',
+    'https://bardbook.knospe.org',
+    'http://bardbook.knospe.org',
 ];
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 if (in_array($origin, $allowedOrigins) || empty($allowedOrigins)) {

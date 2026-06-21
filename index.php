@@ -14,6 +14,7 @@ $moduleFiles = [
   'search-utils.js',
   'search-enhancements.js',
   'keyboard-shortcuts.js',
+  'karaoke-manager.js',
   'data/generators-data.js',
   'data/spells-data.js',
   'data/bardic-data.js',
@@ -257,7 +258,8 @@ foreach ($moduleFiles as $file) {
       </div>
       <div class="modal__body" style="padding: 20px;">
         <div id="youtubePlayerContainer" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; background: #000;">
-          <iframe id="youtubePlayerFrame" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+          <video id="karaokeLocalVideo" controls playsinline style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000;"></video>
+          <iframe id="youtubePlayerFrame" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
         </div>
         <div id="youtubeFallback" style="display: none; margin-top: 16px; text-align: center;">
           <p style="color: var(--ink); margin-bottom: 12px;">Video embedding is restricted. Open on YouTube instead?</p>
@@ -321,10 +323,13 @@ foreach ($moduleFiles as $file) {
             <input type="text" id="editStartTime" placeholder="30 or 0:30" style="width: 100%; padding: 8px; border: 1px solid var(--burnt); border-radius: 6px; font-family: inherit;" />
           </label>
           <button id="testYoutubeBtn" class="btn" style="width: 100%; margin-top: 8px;">▶️ Test Playback</button>
+          <div id="localKaraokeStatus" style="display: none; margin-top: 8px; padding: 8px 12px; background: #e8f5e9; border-radius: 6px; font-size: 13px; color: #2e7d32;">
+            ✅ Local karaoke saved on server
+          </div>
           <div id="youtubeSuggestion" style="display: none; margin-top: 12px; padding: 12px; background: #f0f4f8; border-radius: 6px; border: 1px solid var(--accent);">
-            <div style="font-size: 14px; font-weight: bold; margin-bottom: 8px; color: var(--accent);">💡 Karaoke Suggestion</div>
+            <div style="font-size: 14px; font-weight: bold; margin-bottom: 8px; color: var(--accent);">💡 Karaoke Search</div>
             <div id="youtubeSuggestionText" style="font-size: 13px; color: var(--ink); margin-bottom: 8px;"></div>
-            <button id="youtubeSearchBtn" class="btn" style="width: 100%; background: #ff0000; color: white; font-size: 14px;">🔍 Search YouTube for Karaoke</button>
+            <button id="youtubeSearchBtn" class="btn" style="width: 100%; background: #ff0000; color: white; font-size: 14px;">🎤 Search &amp; Download Karaoke</button>
           </div>
         </div>
       </div>
@@ -332,6 +337,24 @@ foreach ($moduleFiles as $file) {
         <button id="saveEditBtn" class="btn">Save</button>
         <button id="cancelEditBtn" class="btn">Cancel</button>
         <button id="deleteEditBtn" class="btn" style="background: #c44; color: white; display: none;">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Karaoke Search Modal -->
+  <div id="karaokeSearchModal" class="modal" role="dialog" aria-labelledby="karaokeSearchTitle" aria-hidden="true">
+    <div class="modal__content" style="max-width: 700px;">
+      <div class="modal__header">
+        <h2 id="karaokeSearchTitle">🎤 Find Karaoke</h2>
+        <button class="modal__close" id="karaokeSearchClose" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal__body">
+        <p id="karaokeSearchQuery" style="font-weight: bold; margin-bottom: 8px;"></p>
+        <p id="karaokeSearchStatus" style="color: var(--ink); opacity: 0.8; margin-bottom: 12px;">Searching...</p>
+        <div id="karaokeSearchResults" class="karaoke-results"></div>
+      </div>
+      <div class="modal__footer">
+        <button id="karaokeSearchCloseBtn" class="btn">Cancel</button>
       </div>
     </div>
   </div>
@@ -353,6 +376,9 @@ foreach ($moduleFiles as $file) {
 
   <!-- Keyboard shortcuts -->
   <script src="js/keyboard-shortcuts.js?v=<?php echo $versions['keyboard-shortcuts.js']; ?>"></script>
+
+  <!-- Karaoke (search, download, local playback) -->
+  <script src="js/karaoke-manager.js?v=<?php echo $versions['karaoke-manager.js']; ?>"></script>
 
   <!-- Data modules (load before main script) -->
   <script src="js/data/generators-data.js?v=<?php echo $versions['data/generators-data.js']; ?>"></script>

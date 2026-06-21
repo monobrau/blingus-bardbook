@@ -1,6 +1,5 @@
 /**
- * Generator data for Blingus' Bardbook
- * Battle cries, insults, compliments, and Chaucer introductions
+ * Generator data (curated revamp)
  */
 window.BlingusData = window.BlingusData || {};
 
@@ -46,7 +45,7 @@ const battleCries = [
   "Glandor's greatsword has nothing on my words!",
   "Even Nissan The Pathfinder would be impressed—and he's too proud to walk!",
   "Katika The Clean-Shaven rides a log with legs—you can't even ride your own failure!",
-  "Tree Steed style—too proud to walk, too cool to care!"
+  "Tree Steed style—too proud to walk, too cool to care!",
 ];
 
 const insults = [
@@ -85,32 +84,6 @@ const insults = [
   "You fight like you're trying to navigate the Material Plane without a map—aimlessly and with style, but zero effectiveness.",
   "I've seen more threatening things in a peaceful tavern—and I've seen a lot.",
   "Your combat prowess is like my sense of direction—wildly inconsistent.",
-  "Even Bo's limp was more reliable than your accuracy.",
-  "You're like a half-remembered tale—vague, confusing, and quickly dismissed.",
-  "I've seen smarter decisions from someone choosing which road to walk—and that's saying something.",
-  "Thindary's axe would shine brighter than your future—and it's just metal.",
-  "Laura's songbook has better lyrics than your combat has strategy.",
-  "Bantar did 150 damage in one hit—you can't even do 15.",
-  "T-Bone would protect you, but even he has standards.",
-  "Ahab died with more dignity than you're showing right now.",
-  "Latani's Plantlance was nerfed and still better than your best move.",
-  "Glandor's greatsword has more edge than your entire personality.",
-  "Even Khalim Chaos's Undead Index would reject you—and it's just a book.",
-  "You're not in Khalim Chao's guide—you're in the 'what not to be' section.",
-  "I know something about this—you're terrible at it!",
-  "Your aim makes Latani's nerfed Plantlance look accurate.",
-  "Thindary hunted undead—you're just undead weight.",
-  "Even the forest gnomes' Tree Steed has more dignity than you—and it's a log with legs.",
-  "Nissan The Pathfinder would be too proud to acknowledge your existence.",
-  "Katika The Clean-Shaven's log has more mobility than your combat skills.",
-  "You're less impressive than a log with legs—and those gnomes are proud of that log.",
-  "The forest gnomes are too proud to walk—you're too pathetic to stand.",
-  "Your insults bounce off them like they bounce off those gnomes—indifferent and unimpressed.",
-  "You're not a boss fight—you're the loading screen tips I skip.",
-  "I've heard clearer threats from a menu—today's soup has more bite.",
-  "You bring the energy of a 'to be continued' with no next episode.",
-  "If overconfidence were armor, you'd still be rolling with a penalty.",
-  "You're the plot twist nobody gasps for."
 ];
 
 const introductions = [
@@ -122,10 +95,6 @@ const introductions = [
   "Behold Puck Pinewhistle! A fairy whose magic satisfies even the gods themselves! His cantrips have better timing than your life choices! Wild about his magic, mild about you! He sneezes glitter, you choke on defeat! The Weave bends to his will, and you will too!",
   "Witness Vadania Amakiir! The ranger whose arrows never miss! She aims where you're going—you never get there! Her footprints leave less trace than your excuses! The forest itself whispers her name in reverence! Behold the hunter who makes stealth obsolete!",
   "And finally, I am Blingus the Wayfarer! The bard who makes wandering an art form! My words cut deep—the blade is economy-sized, but the impact is huge! I've left more things behind than you've ever started! From Prismeer to the Material Plane, I bring the chaos! Behold the fairy who makes commitment look optional!",
-  "My lords and ladies! Brawn O'Neil approaches! A monk whose technique is hard, whose strikes are harder! He finishes what he starts—something you clearly don't understand! His fists have more staying power than your entire existence! Behold the dwarf who makes mountains look soft!",
-  "Presenting Puck Pinewhistle! The sorcerer whose magic penetrates even the thickest defenses! His sparkles have more impact than your best effort! He knows how to make things last—unlike your attacks! Behold the fairy who makes the Weave his playground!",
-  "I give you Vadania Amakiir! The ranger whose aim never falters! Her arrows have more staying power than your entire performance! She knows how to hit her target—you can't even find yours! Behold the elf who makes tracking look easy!",
-  "And now, the master of ceremonies himself! I am Blingus the Wayfarer! The bard whose insults last longer than your attacks! I know how to use what I've got—unlike you! My words satisfy even dragons—you couldn't satisfy a goblin! Behold the fairy who makes leaving look like an art!"
 ];
 
 const compliments = [
@@ -154,46 +123,7 @@ const compliments = [
   "That was... actually strategic. Who taught you that?",
   "You're making me look good by association—I appreciate that.",
   "That deserves a round of applause—if I wasn't holding my lute.",
-  "Almost as good as Thindary's axe work—almost.",
-  "Laura would put that in her songbook—the good parts, anyway.",
-  "Bantar would be impressed—and he killed the Tarrasque, so that's saying something.",
-  "T-Bone would approve—and he's protective, so that's high praise.",
-  "Ahab would have been proud—stoic and effective.",
-  "Latani's Plantlance wishes it was that good—even before the nerf.",
-  "Glandor's greatsword would be jealous—if swords had feelings.",
-  "Khalim Chao would write about that—in the 'how to do it right' section.",
-  "I know something about this—and that was actually good!",
-  "That move would make Thindary's axe shine with approval.",
-  "Laura's songbook needs a new entry—and that's it.",
-  "Bantar did 150 damage once—you're getting there, maybe.",
-  "T-Bone would add you to his protection list—congrats.",
-  "Ahab died stoically—you're living effectively. Progress!",
-  "Latani's Plantlance was powerful—you're getting there.",
-  "Glandor would nod approvingly—and he's a fighter, so that's rare.",
-  "Khalim Chaos's Index would list you as 'competent'—high praise from a book.",
-  "Nissan The Pathfinder would approve—and he's too proud to walk, so that's saying something.",
-  "Katika The Clean-Shaven would be proud—and she rides a log with legs, so standards are high.",
-  "Even the forest gnomes' Tree Steed would be impressed—and it's just a log.",
-  "You've got the pride of those forest gnomes—without needing a log to ride.",
-  "That move would make those gnomes proud—and they're proud of a log with legs.",
-  "You're almost as impressive as a Tree Steed—almost.",
-  "You're proving that sometimes, counting on people isn't the worst idea.",
-  "That was almost as smooth as my best exit strategy—almost.",
-  "You're doing better than I expected—and my expectations were... let's say low.",
-  "That was competent enough to make me pause my wanderlust—briefly.",
-  "You're earning your place in this story—and I don't say that lightly.",
-  "That deserves to be remembered—unlike most things I encounter.",
-  "You're actually contributing—which is more than I can say for most.",
-  "That was good enough I might stick around for the next chapter.",
-  "You're proving useful—a rare trait in my experience.",
-  "That deserves a toast—if I had something other than my cigarette.",
-  "You're making this adventure worth the road we traveled to get here.",
-  "That was impressive—like a well-played tune, smooth and effective.",
-  "You're actually making me glad I didn't wander off—yet.",
-  "That deserves respect—and I don't give that out easily.",
-  "You're proving that this party thing might have merit after all."
 ];
-
 window.BlingusData.battleCries = battleCries;
 window.BlingusData.insults = insults;
 window.BlingusData.introductions = introductions;

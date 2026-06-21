@@ -21,8 +21,19 @@ server {
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         include fastcgi_params;
         
-        # Allow POST requests
-        fastcgi_read_timeout 300;
+        # Allow POST requests and long karaoke downloads (yt-dlp)
+        fastcgi_read_timeout 900;
+        fastcgi_send_timeout 900;
+    }
+
+    # Karaoke API — extended timeouts for search/download
+    location = /api/karaoke.php {
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        fastcgi_index karaoke.php;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+        fastcgi_read_timeout 900;
+        fastcgi_send_timeout 900;
     }
 
     # Allow all HTTP methods for API endpoints
@@ -35,7 +46,14 @@ server {
             fastcgi_index index.php;
             fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
             include fastcgi_params;
+            fastcgi_read_timeout 900;
         }
+    }
+
+    # Local karaoke files (optional direct serve; streaming uses karaoke.php)
+    location /data/karaoke/ {
+        internal;
+        alias /var/www/html/data/karaoke/;
     }
 
     # Static files - cache CSS/JS with version query params
@@ -109,4 +127,18 @@ curl http://blingus.knospe.org/api/test.php
 ```
 
 Should show PHP info, not download the file.
+
+## Karaoke (test/revamp branch)
+
+Requires **yt-dlp** and **ffmpeg** on the host. See [KARAOKE_SETUP.md](KARAOKE_SETUP.md).
+
+```bash
+# Verify karaoke API
+curl "https://blingus.knospe.org/api/karaoke.php?action=ping"
+
+# Docker alternative (Portainer on blingus.dorks.lan)
+docker compose up -d --build
+```
+
+Ensure `data/karaoke/` is writable by the web server user.
 
