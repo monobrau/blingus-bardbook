@@ -5,7 +5,7 @@ window.BlingusData = window.BlingusData || {};
 
 const criticalHits = {
   "Arrows": [
-    "My arrow strikes like time distortion in Prismeer\\\\\\\\u2014here, then there, then everywhere at once",
+    "My arrow strikes true in a blur of motion\u2014here, then there, then finding its mark",
     "My arrow finds its mark, sinking deep into their flesh with a satisfying thud",
     "My arrowhead digs between their ribs, and I see them gasp and stagger backward",
     "My arrow strikes with brutal force, tearing through fabric and flesh alike",
@@ -178,7 +178,7 @@ const criticalHits = {
 
 const criticalFailures = {
   "Arrows": [
-    "My arrow disappears like a lost thing in Prismeer\\\\\\\\u2014here one moment, gone the next",
+    "My arrow glances off their shield and vanishes into the chaos before I find it again",
     "My arrow gets caught in a sudden gust of wind, veering wildly off course",
     "My arrow nock breaks mid-draw, sending the arrow spinning uselessly to the side",
     "I release too early, and my arrow bounces harmlessly off their shield",

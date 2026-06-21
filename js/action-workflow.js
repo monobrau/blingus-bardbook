@@ -385,20 +385,34 @@
     return patterns.some((pattern) => haystack.includes(String(pattern).toLowerCase()));
   }
 
+  function getSceneCritCategory(context) {
+    if (context.section === 'criticalHits') return `${context.category} - Crit Hit`;
+    if (context.section === 'criticalFailures') return `${context.category} - Crit Fail`;
+    return context.category;
+  }
+
   /**
-   * Merge scene-specific skill lines ahead of generic ones; drop generics that clash with the scene.
-   * When scene lines exist, use them exclusively — generics were causing wrong-skill bleed.
+   * Merge scene-specific lines ahead of generic ones; drop generics that clash with the scene.
+   * When scene lines exist, use them exclusively — generics were causing wrong-scene bleed.
    */
   function buildWorkflowOutcomePool(items, workflowState = state, context = null) {
     const ctx = context || resolveOutcomeContext(workflowState);
-    if (ctx?.section !== 'skillChecks' || !workflowState.location) return items;
+    if (!workflowState.location) return items;
 
-    const sceneLines = getSceneOutcomeLines(workflowState.location, ctx.category);
-    if (sceneLines.length) {
-      return sceneLines;
+    if (ctx?.section === 'skillChecks') {
+      const sceneLines = getSceneOutcomeLines(workflowState.location, ctx.category);
+      if (sceneLines.length) return sceneLines;
+      return items.filter((text) => !isGenericIncompatibleWithScene(text, workflowState.location));
     }
 
-    return items.filter((text) => !isGenericIncompatibleWithScene(text, workflowState.location));
+    if (ctx?.section === 'criticalHits' || ctx?.section === 'criticalFailures') {
+      const sceneKey = getSceneCritCategory(ctx);
+      const sceneLines = getSceneOutcomeLines(workflowState.location, sceneKey);
+      if (sceneLines.length) return sceneLines;
+      return items.filter((text) => !isGenericIncompatibleWithScene(text, workflowState.location));
+    }
+
+    return items;
   }
 
   function isOutcomeValid(text, workflowState = state, context = null) {
@@ -410,11 +424,32 @@
     if (outcomeMod === 'hit') {
       if (!ENEMY_PATTERN.test(haystack)) return false;
       if (SELF_HARM_PATTERN.test(haystack)) return false;
+      if (workflowState.location && ctx?.section === 'criticalHits') {
+        const sceneLines = getSceneOutcomeLines(workflowState.location, getSceneCritCategory(ctx));
+        if (sceneLines.includes(text)) {
+          if (activeTargets.length) {
+            return activeTargets.some((targetId) => textMatchesTargetId(haystack, targetId));
+          }
+          return true;
+        }
+        if (isGenericIncompatibleWithScene(text, workflowState.location)) return false;
+      }
     }
 
     if (outcomeMod === 'fail') {
+      if (workflowState.location && ctx?.section === 'criticalFailures') {
+        const sceneLines = getSceneOutcomeLines(workflowState.location, getSceneCritCategory(ctx));
+        if (sceneLines.includes(text)) {
+          if (activeTargets.length) {
+            return activeTargets.some((targetId) => textMatchesTargetId(haystack, targetId));
+          }
+          return true;
+        }
+        if (isGenericIncompatibleWithScene(text, workflowState.location)) return false;
+      }
+
       const looksLikeHit = ENEMY_PATTERN.test(haystack) && !SELF_HARM_PATTERN.test(haystack)
-        && !/\b(nearly hitting an ally|nearly hitting myself|bounces harmlessly|goes wide|miss|fizzles|backfires|stumble|trip|fumble|fail|pathetically|useless|empty air)\b/i.test(haystack);
+        && !/\b(nearly hitting an ally|nearly hitting myself|bounces harmlessly|goes wide|miss|fizzles|backfires|stumble|trip|fumble|fail|pathetically|useless|empty air|sprawling|exposed|awkwardly|harmlessly|instead of my target|instead of my foe|instead of them|past my target|bury the point|instead$)\b/i.test(haystack);
       if (looksLikeHit) return false;
     }
 

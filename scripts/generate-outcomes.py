@@ -10,6 +10,10 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / 'js' / 'data'
 sys.path.insert(0, str(ROOT / 'scripts'))
 
+from combat_vocab import (  # noqa: E402
+    COMBAT_CATEGORIES,
+    generate_crit_lines,
+)
 from outcome_vocab import (  # noqa: E402
     GENERIC_SKILL_LINES,
     SCENE_TYPE,
@@ -138,11 +142,56 @@ SOCIAL_INCOMPATIBLE = [
     'narrow beam', 'undergrowth', 'jungle', 'cliff', 'avalanche', 'treeline',
     'oasis', 'sandstorm', 'tundra', 'quicksand', 'canopy', 'horizon',
     'mountain stream', 'dense vegetation', 'frozen', 'whiteout', 'corridor',
-    'secret door', 'stone walls', 'sarcophag',
+    'secret door', 'stone walls', 'sarcophag', 'overhead branches', 'tree trunk',
+    'stalactite', 'fallen log',
 ]
-ADVENTURE_INCOMPATIBLE = ['narrow beam', 'bartender', 'barmaid']
-DUNGEON_INCOMPATIBLE = ['bartender', 'barmaid', 'market stall']
-WILDERNESS_INCOMPATIBLE = ['bartender', 'great hall', 'throne', 'innkeeper']
+ADVENTURE_INCOMPATIBLE = ['narrow beam', 'bartender', 'barmaid', 'overhead branches', 'chandelier']
+DUNGEON_INCOMPATIBLE = ['bartender', 'barmaid', 'market stall', 'overhead branches', 'chandelier', 'taproom']
+WILDERNESS_INCOMPATIBLE = ['bartender', 'great hall', 'throne', 'innkeeper', 'chandelier', 'taproom', 'bar rail']
+
+# Hand-written crit overrides (scene, category, suffix).
+CRIT_CUSTOM = {
+    ('Tavern', 'Polearms', 'Crit Fail'): [
+        'My polearm catches on the chandelier chain, getting stuck and leaving me exposed',
+        'I misjudge the reach between tables and overextend, stumbling into a patron',
+        'My haft knocks tankards off the bar as I spin and lose the strike entirely',
+        'I swing too wide and my polearm snags on the bar rail behind me',
+        'I trip on spilled ale and send myself sprawling across the taproom floor',
+        'The low ceiling beam catches my polearm mid-thrust and stops me cold',
+        'I thrust past my target and bury the point in a sack of flour instead',
+        'My polearm clatters against a table edge and throws me off balance in front of everyone',
+    ],
+    ('Dungeon', 'Polearms', 'Crit Fail'): [
+        'My polearm catches on a dangling chain, getting stuck and leaving me exposed',
+        'I misjudge the reach in the narrow corridor and overextend, stumbling forward',
+        'My weapon gets tangled with a companion, causing me to pull back awkwardly',
+        'I swing too wide and my polearm snags on a broken statue behind me',
+        'I trip on slippery flagstones and send myself sprawling to the floor',
+        'The low arch catches my polearm mid-swing and wrenches it from my grip',
+        'I thrust past my target and bury the point in the damp wall instead',
+        'My polearm clatters against the corridor stones and echoes my failure to the whole level',
+    ],
+    ('Carnival / Feywild (Wild Beyond The Witchlight)', 'Arrows', 'Crit Hit'): [
+        'My arrow strikes like time distortion in Prismeer—here, then there, then everywhere at once',
+        'My arrow finds its mark in the carnival chaos, sinking deep with a satisfying thud',
+        'I loose a shot that threads impossible tents and nails my target square in the chest',
+        'My arrowhead buries itself in their leg amid calliope music and they drop to one knee',
+        'My arrow punches through leather and keeps going until it finds bone in the midway',
+        'The shot bends wrong in fey light and still lands true on my foe',
+        'My arrow in the carnival lands with perfect timing and unmistakable force',
+        'I capitalize on the opening in this strange place and drive the hit home',
+    ],
+    ('Carnival / Feywild (Wild Beyond The Witchlight)', 'Arrows', 'Crit Fail'): [
+        'My arrow disappears like a lost thing in Prismeer—here one moment, gone the next',
+        'My arrow gets caught in a burst of confetti and veers wildly off course',
+        'My arrow nock breaks mid-draw, sending the arrow spinning into the sawdust',
+        'I release too early and my arrow bounces harmlessly off a rigged game booth',
+        'I lose my balance on the shifting midway boards and my arrow goes wide',
+        'The shot vanishes into a tent that is bigger inside than out',
+        'My bowstring snaps on a carnival prop and the arrow drops at my feet',
+        'I misaim in the impossible lantern glow and bury the arrow in a mirror maze panel',
+    ],
+}
 
 
 def generate_lines(scene_id, skill, suffix):
@@ -171,6 +220,13 @@ def generate_lines(scene_id, skill, suffix):
     return lines[:8]
 
 
+def generate_crit_outcome_lines(scene_id, category, suffix):
+    custom = CRIT_CUSTOM.get((scene_id, category, suffix))
+    if custom:
+        return list(custom)
+    return generate_crit_lines(scene_id, category, suffix)
+
+
 def generate_scene_outcomes():
     out = {}
     for scene_id in SCENE_TYPE:
@@ -179,6 +235,10 @@ def generate_scene_outcomes():
             for suffix in ('Success', 'Failure'):
                 cat = f'{skill} - {suffix}'
                 out[scene_id][cat] = generate_lines(scene_id, skill, suffix)
+        for category in COMBAT_CATEGORIES:
+            for suffix in ('Crit Hit', 'Crit Fail'):
+                cat = f'{category} - {suffix}'
+                out[scene_id][cat] = generate_crit_outcome_lines(scene_id, category, suffix)
     return out
 
 
@@ -202,21 +262,33 @@ def js_string_map(name, data, nested=False):
     return '\n'.join(lines)
 
 
+def normalize_line(s):
+    """Fix over-escaped unicode and quotes from repeated JS round-trips."""
+    if not s:
+        return s
+    s = re.sub(r'\\+u2014', '\u2014', s)
+    s = re.sub(r'\\+u2019', '\u2019', s)
+    s = re.sub(r'\\+"', '"', s)
+    while '\\\\' in s:
+        s = s.replace('\\\\', '\\')
+    return s
+
+
 def parse_string_map(text):
     parsed = {}
     for key, body in re.findall(r'"([^"]+)":\s*\[(.*?)\]', text, re.S):
-        parsed[key] = re.findall(r'"([^"\\]*(?:\\.[^"\\]*)*)"', body)
+        parsed[key] = [normalize_line(x) for x in re.findall(r'"([^"\\]*(?:\\.[^"\\]*)*)"', body)]
     if parsed:
         return parsed
     for key, body in re.findall(r"'([^']+)':\s*\[(.*?)\]", text, re.S):
-        parsed[key] = re.findall(r'"([^"\\]*(?:\\.[^"\\]*)*)"', body)
+        parsed[key] = [normalize_line(x) for x in re.findall(r'"([^"\\]*(?:\\.[^"\\]*)*)"', body)]
     return parsed
 
 
 def write_scene_outcomes():
     data = generate_scene_outcomes()
     header = """/**
- * Scene-specific skill check outcomes for the workflow picker.
+ * Scene-specific skill check and crit outcomes for the workflow picker.
  * Generated by scripts/generate-outcomes.py — edit templates there, then re-run.
  */
 window.BlingusData = window.BlingusData || {};
