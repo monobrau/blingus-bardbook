@@ -1,0 +1,23 @@
+Blingus Bardbook workflow audit baseline (Phase 0)
+Recorded: 2026-06-21
+Branch: test/revamp
+Commit before Phase 0: 94c6ede
+
+Generator: python3 scripts/generate-outcomes.py
+  scene-outcomes.js: 31 scenes, 69372 lines (~7.2MB)
+  skillchecks-data.js: 624 lines
+  criticals-data.js: 384 lines
+  actions-data.js: 1228 lines
+
+Audit: python3 scripts/audit-workflow.py
+  Scenes: 31 | Skills: 18 | Combat categories: 17
+  ERRORS: 0
+  WARNINGS: 3674
+  Empty workflow combos: 0
+  Target-narrowed combos (fallback shows all): 4295
+
+Pronoun check: 0 lowercase standalone "i" in js/data/*.js
+
+Gate policy (verify-workflow.sh):
+  FAIL on audit ERRORS > 0 or empty workflow combos > 0
+  WARNINGS tracked here; reduce in Phase 1+

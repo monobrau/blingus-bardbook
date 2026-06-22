@@ -15,6 +15,10 @@ desktop.ini
 *.log
 *.bak
 
+# Python
+__pycache__/
+*.pyc
+
 # User data (contains sensitive information)
 /data/
 *.db

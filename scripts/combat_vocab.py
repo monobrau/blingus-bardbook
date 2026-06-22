@@ -216,7 +216,12 @@ def contextualize_crit_line(line, ctx):
     where = ctx.get('where', 'here')
     if not line:
         return []
-    lead = line[0].lower() + line[1:] if len(line) > 1 else line.lower()
+    if line.startswith('I ') or line == 'I':
+        lead = line
+    elif len(line) > 1:
+        lead = line[0].lower() + line[1:]
+    else:
+        lead = line.lower()
     return [
         f'In {place}, {lead}',
         f'{line} in {where}',

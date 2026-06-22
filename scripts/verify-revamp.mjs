@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * Smoke tests for test/revamp branch (no yt-dlp required for structure checks)
+ * Smoke tests for test/revamp branch (no yt-dlp required for structure checks).
+ * Full pre-deploy gate: scripts/verify-workflow.sh
  */
 import fs from 'fs';
 import path from 'path';

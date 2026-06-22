@@ -393,7 +393,7 @@ def generate_lines(scene_id, skill, suffix):
         if sig not in seen and line_is_valid(skill, line):
             append_line(lines, seen, line, sig)
         if len(lines) >= OUTCOME_POOL_SIZE:
-            return lines[:OUTCOME_POOL_SIZE]
+            return [normalize_line(line) for line in lines[:OUTCOME_POOL_SIZE]]
 
     append_from_templates(lines, seen, SKILL_TEMPLATES[skill][outcome], ctx, skill)
     if len(lines) < OUTCOME_POOL_SIZE:
@@ -401,7 +401,7 @@ def generate_lines(scene_id, skill, suffix):
             lines, seen, LEGACY_SKILL_TEMPLATES[skill][outcome], ctx, skill, require_valid=False
         )
 
-    return lines[:OUTCOME_POOL_SIZE]
+    return [normalize_line(line) for line in lines[:OUTCOME_POOL_SIZE]]
 
 
 def generate_crit_outcome_lines(scene_id, category, suffix):
@@ -417,7 +417,7 @@ def generate_crit_outcome_lines(scene_id, category, suffix):
         for line in source:
             append_line(lines, seen, line)
             if len(lines) >= OUTCOME_POOL_SIZE:
-                return lines[:OUTCOME_POOL_SIZE]
+                return [normalize_line(line) for line in lines[:OUTCOME_POOL_SIZE]]
 
     ctx = vocab_for(scene_id)
     for line in generate_crit_lines(scene_id, category, suffix):
@@ -427,7 +427,7 @@ def generate_crit_outcome_lines(scene_id, category, suffix):
         append_line(lines, seen, line, sig)
         if len(lines) >= OUTCOME_POOL_SIZE:
             break
-    return lines[:OUTCOME_POOL_SIZE]
+    return [normalize_line(line) for line in lines[:OUTCOME_POOL_SIZE]]
 
 
 def generate_scene_outcomes():
@@ -466,7 +466,7 @@ def js_string_map(name, data, nested=False):
 
 
 def normalize_line(s):
-    """Fix over-escaped unicode and quotes from repeated JS round-trips."""
+    """Fix over-escaped unicode, quotes, and pronoun capitalization."""
     if not s:
         return s
     s = re.sub(r'\\+u2014', '\u2014', s)
@@ -474,6 +474,7 @@ def normalize_line(s):
     s = re.sub(r'\\+"', '"', s)
     while '\\\\' in s:
         s = s.replace('\\\\', '\\')
+    s = re.sub(r'\bi\b', 'I', s)
     return s
 
 
