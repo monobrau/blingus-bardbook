@@ -335,6 +335,7 @@ const characterActions = {
     "Looking for a stage, a story, or trouble in the tower\u2014 ideally all three",
     "Making up nicknames for whoever listens below in the tower and hoping they stick",
     "Pretending to read labels, signs, or menus in the tower while actually eavesdropping",
+    "Working the onlookers in the tower for gossip, drinks, or both\u2014journalism with wings",
   ],
   "Fort": [
     "Presenting yourself at the gate and hoping your story holds up",

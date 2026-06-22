@@ -21,3 +21,25 @@ Pronoun check: 0 lowercase standalone "i" in js/data/*.js
 Gate policy (verify-workflow.sh):
   FAIL on audit ERRORS > 0 or empty workflow combos > 0
   WARNINGS tracked here; reduce in Phase 1+
+
+--------------------------------------------------------------------
+Phase 1 results (2026-06-21)
+  Generator: scene-outcomes.js 31 scenes, 69440 lines
+
+  Audit: ERRORS 0 | WARNINGS 0 | empty combos 0 (was 3674 warnings)
+
+  Content fixes:
+    - "in out here"/"in down here" awkward locative: 5683 -> 0
+      (1 acceptable phrasal "rolling in out here" remains, not flagged)
+    - Plural possessive defects ("villagers's"): 22 -> 0
+      via possessive() helper + {whose} token (plural -> trailing apostrophe)
+    - Crit-fail pools now beat-driven (crit_fail_flavor_lines), parity with hits
+    - Generic crit padding phrases in scenes: 426 -> reduced
+    - Legacy skill templates now validated (require_valid=True) at generation
+    - Tower 'who' fixed ("whoever listens below" -> "the onlookers")
+
+  Audit precision (now reflects real defects, not false positives):
+    - FAIL_AS_HIT_PATTERN broadened to recognize legit miss markers
+    - Possessive checks: skip is/has contractions, clause-bounded word runs
+    - New AWKWARD_LOCATIVE check guards against "in <adverb>" regressions
+    - HIT_REQUIRED gains a few safe hit markers

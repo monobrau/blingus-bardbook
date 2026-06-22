@@ -3,7 +3,7 @@
 import re
 from pathlib import Path
 
-from crit_flavor import crit_hit_flavor_lines
+from crit_flavor import crit_hit_flavor_lines, crit_fail_flavor_lines
 from crit_templates_v2 import CRIT_FAIL_TEMPLATES, CRIT_HIT_TEMPLATES
 from outcome_vocab import SCENE_TYPE, vocab_for
 
@@ -150,6 +150,8 @@ HIT_REQUIRED = (
     'lands clean', 'lands true', 'connects with', 'buried in their', 'embeds in their',
     'opens a line', 'drawing a line', 'sends steel through', 'sends the blade through',
     'wrap my target', 'wrap them', 'scorch my foe', 'scorch them', 'against my target',
+    'sinks deep', 'sink deep', 'hits with crit', 'with crit force', 'lands before anyone',
+    'connects', 'lands with perfect timing', 'lands with precision', 'strikes like',
 )
 
 
@@ -241,14 +243,10 @@ def generate_crit_lines(scene_id, category, suffix):
         if len(lines) >= OUTCOME_POOL_SIZE:
             break
     if len(lines) < OUTCOME_POOL_SIZE:
-        for template in templates.get(category, []):
-            line = template.format(**ctx)
-            if line not in lines and crit_line_is_valid(scene_id, category, line, is_hit):
-                lines.append(line)
-            if len(lines) >= OUTCOME_POOL_SIZE:
-                break
-    if len(lines) < OUTCOME_POOL_SIZE and is_hit:
-        for line in crit_hit_flavor_lines(scene_id, ctx, category, limit=20):
+        flavor = (crit_hit_flavor_lines if is_hit else crit_fail_flavor_lines)(
+            scene_id, ctx, category, limit=24
+        )
+        for line in flavor:
             if line not in lines and crit_line_is_valid(scene_id, category, line, is_hit):
                 lines.append(line)
             if len(lines) >= OUTCOME_POOL_SIZE:

@@ -36,7 +36,7 @@ SCENE_CONTEXT = {
     'Ruins': {'place': 'the ruins', 'who': 'the party'},
     'Cave': {'place': 'the cave', 'who': 'the party'},
     'Crypt': {'place': 'the crypt', 'who': 'the party'},
-    'Tower': {'place': 'the tower', 'who': 'whoever listens below'},
+    'Tower': {'place': 'the tower', 'who': 'the onlookers'},
     'Fort': {'place': 'the fort', 'who': 'soldiers'},
     'Sewers': {'place': 'the sewers', 'who': 'the party'},
     'Mine': {'place': 'the mine', 'who': 'the party'},
@@ -779,7 +779,7 @@ SKILL_TEMPLATES = {
             "I touch the wrong {flora} and itch for hours",
             "I underestimate {fauna} near {place}",
             "I confuse edible and toxic {flora} in {where}",
-            "I ignore {who}'s warnings and trust bad nature lore",
+            "I ignore {whose} warnings and trust bad nature lore",
             "The wilds around {place} outsmart my knowledge today",
         ],
     },
@@ -888,7 +888,7 @@ SKILL_TEMPLATES = {
             "My swap in {where} is clumsy and obvious",
             "I snag my sleeve mid-trick in {place}",
             "I move too slow near {mark} and get called out",
-            "I misjudge {who}'s attention and reveal both hands",
+            "I misjudge {whose} attention and reveal both hands",
             "I try to lift from {mark} and they feel everything",
             "My sleight in {place} becomes a public embarrassment",
         ],
@@ -1011,6 +1011,7 @@ GENERIC_SKILL_LINES = {
 
 # Fill remaining skills with copies from templates using neutral wilderness nouns
 _neutral = {**TYPE_NOUNS['wilderness'], 'place': 'the area', 'where': 'here', 'who': 'the party'}
+_neutral['whose'] = "the party's"
 for _skill, _templates in SKILL_TEMPLATES.items():
     if _skill in GENERIC_SKILL_LINES:
         continue
@@ -1027,6 +1028,14 @@ for _skill, _templates in SKILL_TEMPLATES.items():
         GENERIC_SKILL_LINES[_skill][_suffix] = _lines
 
 
+def possessive(noun):
+    """Grammatically correct possessive: plural 'soldiers' -> "soldiers'"."""
+    noun = noun.strip()
+    if noun.endswith('s'):
+        return noun + "'"
+    return noun + "'s"
+
+
 def vocab_for(scene_id):
     stype = SCENE_TYPE[scene_id]
     nouns = dict(TYPE_NOUNS[stype])
@@ -1038,6 +1047,7 @@ def vocab_for(scene_id):
     nouns['scene'] = scene_id
     stype = SCENE_TYPE[scene_id]
     nouns.setdefault('light', TYPE_NOUNS[stype]['light'])
+    nouns['whose'] = possessive(nouns['who'])
     return nouns
 
 # Per-skill banned substrings — reject cross-skill bleed

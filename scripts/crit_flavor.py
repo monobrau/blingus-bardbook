@@ -125,9 +125,115 @@ CRIT_HIT_BEAT_TEMPLATES = {
 }
 
 
-def crit_hit_flavor_lines(scene_id, ctx, category, limit=16):
+CRIT_FAIL_BEAT_TEMPLATES = {
+    'Polearms': [
+        '{beat} throws off my timing and the thrust sails past, leaving my reach hopelessly overextended',
+        'I lunge as {beat} distracts me and the polearm clatters off stone, nowhere near my target',
+        'I catch the haft on {beat} mid-swing and the point goes wide of everyone',
+        'I plant the butt wrong during {beat} and nearly trip over my own reach',
+    ],
+    'Arrows': [
+        'I loose as {beat} catches my eye and the arrow buries itself in scenery, not flesh',
+        '{beat} jostles my draw and the shot wobbles harmlessly over their head',
+        'My string fouls on {beat} and the arrow flops to the ground a few feet away',
+        'I rush the shot past {beat} and it glances off something solid, gone for good',
+    ],
+    'Crossbolts': [
+        'I overcrank the winch watching {beat} and the bolt snaps off course entirely',
+        '{beat} breaks my aim and the heavy bolt thuds into a wall well short of my target',
+        'The mechanism jams during {beat} and the shot dribbles out without force',
+        'I fire too early past {beat} and the bolt vanishes into the dark, missing clean',
+    ],
+    'Swords': [
+        'I swing wide as {beat} pulls my focus and the blade meets only empty air',
+        '{beat} fouls my footwork and I stumble past my target, sword finding nothing',
+        'My blade rings off stone during {beat} and the opening closes before I recover',
+        'I overcommit toward {beat} and leave myself sprawling, nowhere near a hit',
+    ],
+    'Knives': [
+        'I throw as {beat} distracts me and the dagger sails wide over their head',
+        '{beat} jostles my wrist and the knife tumbles handle-first into the dirt',
+        'My grip slips during {beat} and the blade skitters off harmlessly',
+        'I fumble the draw watching {beat} and the throw goes nowhere useful',
+    ],
+    'Blunt Weapons': [
+        'I swing as {beat} steals my balance and the mace whistles past, hitting nothing',
+        '{beat} throws my weight off and the blow thuds uselessly into the ground',
+        'My grip fails mid-swing during {beat} and the weapon nearly flies from my hands',
+        'I overswing toward {beat} and stagger past my target, wide open and graceless',
+    ],
+    'Axes and Hammers': [
+        'I cleave at {beat} and the axe bites deep into scenery instead of my foe',
+        '{beat} ruins my wind-up and the hammer drags me off balance, missing wide',
+        'My swing catches on {beat} and the blade wrenches free of my hands',
+        'I commit too hard watching {beat} and bury the head harmlessly, leaving myself exposed',
+    ],
+    'Other Weapons': [
+        'I improvise around {beat} and the strike goes embarrassingly wide',
+        '{beat} breaks my rhythm and my unconventional swing finds only air',
+        'My grip fails during {beat} and the weapon clatters away from my target',
+        'I get too clever near {beat} and fumble the whole maneuver loudly',
+    ],
+    'Fire': [
+        'I lose the gesture as {beat} distracts me and the flames gutter out before reaching anyone',
+        '{beat} breaks my focus and the fire scorches the ground well short of my target',
+        'My spell fizzles during {beat} into harmless sparks that drift up and die',
+        'I misaim past {beat} and singe scenery instead of my foe, wide and useless',
+    ],
+    'Cold': [
+        'I lose concentration as {beat} catches me and the frost melts before it reaches them',
+        '{beat} fouls the casting and the ice spreads uselessly across the floor',
+        'My spell sputters during {beat} into a puff of cold air and nothing more',
+        'I misjudge the angle past {beat} and frost a wall instead of my target',
+    ],
+    'Lightning': [
+        'I lose the thread as {beat} distracts me and the bolt dies before reaching them',
+        '{beat} jolts my aim and the arc strikes scenery, wrong target, full voltage',
+        'My spell fizzles during {beat} into a harmless crackle of static',
+        'I miscast past {beat} and the lightning grounds out short of my foe',
+    ],
+    'Thunder': [
+        'I lose the rhythm as {beat} throws me and the sound dies before it reaches them',
+        '{beat} swallows my spell and the shockwave fizzles into a dull thump',
+        'My casting falters during {beat} and the boom rolls past my target harmlessly',
+        'I mistime the blast around {beat} and rattle only myself, missing clean',
+    ],
+    'Psychic': [
+        'I lose the contact as {beat} distracts me and they barely notice the push',
+        '{beat} scatters my focus and the mental lash finds empty air, not their mind',
+        'My spell slips during {beat} and rebounds into a headache for me alone',
+        'I overreach past {beat} and the psychic thread snaps, wide of my target',
+    ],
+    'Force': [
+        'I lose the shape as {beat} catches me and the force blast dies before reaching them',
+        '{beat} fouls the gesture and the invisible hammer slams scenery, not my foe',
+        'My spell collapses during {beat} into a shove that barely stirs the dust',
+        'I misaim past {beat} and the telekinetic blow goes wide and graceless',
+    ],
+    'Necrotic': [
+        'I lose the curse as {beat} distracts me and the decay fizzles before it spreads',
+        '{beat} breaks my focus and the withering touch finds nothing but air',
+        'My spell sputters during {beat} and the rot crawls harmlessly across stone',
+        'I misjudge the reach past {beat} and the necrotic wave dies short of my target',
+    ],
+    'Radiant': [
+        'I lose the light as {beat} catches me and the beam dies before reaching them',
+        '{beat} fouls the casting and the radiance flares uselessly into the rafters',
+        'My spell gutters during {beat} into a faint glow and nothing more',
+        'I misaim past {beat} and sear scenery instead of my foe, wide and bright',
+    ],
+    'Acid': [
+        'I lose the gesture as {beat} distracts me and the acid splashes short of my target',
+        '{beat} jostles the cast and the caustic arc hisses into the ground, missing wide',
+        'My spell fizzles during {beat} into a thin, harmless dribble',
+        'I misjudge the throw past {beat} and the acid eats scenery, not my foe',
+    ],
+}
+
+
+def _beat_flavor(templates_by_cat, scene_id, ctx, category, limit):
     beats = SCENE_BEATS.get(scene_id, [])
-    templates = CRIT_HIT_BEAT_TEMPLATES.get(category, [])
+    templates = templates_by_cat.get(category, [])
     if not beats or not templates:
         return []
     lines = []
@@ -144,3 +250,11 @@ def crit_hit_flavor_lines(scene_id, ctx, category, limit=16):
             if len(lines) >= limit:
                 return lines
     return lines
+
+
+def crit_hit_flavor_lines(scene_id, ctx, category, limit=16):
+    return _beat_flavor(CRIT_HIT_BEAT_TEMPLATES, scene_id, ctx, category, limit)
+
+
+def crit_fail_flavor_lines(scene_id, ctx, category, limit=16):
+    return _beat_flavor(CRIT_FAIL_BEAT_TEMPLATES, scene_id, ctx, category, limit)

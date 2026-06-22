@@ -398,7 +398,7 @@ def generate_lines(scene_id, skill, suffix):
     append_from_templates(lines, seen, SKILL_TEMPLATES[skill][outcome], ctx, skill)
     if len(lines) < OUTCOME_POOL_SIZE:
         append_from_templates(
-            lines, seen, LEGACY_SKILL_TEMPLATES[skill][outcome], ctx, skill, require_valid=False
+            lines, seen, LEGACY_SKILL_TEMPLATES[skill][outcome], ctx, skill, require_valid=True
         )
 
     return [normalize_line(line) for line in lines[:OUTCOME_POOL_SIZE]]
@@ -466,7 +466,7 @@ def js_string_map(name, data, nested=False):
 
 
 def normalize_line(s):
-    """Fix over-escaped unicode, quotes, and pronoun capitalization."""
+    """Fix over-escaped unicode, quotes, pronoun case, and awkward locatives."""
     if not s:
         return s
     s = re.sub(r'\\+u2014', '\u2014', s)
@@ -475,6 +475,15 @@ def normalize_line(s):
     while '\\\\' in s:
         s = s.replace('\\\\', '\\')
     s = re.sub(r'\bi\b', 'I', s)
+    # "in out here" / "in down here" read wrong — these adverbs already imply location.
+    s = re.sub(r'\bin (out here|down here|out there|up here)\b', r'\1', s)
+    # Collapse doubled locatives like "in the air in the desert" → keep the specific one.
+    s = re.sub(
+        r'\b(in (?:the \w+|here|out here|down here)) in (?:the [\w ]+?|camp)\b'
+        r'(?= and| before| until| while| when|,|\u2014|\.|$)',
+        r'\1',
+        s,
+    )
     return s
 
 
@@ -519,7 +528,8 @@ window.BlingusData.sceneIncompatiblePatterns = {{
 def expand_skill_checks():
     from skill_templates_v2 import SKILL_TEMPLATES as V2_SKILL_TEMPLATES  # noqa: WPS433
 
-    _neutral = {**TYPE_NOUNS['wilderness'], 'place': 'the area', 'where': 'here', 'who': 'the party'}
+    _neutral = {**TYPE_NOUNS['wilderness'], 'place': 'the area', 'where': 'here',
+                'who': 'the party', 'whose': "the party's"}
     expanded = {}
     for skill in SKILLS:
         for suffix in ('Success', 'Failure'):
@@ -527,14 +537,14 @@ def expand_skill_checks():
             lines = list(GENERIC_SKILL_LINES.get(skill, {}).get(suffix, []))
             for templates in (V2_SKILL_TEMPLATES[skill][suffix], LEGACY_SKILL_TEMPLATES[skill][suffix]):
                 for template in templates:
-                    line = template.format(**_neutral)
-                    if line not in lines:
+                    line = normalize_line(template.format(**_neutral))
+                    if line not in lines and line_is_valid(skill, line):
                         lines.append(line)
                     if len(lines) >= OUTCOME_POOL_SIZE:
                         break
                 if len(lines) >= OUTCOME_POOL_SIZE:
                     break
-            expanded[key] = lines[:OUTCOME_POOL_SIZE]
+            expanded[key] = [normalize_line(x) for x in lines[:OUTCOME_POOL_SIZE]]
 
     header = """/**
  * Skill check results (expanded)

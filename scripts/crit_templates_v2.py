@@ -321,7 +321,7 @@ CRIT_HIT_TEMPLATES = {
         'The curse in {where} connects with devastating precision',
         'My magic in {place} leaves my target gray, gasping, and memorable',
         'Necrotic power in {where} lands cleanly against my enemy',
-        'The withering strike in {where} hits with unmistakable force',
+        'The withering strike in {where} hits my foe with unmistakable force',
         'My spell in {place} eats at their strength and my crit lands clean',
     ],
     'Radiant': [
@@ -331,7 +331,7 @@ CRIT_HIT_TEMPLATES = {
         'The beam in {where} connects against my enemy with crit power',
         'Radiance in {place} wraps my target and does not miss',
         'My spell in {where} leaves them dazzled, wounded, and reconsidering life choices',
-        'The holy strike in {where} lands with unmistakable force',
+        'The holy strike in {where} lands against my enemy with unmistakable force',
         'Light in {place} becomes a weapon and my crit connects clean',
     ],
     'Acid': [
@@ -342,6 +342,6 @@ CRIT_HIT_TEMPLATES = {
         'My spell in {place} leaves smoking trails on their gear and skin',
         'The splash in {where} connects cleanly against my enemy',
         'Acid in {place} lands with unmistakable crit impact',
-        'My corrosive strike in {where} melts guard and hurts what is beneath',
+        'My corrosive strike in {where} melts their guard and hurts what is beneath',
     ],
 }

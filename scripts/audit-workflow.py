@@ -62,12 +62,22 @@ SELF_HARM_PATTERN = re.compile(
     re.I,
 )
 FAIL_AS_HIT_PATTERN = re.compile(
-    r'\b(nearly hitting an ally|nearly hitting myself|bounces harmlessly|goes wide|miss|'
-    r'fizzles|backfires|stumble|trip|fumble|fail|pathetically|useless|empty air|sprawling|'
-    r'exposed|awkwardly|harmlessly|instead of my target|instead of my foe|instead of them|'
-    r'past my target|bury the point|instead$)\b',
+    r'\b(nearly hitting an ally|nearly hitting myself|bounces? (?:off|harmlessly)|goes? wide|wide|miss|'
+    r'fizzles?|backfires?|stumble|trip|fumble|fail|pathetically|useless|empty air|sprawling|'
+    r'exposed|awkwardly|harmlessly|instead of (?:my target|my foe|them|their|their mind)|instead|'
+    r'past (?:my target|them|their)|bury the point|over their head|sails? over|short of|'
+    r'before (?:it )?reach(?:es|ing)?|melts?|dies?|grounds? (?:out|into)|glances? off|'
+    r'barely notice|unimpressed|unscathed|untouched|inconveniently alive|remains? (?:inconveniently )?alive|'
+    r'clatters?|skitters?|gutters?|sputters?|wobbles?|flops?|dribbles?|whistles? past|'
+    r'nests? in|into (?:a |the )?(?:shelf|wall|pillar|scenery|ground|stall|canopy|dark)|nowhere near|graceless|'
+    r'no harm|anticlimax|anticlimactic|underwhelming|uselessly|walks? away|sticks? (?:in|fast)|'
+    r'without reaching|vanishes?|wrenches? free|in the wall behind|ducks?|'
+    r'rebounds?|opening closes|before I recover|sails? past|overextended|tumbles?|'
+    r'flies from my hands|nearly flies|for me alone|off course|snaps? off|barely stirs|stirs the dust|'
+    r'not my (?:foe|target)|scenery|nothing but air|finds? (?:only )?(?:air|nothing|empty)|wrong target)\b',
     re.I,
 )
+AWKWARD_LOCATIVE = re.compile(r'\bin (?:out here|down here|out there|up here)\b', re.I)
 SUCCESS_FAILURE_LEAK = re.compile(r'^I attempt .* but ', re.I)
 FAILURE_SUCCESS_LEAK = re.compile(
     r'^I gracefully |^My body moves like liquid|^The creature calms|^I recognize the magical',
@@ -179,15 +189,64 @@ def skill_category_ok(text, skill, suffix):
     return issues
 
 
+_POSSESSIVE_CONNECTORS = {
+    'and', 'but', 'or', 'in', 'on', 'at', 'with', 'before', 'until', 'while',
+    'when', 'that', 'who', 'the', 'a', 'an', 'to', 'of', 'for', 'into',
+    'despite', 'without', 'during', 'from', 'by', 'about', 'after', 'around',
+    'over', 'under', 'like', 'my', 'your', 'his', 'her', 'its', 'our', 'their',
+}
+# "it's"/"that's"/etc. are is/has contractions, not possessives.
+_NOT_POSSESSIVE = {
+    'it', 'that', 'what', 'here', 'there', 'let', 'he', 'she', 'who',
+    'how', 'where', 'this', 'one', 'something', 'nothing', 'everyone',
+}
+
+
+def _awkward_possessive(text):
+    """Flag a genuinely long *contiguous* noun phrase ending in a possessive.
+
+    Avoids false positives on natural sentences where the words before "'s"
+    span clauses (e.g. "...the village and everyone's hair") and on is/has
+    contractions ("it's harmless").
+    """
+    for match in re.finditer(r"\b([a-z]+(?:'[a-z]+)?)'s\b", text, re.I):
+        if match.group(1).lower() in _NOT_POSSESSIVE:
+            continue
+        # Words before the possessive, bounded by clause punctuation.
+        boundary = max(
+            text.rfind('.', 0, match.start()),
+            text.rfind(',', 0, match.start()),
+            text.rfind('\u2014', 0, match.start()),
+            text.rfind(';', 0, match.start()),
+        )
+        words = text[max(boundary, 0):match.start()].split()
+        run = 0
+        for word in reversed(words):
+            clean = word.strip('.,;:\u2014-').lower()
+            if not clean or clean in _POSSESSIVE_CONNECTORS:
+                break
+            run += 1
+        if run >= 4:
+            return True
+    return False
+
+
 def grammar_issues(text):
     issues = []
-    if LONG_POSSESSIVE.search(text):
-        issues.append('long possessive phrase')
     if BAD_ESCAPE.search(text):
         issues.append('broken unicode escape')
     if DUPLICATE_PLACE.search(text):
         issues.append('duplicate place phrasing')
-    if re.search(r"\b[a-z]+(?: [a-z]+){4,}'s\b", text, re.I):
+    for match in AWKWARD_LOCATIVE.finditer(text):
+        before = text[:match.start()].split()
+        if before and before[-1].lower() in {
+            'rolling', 'coming', 'moving', 'closing', 'setting', 'drawing',
+            'pouring', 'sweeping', 'creeping', 'settling',
+        }:
+            continue  # phrasal verb ("rolling in") + adverb is fine
+        issues.append('awkward locative (in + adverb)')
+        break
+    if _awkward_possessive(text):
         issues.append('awkward possessive on long noun phrase')
     return issues
 
