@@ -17,6 +17,12 @@ const mockery = {
     {t:"Keep trying—failure needs a champion.", s:"Blingus's Battle Burns", a:"Mockery"},
     {t:"Your critical thinking just failed spectacularly.", s:"Blingus's Battle Burns", a:"Mockery"},
     {t:"I've seen mimics with better acting skills than your combat moves.", s:"Blingus's Battle Burns", a:"Mockery"},
+    {t:"Your AC is high, but your IQ found the basement.", s:"Blingus's Battle Burns", a:"Mockery"},
+    {t:"I've seen tavern stools with better initiative.", s:"Blingus's Battle Burns", a:"Mockery"},
+    {t:"You roll like the dice owe you money and won't pay.", s:"Blingus's Battle Burns", a:"Mockery"},
+    {t:"Somewhere a goblin is taking notes on what not to do.", s:"Blingus's Battle Burns", a:"Mockery"},
+    {t:"You bring a knife to a wit fight—and you're still unarmed.", s:"Blingus's Battle Burns", a:"Mockery"},
+    {t:"Your tactics are a cry for help the dice keep ignoring.", s:"Blingus's Battle Burns", a:"Mockery"},
   ],
   'Brawn O’Neil — Dwarven Monk': [
     {t:"Brawn warms up with problems tougher than you; he calls them pebbles.", s:"Blingus's Battle Burns", a:"Mockery"},
@@ -358,6 +364,11 @@ const mockery = {
     {t:"You came, you saw, you missed—the trilogy nobody wanted.", s:"Blingus's Battle Burns", a:"Mockery"},
     {t:"Even random roadside encounters handled you better.", s:"Blingus's Battle Burns", a:"Mockery"},
     {t:"Your party would've left you in Waterdeep—even a desperate band of adventurers.", s:"Blingus's Battle Burns", a:"Mockery"},
+    {t:"Curtains. The audience is asking for a refund.", s:"Blingus's Battle Burns", a:"Mockery"},
+    {t:"Roll credits—yours were never that good.", s:"Blingus's Battle Burns", a:"Mockery"},
+    {t:"You peaked at the character sheet.", s:"Blingus's Battle Burns", a:"Mockery"},
+    {t:"History won't remember you; it can't be bothered.", s:"Blingus's Battle Burns", a:"Mockery"},
+    {t:"Final tally: zero heroics, full buffoonery.", s:"Blingus's Battle Burns", a:"Mockery"},
   ],
 };
 window.BlingusData.mockery = mockery;

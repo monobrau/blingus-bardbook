@@ -149,6 +149,15 @@ def dedupe_parody_entries(items: list[dict], threshold: float = 0.66) -> list[di
     return kept
 
 
+def merge_extra(obj: dict, extra: dict) -> dict:
+    """Fold hand-written candidate parodies into the parsed pool before scoring."""
+    merged = {k: list(v) for k, v in obj.items()}
+    for key, items in (extra or {}).items():
+        merged.setdefault(key, [])
+        merged[key].extend(items)
+    return merged
+
+
 def curate_parody_map(obj: dict, max_per_category: int = 5, min_score: int = 2) -> dict:
     out = {}
     for key, items in obj.items():
@@ -192,13 +201,15 @@ def main():
     spells_path = DATA / "spells-data.js"
     bardic_path = DATA / "bardic-data.js"
 
+    from parody_extra import SPELLS_EXTRA, ADULT_EXTRA, BARDIC_EXTRA
+
     spells = parse_js_map(spells_path, "spells")
     adult = parse_js_map(spells_path, "adultSpells")
     bardic = parse_js_map(bardic_path, "bardic")
 
-    curated_spells = curate_parody_map(spells, 5, 2)
-    curated_adult = curate_parody_map(adult, 3, 1)
-    curated_bardic = curate_parody_map(bardic, 6, 2)
+    curated_spells = curate_parody_map(merge_extra(spells, SPELLS_EXTRA), 8, 2)
+    curated_adult = curate_parody_map(merge_extra(adult, ADULT_EXTRA), 4, 1)
+    curated_bardic = curate_parody_map(merge_extra(bardic, BARDIC_EXTRA), 9, 2)
 
     spells_path.write_text(
         "/**\n * Spell parody data (curated revamp — best song-faithful parodies per spell)\n */\n"
