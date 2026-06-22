@@ -110,11 +110,18 @@ TARGET_PATTERNS = {
 
 
 def load_nested_scene_outcomes():
-    text = (DATA / 'scene-outcomes.js').read_text()
+    """Read per-scene lazy-load files in js/data/scenes/ (one scene each)."""
     scenes = {}
-    for scene_match in re.finditer(r'"([^"]+)":\s*\{', text):
-        scene_id = scene_match.group(1)
-        start = scene_match.end()
+    scenes_dir = DATA / 'scenes'
+    if not scenes_dir.exists():
+        return scenes
+    for path in sorted(scenes_dir.glob('*.js')):
+        text = path.read_text()
+        m = re.search(r'sceneOutcomes\[\s*"([^"]+)"\s*\]\s*=\s*\{', text)
+        if not m:
+            continue
+        scene_id = m.group(1)
+        start = m.end()
         depth = 1
         i = start
         while i < len(text) and depth:

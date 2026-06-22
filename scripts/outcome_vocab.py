@@ -851,7 +851,7 @@ SKILL_TEMPLATES = {
     },
     'Religion': {
         'Success': [
-            "I recall the {doctrine} that applies in {place}",
+            "I recall {doctrine} that applies in {place}",
             "I recognize the rite tied to {shrine} and perform it correctly",
             "I explain the omen at {shrine} using sacred texts",
             "I identify the deity's symbol in {place} and its meaning",

@@ -432,6 +432,7 @@ foreach ($moduleFiles as $file) {
   <script src="js/data/criticals-data.js?v=<?php echo $versions['data/criticals-data.js']; ?>"></script>
   <script src="js/data/skillchecks-data.js?v=<?php echo $versions['data/skillchecks-data.js']; ?>"></script>
   <script src="js/data/scene-outcomes.js?v=<?php echo $versions['data/scene-outcomes.js']; ?>"></script>
+  <script>window.BlingusSceneVersion = "<?php echo $versions['data/scene-outcomes.js']; ?>";</script>
 
   <!-- Action workflow (after data modules) -->
   <script src="js/action-workflow.js?v=<?php echo $versions['action-workflow.js']; ?>"></script>

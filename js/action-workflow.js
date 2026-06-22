@@ -368,7 +368,42 @@
   function getSceneOutcomeLines(locationId, category) {
     const normalized = normalizeLocationId(locationId);
     const scenes = window.BlingusData?.sceneOutcomes || {};
-    return scenes[normalized]?.[category] || scenes[locationId]?.[category] || [];
+    const lines = scenes[normalized]?.[category] || scenes[locationId]?.[category];
+    if (lines) return lines;
+    ensureSceneLoaded(locationId);
+    return [];
+  }
+
+  const loadingScenes = new Set();
+
+  /**
+   * Lazy-load a scene's outcome file on demand. Scene lines are only needed when
+   * a player drills into that scene, so we fetch js/data/scenes/<slug>.js the
+   * first time it's referenced and re-render once it lands. Until then the
+   * workflow falls back to generic pools (handled in buildWorkflowOutcomePool).
+   */
+  function ensureSceneLoaded(locationId) {
+    if (!locationId) return;
+    const normalized = normalizeLocationId(locationId);
+    const data = window.BlingusData?.sceneOutcomes;
+    if (!data) return;
+    if (data[normalized] || data[locationId]) return;
+    const manifest = window.BlingusData?.sceneOutcomesManifest || {};
+    const slug = manifest[normalized] || manifest[locationId];
+    if (!slug || loadingScenes.has(slug)) return;
+    loadingScenes.add(slug);
+    const version = window.BlingusSceneVersion;
+    const script = document.createElement('script');
+    script.src = `js/data/scenes/${slug}.js${version ? `?v=${version}` : ''}`;
+    script.async = true;
+    script.onload = () => {
+      loadingScenes.delete(slug);
+      notifyChange();
+    };
+    script.onerror = () => {
+      loadingScenes.delete(slug);
+    };
+    document.head.appendChild(script);
   }
 
   function getSceneType(locationId) {
@@ -607,6 +642,9 @@
     if (partial.targets) {
       state.targets = sanitizeTargets(state.outcomeMod, partial.targets);
     }
+    if (partial.location) {
+      ensureSceneLoaded(state.location);
+    }
     renderPanel();
     notifyChange();
   }
@@ -818,6 +856,7 @@
       state.subtype = state.subtype || defaultSubtype(state.outcomeMod);
     }
     state.targets = sanitizeTargets(state.outcomeMod, state.targets);
+    ensureSceneLoaded(state.location);
     renderPanel();
     notifyChange();
   }

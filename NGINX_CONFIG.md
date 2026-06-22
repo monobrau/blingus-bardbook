@@ -63,11 +63,50 @@ server {
         # Version query params (?v=timestamp) will bust cache automatically
     }
 
+    # Compression — the scene data files are large but highly repetitive text.
+    # gzip takes the JS payload from ~7.6MB down to ~0.9MB over the wire.
+    gzip on;
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level 6;
+    gzip_min_length 1024;
+    gzip_types
+        text/plain text/css text/javascript
+        application/javascript application/json application/xml
+        image/svg+xml;
+
+    # Optional: Brotli compresses even better (~0.6MB) if the module is built in.
+    # Requires nginx built/loaded with ngx_brotli. Safe to omit if unavailable.
+    # brotli on;
+    # brotli_comp_level 6;
+    # brotli_types text/plain text/css text/javascript application/javascript application/json image/svg+xml;
+
     # Static files
     location / {
         try_files $uri $uri/ =404;
     }
 }
+```
+
+## Scene data lazy loading
+
+`js/data/scene-outcomes.js` is now a small core file (scene metadata + a
+scene→file manifest). The per-scene outcome lines live in
+`js/data/scenes/<slug>.js` and are fetched on demand by `action-workflow.js`
+the first time a player drills into that scene. No special Nginx config is
+needed — they're served as normal static `.js` (and benefit from the gzip block
+and the 1-year cache + `?v=` busting above).
+
+## Apply compression
+
+```bash
+sudo nano /etc/nginx/sites-available/blingus.knospe.org   # add the gzip block
+sudo nginx -t
+sudo systemctl reload nginx
+
+# Verify gzip is active on the data files:
+curl -s -H 'Accept-Encoding: gzip' -o /dev/null -w '%{size_download} bytes\n' \
+  -D - https://blingus.knospe.org/js/data/scenes/village.js | grep -i content-encoding
 ```
 
 ## Steps to Fix

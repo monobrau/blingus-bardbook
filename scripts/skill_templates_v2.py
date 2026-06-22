@@ -311,7 +311,7 @@ SKILL_TEMPLATES = {
     },
     'Religion': {
         'Success': [
-            "I recall the {doctrine} that applies in {place} before we offend someone holy",
+            "I recall {doctrine} that applies in {place} before we offend someone holy",
             "I recognize the rite tied to {shrine} and perform it correctly—rare sober moment",
             "I explain the omen at {shrine} using sacred texts instead of wild guesses",
             "I identify the deity's symbol in {place} and its meaning without embarrassing us",

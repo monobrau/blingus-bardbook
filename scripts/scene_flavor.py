@@ -506,7 +506,7 @@ SKILL_BEAT_TEMPLATES = {
         ],
         'Failure': [
             'My story about {beat} collapses the moment someone asks a follow-up',
-            'I stammer when {beat} comes up and my wings give me away',
+            'I stammer at the mention of {beat} and my wings give me away',
             'I contradict myself about {beat} in front of the wrong audience',
         ],
     },
@@ -526,7 +526,7 @@ SKILL_BEAT_TEMPLATES = {
     'Insight': {
         'Success': [
             'I notice how {who} react to {beat} and know who is lying',
-            'I catch the tell when {beat} is mentioned and adjust my approach',
+            'I catch the tell at the mention of {beat} and adjust my approach',
             'I read the room around {beat} and see who is holding back',
             'I sense fear not anger behind the reaction to {beat}',
         ],
@@ -540,7 +540,7 @@ SKILL_BEAT_TEMPLATES = {
         'Success': [
             'I make the threat around {beat} feel real without raising a hand',
             'I stare down whoever is responsible for {beat} until they reconsider',
-            'I turn the mood cold when {beat} is discussed and get compliance',
+            'I turn the mood cold at the mention of {beat} and get compliance',
             'I let silence after {beat} do the work until someone breaks',
         ],
         'Failure': [
@@ -632,10 +632,10 @@ SKILL_BEAT_TEMPLATES = {
     },
     'Religion': {
         'Success': [
-            'I recall the {doctrine} that applies to {beat} before we offend someone holy',
+            'I recall {doctrine} that applies to {beat} before we offend someone holy',
             'I recognize the rite tied to {beat} and perform it correctly',
-            'I interpret the omen in {beat} using sacred texts not wild guesses',
-            'I calm {who} with the right prayer when {beat} spooks them',
+            'I interpret the omen in {beat} with sacred texts, not wild guesses',
+            'I calm {who} with the right prayer when spooked by {beat}',
         ],
         'Failure': [
             'I misquote scripture about {beat} and get corrected harshly',
@@ -645,7 +645,7 @@ SKILL_BEAT_TEMPLATES = {
     },
     'Sleight of Hand': {
         'Success': [
-            'My hands move faster than {who} can follow when {beat} distracts them',
+            'My hands move faster than {who} can follow, using {beat} as cover',
             'I lift or swap something by {beat} without a flicker of suspicion',
             'I plant {evidence} near {beat} smoothly enough to worry myself',
             'I cheat or palm while everyone watches {beat} instead of me',
@@ -659,7 +659,7 @@ SKILL_BEAT_TEMPLATES = {
     'Stealth': {
         'Success': [
             'I use {beat} as cover and pass {guard} without a glance',
-            'I hold still when {beat} draws attention elsewhere until the path clears',
+            'I hold still, letting {beat} pull attention elsewhere until the path clears',
             'I cross the space by {beat} leaving no sign I was there',
             'I slip past the danger at {beat} on silent feet',
         ],

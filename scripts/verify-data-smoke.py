@@ -30,8 +30,11 @@ if bardic.count('{t:') < 45:
 ok('spells and bardic curated')
 
 scene = (DATA / 'scene-outcomes.js').read_text()
-if 'sceneOutcomes' not in scene:
-    fail('scene-outcomes.js missing sceneOutcomes export')
-ok('scene-outcomes.js structure')
+if 'sceneOutcomesManifest' not in scene or 'sceneTypes' not in scene:
+    fail('scene-outcomes.js core missing manifest/metadata')
+scene_files = list((DATA / 'scenes').glob('*.js')) if (DATA / 'scenes').exists() else []
+if len(scene_files) < 25:
+    fail(f'expected per-scene files in js/data/scenes/, found {len(scene_files)}')
+ok(f'scene-outcomes.js core + {len(scene_files)} per-scene files')
 
 print('Data smoke checks passed.')

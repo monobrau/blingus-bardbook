@@ -14,12 +14,13 @@ else
 fi
 
 echo "Checking pronoun capitalization..."
-if rg -q ', i [a-z]' js/data/scene-outcomes.js 2>/dev/null; then
-  echo "FAIL: lowercase pronoun 'i' found in scene-outcomes.js"
+SCENE_GLOB="js/data/scenes js/data/skillchecks-data.js js/data/criticals-data.js js/data/actions-data.js"
+if rg -q ', i [a-z]' $SCENE_GLOB 2>/dev/null; then
+  echo "FAIL: lowercase pronoun 'i' found in scene data"
   exit 1
 fi
-if rg -q '"[^"]*\bi\b[^"]*"' js/data/scene-outcomes.js 2>/dev/null; then
-  echo "FAIL: lowercase pronoun 'i' found in scene-outcomes.js"
+if rg -q '"[^"]*\bi\b[^"]*"' $SCENE_GLOB 2>/dev/null; then
+  echo "FAIL: lowercase pronoun 'i' found in scene data"
   exit 1
 fi
 echo "OK: pronoun I capitalization"
