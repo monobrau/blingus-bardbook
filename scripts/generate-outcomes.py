@@ -601,6 +601,13 @@ def expand_criticals():
         print('Skipped criticals expansion (parse failed)')
         return
 
+    # Clean up an old non-idempotent bug that appended "My <category> lands with
+    # perfect timing..." (plural subject + singular verb) on every run.
+    _bad_pad = re.compile(r'^My .+ lands with perfect timing and unmistakable force$')
+    for _pool in (hits, fails):
+        for _key, _items in _pool.items():
+            _pool[_key] = [l for l in _items if not _bad_pad.match(l)]
+
     hit_pad = [
         "My attack lands with perfect timing and unmistakable force",
         "I capitalize on the opening and drive the hit home",
@@ -620,7 +627,7 @@ def expand_criticals():
             if len(items) >= OUTCOME_POOL_SIZE:
                 break
             if pad not in items:
-                items.append(pad.replace('attack', key.lower()))
+                items.append(pad)
         hits[key] = items[:OUTCOME_POOL_SIZE]
 
     for key, items in fails.items():
@@ -651,7 +658,13 @@ window.BlingusData.criticalFailures = criticalFailures;
 
 
 def expand_actions():
-    """Add generated roleplay lines to scenes that are light on copy."""
+    """Rebuild roleplay pools: curated source + hand lines + beats + generics.
+
+    Reads actions-source.js (authoritative human copy) and the current
+    actions-data.js (hand-curated extras), then prioritizes beat-driven lines
+    over generic {place}-swap templates so thin scenes read like distinct
+    moments instead of the same sentence with a new location.
+    """
     path = DATA / 'actions-data.js'
     parsed = parse_string_map(path.read_text())
     if not parsed:
@@ -659,22 +672,19 @@ def expand_actions():
         text = path.read_text()
         for key, body in re.findall(r"'([^']+)':\s*\[(.*?)\]", text, re.S):
             parsed[key] = re.findall(r'"([^"\\]*(?:\\.[^"\\]*)*)"', body)
+
+    curated_source = {}
     source_path = DATA / 'actions-source.js'
     if source_path.exists():
         source_text = source_path.read_text()
-        source = {}
-        for key, body in re.findall(r"'([^']+)':\s*\[(.*?)\]", source_text, re.S):
-            source[key] = re.findall(r'"([^"\\]*(?:\\.[^"\\]*)*)"', body)
         alias = {'Walking in a Dungeon': 'Dungeon'}
-        for src_key, src_lines in source.items():
-            dest = alias.get(src_key, src_key)
-            if dest not in parsed:
-                parsed[dest] = []
-            merged = list(parsed[dest])
-            for line in src_lines:
-                if line not in merged:
-                    merged.append(line)
-        parsed[dest] = merged[:40]
+        for key, body in re.findall(r"'([^']+)':\s*\[(.*?)\]", source_text, re.S):
+            dest = alias.get(key, key)
+            lines = re.findall(r'"([^"\\]*(?:\\.[^"\\]*)*)"', body)
+            curated_source.setdefault(dest, [])
+            for line in lines:
+                if line not in curated_source[dest]:
+                    curated_source[dest].append(line)
 
     roleplay_templates = [
         "Scanning {place} for trouble while pretending to look casual (and cataloging exits for the ballad)",
@@ -697,19 +707,38 @@ def expand_actions():
         "Making up nicknames for {who} in {place} and hoping they stick",
         "Pretending to read labels, signs, or menus in {place} while actually eavesdropping",
     ]
-    for scene_id in parsed:
+    from roleplay_flavor import roleplay_lines_for  # noqa: WPS433
+
+    all_scenes = set(parsed) | set(curated_source) | set(SCENE_TYPE)
+    rebuilt = {}
+    for scene_id in all_scenes:
+        if scene_id not in SCENE_TYPE:
+            continue
         ctx = vocab_for(scene_id)
-        extras = []
-        for t in roleplay_templates:
-            line = t.format(**ctx)
-            if line not in extras:
-                extras.append(line)
-        items = parsed[scene_id]
-        merged = list(items)
-        for line in extras:
-            if line not in merged:
+        generic_lines = {normalize_line(t.format(**ctx)) for t in roleplay_templates}
+        existing = [normalize_line(x) for x in parsed.get(scene_id, [])]
+        # Hand-curated lines from actions-data.js, minus generic {place} swaps.
+        hand_curated = [l for l in existing if l not in generic_lines]
+
+        merged = []
+
+        def add(line):
+            line = normalize_line(line)
+            if line and line not in merged:
                 merged.append(line)
-        parsed[scene_id] = merged[:40]
+
+        for line in curated_source.get(scene_id, []):
+            add(line)
+        for line in hand_curated:
+            add(line)
+        # Beat-driven lines take priority over generic templates.
+        for line in roleplay_lines_for(scene_id, ctx, limit=28):
+            add(line)
+        for template in roleplay_templates:
+            add(template.format(**ctx))
+
+        rebuilt[scene_id] = merged[:40]
+    parsed = rebuilt
 
     header = """/**
  * Character action data for Blingus's Bardbook

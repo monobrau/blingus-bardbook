@@ -244,7 +244,23 @@ window.SharedUtils = (function() {
   }
 
   const RECENT_PICKS_KEY = 'blingusRecentPicksV1';
-  const RECENT_PICK_DEPTH = 10;
+  const RECENT_PICK_DEPTH = 20;
+
+  /**
+   * Short structural signature (first few words) so "same opening, different
+   * place" variants are treated as near-duplicates by the variety picker.
+   * @param {string} text
+   * @returns {string}
+   */
+  function lineSignature(text) {
+    return String(text)
+      .toLowerCase()
+      .replace(/[^a-z0-9 ]/g, '')
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 4)
+      .join(' ');
+  }
 
   function loadRecentPickMap() {
     try {
@@ -273,12 +289,19 @@ window.SharedUtils = (function() {
     if (pool.length === 1) return pool[0];
 
     const all = loadRecentPickMap();
-    const recent = new Set(all[bucketKey] || []);
+    const history = all[bucketKey] || [];
+    const recent = new Set(history);
     let candidates = pool.filter((item) => !recent.has(item));
-    if (!candidates.length) candidates = pool;
+    if (!candidates.length) candidates = pool.slice();
+
+    // Prefer candidates whose opening differs from recent picks, so the user
+    // does not see the same sentence shape repeatedly. Soft: only if any exist.
+    const recentSignatures = new Set(history.map(lineSignature));
+    const fresh = candidates.filter((item) => !recentSignatures.has(lineSignature(item)));
+    if (fresh.length) candidates = fresh;
 
     const pick = candidates[Math.floor(Math.random() * candidates.length)];
-    const next = [pick, ...(all[bucketKey] || []).filter((item) => item !== pick)];
+    const next = [pick, ...history.filter((item) => item !== pick)];
     all[bucketKey] = next.slice(0, Math.min(RECENT_PICK_DEPTH, Math.max(1, pool.length - 1)));
     saveRecentPickMap(all);
     return pick;

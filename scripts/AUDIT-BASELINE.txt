@@ -43,3 +43,32 @@ Phase 1 results (2026-06-21)
     - Possessive checks: skip is/has contractions, clause-bounded word runs
     - New AWKWARD_LOCATIVE check guards against "in <adverb>" regressions
     - HIT_REQUIRED gains a few safe hit markers
+
+--------------------------------------------------------------------
+Phase 2 + 3 results (2026-06-21)
+  Audit: ERRORS 0 | WARNINGS 0 | empty combos 0
+
+  Phase 2 (roleplay parity):
+    - New scripts/roleplay_flavor.py: beat-driven roleplay actions
+    - expand_actions() rebuilt: curated source -> hand lines -> beats -> generics
+      (was self-accumulating from its own output, blocking beats)
+    - Thin/source-less scenes now ~16 beat-driven distinct lines each
+      (Village, Castle, Cave, Coast, Tundra, Mine, Crypt, ...)
+    - Rich scenes (Tavern, Inn, Carnival) keep full curated copy
+    - Audit roleplay minimum raised 8 -> 24; roleplay now grammar-checked
+    - Fixed indentation bug where only the last source scene was capped
+
+  Phase 3 (runtime variety):
+    - pickWithVariety: RECENT_PICK_DEPTH 10 -> 20
+    - Added lineSignature() (first 4 words) so "same opening, different place"
+      variants are avoided as near-duplicates (soft, falls back if needed)
+    - Generic merge into scene pools: SKIPPED by design. Scene pools are
+      exclusive/clean (0 empty combos); merging risks the wrong-scene bleed
+      the runtime comment warns against. Quantity lever (raise pool size with
+      dedup) deferred to a later phase.
+
+  Bonus fix (generator idempotency):
+    - expand_criticals() appended "My <category> lands with perfect timing..."
+      (plural subject + singular verb) every run because the dedup check
+      compared the pre-replace string. Removed the bad .replace(), cleaned
+      accumulated lines; generator output is now stable across runs.

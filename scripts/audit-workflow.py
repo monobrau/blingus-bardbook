@@ -218,6 +218,8 @@ def _awkward_possessive(text):
             text.rfind(',', 0, match.start()),
             text.rfind('\u2014', 0, match.start()),
             text.rfind(';', 0, match.start()),
+            text.rfind('(', 0, match.start()),
+            text.rfind(':', 0, match.start()),
         )
         words = text[max(boundary, 0):match.start()].split()
         run = 0
@@ -311,8 +313,11 @@ def audit():
     for scene_id in sorted(expected_scenes):
         if scene_id not in actions or not actions[scene_id]:
             errors.append(f'No roleplay actions for scene: {scene_id}')
-        elif len(actions[scene_id]) < 8:
+        elif len(actions[scene_id]) < 24:
             warnings.append(f'Few roleplay actions ({len(actions[scene_id])}) for {scene_id}')
+        for line in actions.get(scene_id, []):
+            for issue in grammar_issues(line):
+                warnings.append(f'{scene_id} / roleplay: grammar:{issue} → {line[:90]}…')
 
     for scene_id, categories in scenes.items():
         for skill in SKILLS:
