@@ -443,32 +443,35 @@ SCENE_BEATS = {
 
 # Skill-specific templates using {beat} — structurally different from skill_templates_v2.
 SKILL_BEAT_TEMPLATES = {
+    # Physical/treatment skills treat the beat as an AMBIENT distraction or backdrop,
+    # never as the thing physically acted upon — a beat is an observation/clue, so
+    # "haul past {beat}" or "misdiagnose what {beat} caused" reads as nonsense.
     'Acrobatics': {
         'Success': [
-            'I use {beat} as my cue and vault through the chaos without breaking stride',
-            'I turn near {beat} into a spin that looks planned and lands clean',
-            'I dodge around {beat} with a flourish that earns an involuntary gasp',
-            'I rebound off the obstacle by {beat} and stick a landing worth applause',
-            'I slip past {beat} on light feet and pretend gravity is optional',
+            'I tumble through the space clean while every eye stays on {beat}',
+            'I turn a near-slip into a spin and pretend it upstaged {beat}',
+            'I vault the gap and land grinning, using {beat} as my distraction',
+            'I weave through on light feet before anyone looks away from {beat}',
+            'I stick the landing and bow, daring {beat} to be more interesting',
         ],
         'Failure': [
             'I try to show off near {beat} and eat the ground in front of everyone',
-            'I misjudge the space by {beat} and crash harder than the bit required',
-            'My foot catches on something by {beat} and the tumble is audible',
-            'I attempt a leap past {beat} and fall short with full wings-flutter drama',
+            'I misjudge the leap, distracted by {beat}, and land in a graceless heap',
+            'My foot catches mid-flourish and the tumble outshines {beat}',
+            'I crash loud enough that even {beat} loses the room to me—wrong way to win it',
         ],
     },
     'Animal Handling': {
         'Success': [
-            'I calm the beast near {beat} before panic spreads to the rest of us',
-            'I read the animal\'s mood by {beat} and adjust before teeth get involved',
-            'I coax cooperation out of the situation around {beat} with patience not force',
-            'I keep {animal} from bolting toward {beat} with a steady voice and slower hands',
+            'I calm the animal while {beat} keeps the humans occupied',
+            'I read its mood and ease it down, using {beat} to mask my approach',
+            'I keep it from bolting even as {beat} sets everyone else on edge',
+            'I coax cooperation with slow hands, ignoring {beat} entirely',
         ],
         'Failure': [
-            'I move too fast near {beat} and the animal panics exactly as predicted',
-            'I misread the warning signs by {beat} and nearly lose a finger',
-            'My approach by {beat} spooks everything with fur or feathers nearby',
+            'I move too fast, distracted by {beat}, and the animal panics exactly as predicted',
+            'I misread the warning signs while watching {beat} and nearly lose a finger',
+            'My approach spooks every beast nearby, and {beat} only makes the noise worse',
         ],
     },
     'Arcana': {
@@ -486,15 +489,17 @@ SKILL_BEAT_TEMPLATES = {
     },
     'Athletics': {
         'Success': [
-            'I haul us past {beat} with strength to spare and a complaint ready for later',
-            'I push through the obstacle by {beat} when others hesitate',
-            'I lift or break whatever blocks {beat} before anyone gets hurt',
-            'I climb or sprint past {beat} without quitting mid-effort',
+            'I power through the obstacle while every other eye stays glued to {beat}',
+            'I muscle past the hard part, using the fuss over {beat} to cover my grunting',
+            'I haul us clear before anyone looks up from {beat}',
+            'I shoulder through the crush and leave {beat} for someone with less to lift',
+            'I make the climb look easy, narrating it louder than {beat} deserves',
         ],
         'Failure': [
-            'I strain against {beat} and fail loudly enough to attract attention',
-            'My grip gives out near {beat} and I slide back down with dignity trailing behind',
-            'I misjudge the effort by {beat} and drop what I was carrying',
+            'I strain and fail loudly enough that even {beat} can not cover the noise',
+            'I lose my grip at the worst moment, right as {beat} stops holding the room',
+            'I overcommit, stumble, and add my own clatter to the fuss over {beat}',
+            'I gas out halfway and need a hand while {beat} steals my only witnesses',
         ],
     },
     'Deception': {
@@ -538,15 +543,15 @@ SKILL_BEAT_TEMPLATES = {
     },
     'Intimidation': {
         'Success': [
-            'I make the threat around {beat} feel real without raising a hand',
-            'I stare down whoever is responsible for {beat} until they reconsider',
-            'I turn the mood cold at the mention of {beat} and get compliance',
-            'I let silence after {beat} do the work until someone breaks',
+            'I make my threat feel real without raising a hand, {beat} sharpening the quiet',
+            'I stare them down until they reconsider, {beat} forgotten behind me',
+            'I turn the mood cold and let {beat} do half the menacing for me',
+            'I let the silence stretch while {beat} keeps everyone on edge',
         ],
         'Failure': [
-            'I try to menace someone over {beat} and they laugh at my sparkle',
-            'My intimidation about {beat} lands like a lullaby with eye contact',
-            'I bark orders about {beat} and {who} ignore me like background music',
+            'I try to menace the room and they laugh, more interested in {beat} than my sparkle',
+            'My intimidation lands like a lullaby while {beat} steals the tension',
+            'I bark orders and {who} ignore me, {beat} apparently scarier than I am',
         ],
     },
     'Investigation': {
@@ -564,15 +569,16 @@ SKILL_BEAT_TEMPLATES = {
     },
     'Medicine': {
         'Success': [
-            'I stabilize the injury tied to {beat} before it worsens',
-            'I recognize poison or infection from {beat} and act fast',
-            'I keep the patient conscious through the crisis by {beat}',
-            'I bind, stitch, or brew what {beat} demands with steady hands',
+            'I stabilize the patient while the rest of the room can not stop watching {beat}',
+            'I work fast and clean, ignoring {beat} until the bleeding stops',
+            'I keep them conscious and talking, using {beat} to hold their focus off the pain',
+            'I bind and brew with steady hands while {beat} keeps the crowd busy',
         ],
         'Failure': [
-            'I misdiagnose what {beat} caused and treat the wrong thing',
-            'My hands shake near {beat} and the patient worsens',
-            'I lack supplies for {beat} and cannot do enough',
+            'I fumble the treatment, distracted by {beat} at exactly the wrong second',
+            'My hands shake and the patient worsens while I keep glancing at {beat}',
+            'I misjudge the wound with half my attention stuck on {beat}',
+            'I run short on supplies and time, and {beat} is not helping anyone',
         ],
     },
     'Nature': {
@@ -619,15 +625,15 @@ SKILL_BEAT_TEMPLATES = {
     },
     'Persuasion': {
         'Success': [
-            'I frame {beat} so {negotiator} sees helping us as the sensible choice',
-            'I talk past {beat} without threats and win agreement anyway',
-            'I find the argument about {beat} that moves {negotiator} when others failed',
-            'I turn resistance about {beat} into reluctant cooperation',
+            'I win {negotiator} over while {beat} hangs in the air between us',
+            'I talk us out of trouble without threats, never flinching at {beat}',
+            'I find the argument that moves {negotiator} even with {beat} fraying nerves',
+            'I turn flat resistance into reluctant cooperation before {beat} sours the mood',
         ],
         'Failure': [
-            'My pitch about {beat} lands flat like a joke without a punchline',
-            'I push too hard on {beat} and close the door with my own enthusiasm',
-            'I misjudge what {negotiator} wants regarding {beat} entirely',
+            'My pitch lands flat and {beat} hands {negotiator} a reason to walk',
+            'I push too hard while {beat} sets everyone on edge and close the door myself',
+            'I misjudge what {negotiator} wants and {beat} buries the rest of my point',
         ],
     },
     'Religion': {
