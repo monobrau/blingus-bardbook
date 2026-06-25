@@ -638,15 +638,15 @@ SKILL_BEAT_TEMPLATES = {
     },
     'Religion': {
         'Success': [
-            'I recall {doctrine} that applies to {beat} before we offend someone holy',
-            'I recognize the rite tied to {beat} and perform it correctly',
-            'I interpret the omen in {beat} with sacred texts, not wild guesses',
-            'I calm {who} with the right prayer when spooked by {beat}',
+            'I recall {doctrine} just in time and keep us from offending someone holy, even as {beat} pulls focus',
+            'I recognize the rite this moment calls for and perform it correctly while {beat} plays out nearby',
+            'I read the omens with sacred texts, not wild guesses, {beat} barely denting my focus',
+            'I calm {who} with the right prayer when {beat} has them spooked',
         ],
         'Failure': [
-            'I misquote scripture about {beat} and get corrected harshly',
-            'I confuse two faiths regarding {beat} and offend {who}',
-            'I treat {beat} casually and regret it when the air turns judgmental',
+            'I misquote scripture at the worst moment and get corrected harshly, half my mind on {beat}',
+            'I confuse two faiths and offend {who}, too rattled by {beat} to recover',
+            'I treat something holy too casually and regret it when the air turns judgmental, {beat} forgotten behind me',
         ],
     },
     'Sleight of Hand': {

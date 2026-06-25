@@ -311,13 +311,13 @@ SKILL_TEMPLATES = {
     },
     'Religion': {
         'Success': [
-            "I recall {doctrine} that applies in {place} before we offend someone holy",
+            "I remember {doctrine} in {place} before we accidentally offend someone holy",
             "I recognize the rite tied to {shrine} and perform it correctly—rare sober moment",
             "I explain the omen at {shrine} using sacred texts instead of wild guesses",
             "I identify the deity's symbol in {place} and its meaning without embarrassing us",
             "I calm {who} with the right prayer at {shrine} like a lullaby with stakes",
             "I know which taboo we're near in {place} and avoid offense like a professional guest",
-            "I interpret {inscription} on {shrine} accurately and resist adding a joke—mostly",
+            "I interpret {inscription} accurately and resist adding a joke—mostly",
             "I cite {doctrine} in {where} and {negotiator} listens like I'm credible",
         ],
         'Failure': [
