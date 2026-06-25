@@ -8,24 +8,29 @@ nosy, vain, and quietly terrified of rust monsters.
 
 from scene_flavor import SCENE_BEATS
 
-# Each template consumes a concrete {beat}; {who}/{place} optional flavor.
+# Each template consumes a concrete {beat}; {who} optional flavor.
+# Scene beats are long, clause-heavy observation phrases, so the bard's personality
+# lives in the LEAD and the beat is kept terminal (or followed only by a clean,
+# collision-proof clause). Putting flavor clauses after the beat caused ambiguous
+# attachment ("a couplet about {beat} that nobody asked for") and preposition
+# pile-ups ("edging closer to {beat-with-'with'} with the confidence of...").
 ROLEPLAY_BEAT_TEMPLATES = [
-    "Sidling toward {beat} for a better look while humming something that sounds like a plan",
-    "Pretending to ignore {beat} while absolutely cataloging it for the second verse",
-    "Making a mental note about {beat} in case it becomes a plot point (it usually does)",
-    "Narrating {beat} under my breath like the ballad has already started",
-    "Angling for a clear view of {beat} without looking like I care at all",
-    "Telling {who} a long story so I can keep one eye on {beat}",
-    "Composing a couplet about {beat} that nobody asked for and everyone will hear",
-    "Edging closer to {beat} with the confidence of someone who definitely belongs here",
-    "Asking {who} an innocent question while nodding at {beat} like it means nothing",
-    "Quietly betting myself what {beat} is really about, then doubling the stakes",
-    "Striking a casual pose near {beat} in case this turns into a story worth retelling",
-    "Checking my gear twice because {beat} has the exact energy a rust monster would fake",
-    "Drifting past {beat} slow enough to eavesdrop, fast enough to look busy",
-    "Giving {beat} a dramatic look and {who} an even more dramatic one",
-    "Filing {beat} away next to the Tarrasque rumor I refuse to stop mentioning",
-    "Practicing my unbothered face while {beat} tries very hard to bother me",
+    "Sidling over, humming something that sounds like a plan, for a better look at {beat}",
+    "Very deliberately pretending not to notice {beat}",
+    "Making a mental note, surely plot-relevant, about {beat}",
+    "Under my breath, already narrating {beat}",
+    "Angling for a clear but studiously casual view of {beat}",
+    "Telling {who} a long story while keeping one eye on {beat}",
+    "Composing an unprompted couplet about {beat}",
+    "With the confidence of someone who definitely belongs here, edging closer to {beat}",
+    "Asking {who} an innocent question while nodding at {beat}",
+    "Privately betting myself what is really going on with {beat}",
+    "Striking a casual pose near {beat}",
+    "Rust-monster instincts engaged, checking my gear near {beat}",
+    "Eavesdropping as I drift slowly past {beat}",
+    "Throwing my most dramatic look at {beat}",
+    "Privately blaming the Tarrasque for {beat}",
+    "Practicing my unbothered face in front of {beat}",
 ]
 
 

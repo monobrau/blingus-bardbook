@@ -829,6 +829,7 @@ def expand_actions():
         "Pretending to read labels, signs, or menus in {place} while actually eavesdropping",
     ]
     from roleplay_flavor import roleplay_lines_for  # noqa: WPS433
+    from scene_flavor import SCENE_BEATS  # noqa: WPS433
 
     # Iterate in canonical scene order so output is deterministic (idempotent).
     rebuilt = {}
@@ -836,8 +837,19 @@ def expand_actions():
         ctx = vocab_for(scene_id)
         generic_lines = {normalize_line(t.format(**ctx)) for t in roleplay_templates}
         existing = [normalize_line(x) for x in parsed.get(scene_id, [])]
-        # Hand-curated lines from actions-data.js, minus generic {place} swaps.
-        hand_curated = [l for l in existing if l not in generic_lines]
+        scene_beats = SCENE_BEATS.get(scene_id, [])
+
+        def is_beat_line(line):
+            # Lines that embed a scene beat are beat-driven, not hand-curated. We
+            # must drop them here so template changes actually propagate instead of
+            # the previously generated copy being read back in and preserved.
+            return any(beat in line for beat in scene_beats)
+
+        # Hand-curated lines from actions-data.js, minus generic {place} swaps and
+        # any previously generated beat-driven lines (those are rebuilt below).
+        hand_curated = [
+            l for l in existing if l not in generic_lines and not is_beat_line(l)
+        ]
 
         merged = []
 
