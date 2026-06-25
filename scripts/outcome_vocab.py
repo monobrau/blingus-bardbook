@@ -675,22 +675,22 @@ SKILL_TEMPLATES = {
     },
     'Insight': {
         'Success': [
-            "I read {subject}'s {tell} in {place} and know their real motive",
-            "I sense the lie beneath {subject}'s smile in {where}",
+            "I read {tell} from {subject} in {place} and know their real motive",
+            "I catch {subject} smiling through a lie in {where}",
             "I notice how {subject} glances at {evidence} when the topic gets sensitive",
             "I understand {motive} in {subject} before it boils over",
             "I catch the micro-expression from {subject} that changes everything",
             "I realize {subject} is scared, not angry, and adjust my approach",
             "I see who in {who} is holding back the truth",
-            "I hear the hesitation in {subject}'s voice and know the story doesn't fit",
+            "I hear {subject} hesitate and know the story doesn't fit",
         ],
         'Failure': [
             "I trust {subject} in {place} and miss the warning signs",
             "I read {subject} completely wrong in {where}",
             "I think {who} are friendly and walk into a setup",
-            "I miss the fear behind {subject}'s bravado",
+            "I miss the fear behind the bravado from {subject}",
             "I assume honesty from {subject} in {place} and get played",
-            "I misinterpret {subject}'s silence as agreement",
+            "I misinterpret the silence from {subject} as agreement",
             "I don't notice the lie from {subject} until it's too late",
             "I misjudge {motive} in {where} and advise the party badly",
         ],
@@ -741,7 +741,7 @@ SKILL_TEMPLATES = {
     },
     'Medicine': {
         'Success': [
-            "I diagnose {patient}'s {symptom} in {place} and know the treatment",
+            "I diagnose {symptom} in {patient} in {place} and know the treatment",
             "I stabilize {injury} near {who} before it worsens",
             "I recognize poison in {symptom} and act fast",
             "I clean and bind {injury} with what we have on hand",
@@ -751,7 +751,7 @@ SKILL_TEMPLATES = {
             "I talk {patient} through shock in {place} until color returns",
         ],
         'Failure': [
-            "I misdiagnose {patient}'s {symptom} in {place} and treat the wrong thing",
+            "I misdiagnose {symptom} in {patient} in {place} and treat the wrong thing",
             "I fumble the bandage on {injury} and cause more pain",
             "I can't tell poison from exhaustion in {symptom}",
             "My hands shake in {where} and {patient} worsens",

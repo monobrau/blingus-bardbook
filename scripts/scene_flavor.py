@@ -458,20 +458,20 @@ SKILL_BEAT_TEMPLATES = {
             'I try to show off near {beat} and eat the ground in front of everyone',
             'I misjudge the leap, distracted by {beat}, and land in a graceless heap',
             'My foot catches mid-flourish and the tumble outshines {beat}',
-            'I crash loud enough that even {beat} loses the room to me—wrong way to win it',
+            'I crash loud enough to steal the room right back from {beat}—wrong way to win it',
         ],
     },
     'Animal Handling': {
         'Success': [
-            'I calm the animal while {beat} keeps the humans occupied',
+            'I calm the animal with {beat} keeping the humans occupied',
             'I read its mood and ease it down, using {beat} to mask my approach',
-            'I keep it from bolting even as {beat} sets everyone else on edge',
+            'I keep it from bolting even with {beat} setting everyone else on edge',
             'I coax cooperation with slow hands, ignoring {beat} entirely',
         ],
         'Failure': [
             'I move too fast, distracted by {beat}, and the animal panics exactly as predicted',
             'I misread the warning signs while watching {beat} and nearly lose a finger',
-            'My approach spooks every beast nearby, and {beat} only makes the noise worse',
+            'My approach spooks every beast nearby, with {beat} only making the noise worse',
         ],
     },
     'Arcana': {
@@ -493,13 +493,13 @@ SKILL_BEAT_TEMPLATES = {
             'I muscle past the hard part, using the fuss over {beat} to cover my grunting',
             'I haul us clear before anyone looks up from {beat}',
             'I shoulder through the crush and leave {beat} for someone with less to lift',
-            'I make the climb look easy, narrating it louder than {beat} deserves',
+            'I make the climb look easy, narrating it louder than the fuss over {beat}',
         ],
         'Failure': [
             'I strain and fail loudly enough that even {beat} can not cover the noise',
-            'I lose my grip at the worst moment, right as {beat} stops holding the room',
+            'I lose my grip at the worst moment, right as the room stops watching {beat}',
             'I overcommit, stumble, and add my own clatter to the fuss over {beat}',
-            'I gas out halfway and need a hand while {beat} steals my only witnesses',
+            'I gas out halfway and need a hand, with {beat} stealing my only witnesses',
         ],
     },
     'Deception': {
@@ -546,11 +546,11 @@ SKILL_BEAT_TEMPLATES = {
             'I make my threat feel real without raising a hand, {beat} sharpening the quiet',
             'I stare them down until they reconsider, {beat} forgotten behind me',
             'I turn the mood cold and let {beat} do half the menacing for me',
-            'I let the silence stretch while {beat} keeps everyone on edge',
+            'I let the silence stretch, {beat} keeping everyone on edge',
         ],
         'Failure': [
             'I try to menace the room and they laugh, more interested in {beat} than my sparkle',
-            'My intimidation lands like a lullaby while {beat} steals the tension',
+            'My intimidation lands like a lullaby, {beat} stealing the tension',
             'I bark orders and {who} ignore me, {beat} apparently scarier than I am',
         ],
     },
@@ -572,13 +572,13 @@ SKILL_BEAT_TEMPLATES = {
             'I stabilize the patient while the rest of the room can not stop watching {beat}',
             'I work fast and clean, ignoring {beat} until the bleeding stops',
             'I keep them conscious and talking, using {beat} to hold their focus off the pain',
-            'I bind and brew with steady hands while {beat} keeps the crowd busy',
+            'I bind and brew with steady hands while the crowd gawks at {beat}',
         ],
         'Failure': [
             'I fumble the treatment, distracted by {beat} at exactly the wrong second',
             'My hands shake and the patient worsens while I keep glancing at {beat}',
             'I misjudge the wound with half my attention stuck on {beat}',
-            'I run short on supplies and time, and {beat} is not helping anyone',
+            'I run short on supplies and time, with {beat} no help at all',
         ],
     },
     'Nature': {
@@ -625,15 +625,15 @@ SKILL_BEAT_TEMPLATES = {
     },
     'Persuasion': {
         'Success': [
-            'I win {negotiator} over while {beat} hangs in the air between us',
+            'I win {negotiator} over with {beat} hanging in the air between us',
             'I talk us out of trouble without threats, never flinching at {beat}',
             'I find the argument that moves {negotiator} even with {beat} fraying nerves',
-            'I turn flat resistance into reluctant cooperation before {beat} sours the mood',
+            'I turn flat resistance into reluctant cooperation before the mood sours around {beat}',
         ],
         'Failure': [
-            'My pitch lands flat and {beat} hands {negotiator} a reason to walk',
-            'I push too hard while {beat} sets everyone on edge and close the door myself',
-            'I misjudge what {negotiator} wants and {beat} buries the rest of my point',
+            'My pitch lands flat and {negotiator} reads {beat} as a reason to walk',
+            'I push too hard, with {beat} setting everyone on edge, and close the door myself',
+            'I misjudge what {negotiator} wants and the rest of my point dies near {beat}',
         ],
     },
     'Religion': {
@@ -691,26 +691,42 @@ SKILL_BEAT_TEMPLATES = {
 }
 
 
-def flavor_lines_for(scene_id, skill, suffix, ctx, line_is_valid_fn, limit=18):
-    """Build unique beat-driven lines for a scene/skill/outcome."""
+def flavor_lines_for(scene_id, skill, suffix, ctx, line_is_valid_fn, limit=18, per_template=None):
+    """Build beat-driven lines for a scene/skill/outcome.
+
+    Iterates template-major in rounds so consecutive lines alternate sentence
+    structure (each round uses every template once with a fresh beat), instead of
+    emitting every template for one beat before moving on. ``per_template`` caps
+    how many times each structure may repeat, keeping the pool varied; default is
+    one line per beat available.
+    """
     beats = SCENE_BEATS.get(scene_id, SCENE_BEATS.get('Village', []))
     templates = SKILL_BEAT_TEMPLATES.get(skill, {}).get(suffix, [])
     if not beats or not templates:
         return []
 
+    rounds = per_template if per_template is not None else len(beats)
     lines = []
-    for beat in beats:
+    seen = set()
+    beat_idx = 0
+    for _ in range(rounds):
         for template in templates:
-            fmt = dict(ctx)
-            fmt['beat'] = beat
-            try:
-                line = template.format(**fmt)
-            except KeyError:
-                continue
-            if line in lines:
-                continue
-            if line_is_valid_fn(skill, line):
-                lines.append(line)
+            for _ in range(len(beats)):
+                beat = beats[beat_idx % len(beats)]
+                beat_idx += 1
+                fmt = dict(ctx)
+                fmt['beat'] = beat
+                try:
+                    line = template.format(**fmt)
+                except KeyError:
+                    line = None
+                    break
+                if line in seen:
+                    continue
+                if line_is_valid_fn(skill, line):
+                    lines.append(line)
+                    seen.add(line)
+                    break
             if len(lines) >= limit:
                 return lines
     return lines

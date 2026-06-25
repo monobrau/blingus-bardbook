@@ -42,6 +42,12 @@ def line_signature(line, ctx):
     return sig
 
 
+def line_stem(sig):
+    """First few words of a signature, used to catch truncated near-duplicates
+    (e.g. a legacy template that is just a shortened v2 template)."""
+    return ' '.join(sig.split()[:5])
+
+
 def append_line(lines, seen_sigs, line, sig=None):
     if not line or line in lines:
         return False
@@ -380,26 +386,59 @@ CRIT_CUSTOM = {
 
 
 def generate_lines(scene_id, skill, suffix):
+    ctx = vocab_for(scene_id)
     custom = CUSTOM.get((scene_id, skill, suffix))
     lines = list(custom) if custom else []
-    seen = {line_signature(l, vocab_for(scene_id)) for l in lines}
-
-    ctx = vocab_for(scene_id)
+    seen = {line_signature(l, ctx) for l in lines}
+    stems = {line_stem(s) for s in seen}
     outcome = 'Success' if suffix == 'Success' else 'Failure'
 
-    # Beat-driven lines first — most distinct per scene.
-    for line in flavor_lines_for(scene_id, skill, suffix, ctx, line_is_valid, limit=24):
-        sig = line_signature(line, ctx)
-        if sig not in seen and line_is_valid(skill, line):
-            append_line(lines, seen, line, sig)
-        if len(lines) >= OUTCOME_POOL_SIZE:
-            return [normalize_line(line) for line in lines[:OUTCOME_POOL_SIZE]]
+    def full():
+        return len(lines) >= OUTCOME_POOL_SIZE
 
-    append_from_templates(lines, seen, SKILL_TEMPLATES[skill][outcome], ctx, skill)
-    if len(lines) < OUTCOME_POOL_SIZE:
-        append_from_templates(
-            lines, seen, LEGACY_SKILL_TEMPLATES[skill][outcome], ctx, skill, require_valid=True
-        )
+    def try_add(line, skip_stems=False):
+        if not line:
+            return
+        sig = line_signature(line, ctx)
+        if sig in seen:
+            return
+        if skip_stems and line_stem(sig) in stems:
+            return
+        if not line_is_valid(skill, line):
+            return
+        append_line(lines, seen, line, sig)
+        stems.add(line_stem(sig))
+
+    def add_templates(templates, skip_stems=False):
+        for template in templates:
+            try:
+                line = template.format(**ctx)
+            except KeyError:
+                continue
+            try_add(line, skip_stems=skip_stems)
+            if full():
+                return
+
+    def add_beats(want, per_template):
+        for line in flavor_lines_for(
+            scene_id, skill, suffix, ctx, line_is_valid,
+            limit=want, per_template=per_template,
+        ):
+            try_add(line)
+            if full():
+                return
+
+    # Lead with the structurally varied, scene-aware generic templates so the pool
+    # never collapses to a few sentence shapes with only the beat swapped.
+    add_templates(SKILL_TEMPLATES[skill][outcome])
+    # Scene-specific beats, round-robin, each sentence shape used at most twice. We
+    # deliberately do NOT pad the pool past what the templates can express without
+    # heavy repetition: a smaller, varied pool reads far better than a padded one.
+    if not full():
+        add_beats(want=OUTCOME_POOL_SIZE, per_template=2)
+    # Legacy templates, but skip ones that are just truncated copies of the above.
+    if not full():
+        add_templates(LEGACY_SKILL_TEMPLATES[skill][outcome], skip_stems=True)
 
     return [normalize_line(line) for line in lines[:OUTCOME_POOL_SIZE]]
 

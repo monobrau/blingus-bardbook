@@ -333,7 +333,9 @@ def audit():
                 lines = categories.get(key, [])
                 if not lines:
                     errors.append(f'Empty pool: {scene_id} / {key}')
-                elif len(lines) < 32:
+                elif len(lines) < 14:
+                    # Variety-first: skill pools draw on a finite set of distinct
+                    # sentence shapes, so we cap rather than pad with near-duplicates.
                     warnings.append(f'Short pool ({len(lines)}): {scene_id} / {key}')
                 outcome_mod = 'success' if suffix == 'Success' else 'failure'
                 for line in lines:
