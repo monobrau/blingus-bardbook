@@ -231,30 +231,43 @@ CRIT_FAIL_BEAT_TEMPLATES = {
 }
 
 
-def _beat_flavor(templates_by_cat, scene_id, ctx, category, limit):
+def _beat_flavor(templates_by_cat, scene_id, ctx, category, limit, per_template=None):
+    """Round-robin templates so consecutive lines alternate sentence structure
+    (instead of emitting every template for one beat before moving on).
+    ``per_template`` caps how many times each structure may repeat."""
     beats = SCENE_BEATS.get(scene_id, [])
     templates = templates_by_cat.get(category, [])
     if not beats or not templates:
         return []
+    rounds = per_template if per_template is not None else len(beats)
     lines = []
-    for beat in beats:
+    seen = set()
+    beat_idx = 0
+    for _ in range(rounds):
         for template in templates:
-            fmt = dict(ctx)
-            fmt['beat'] = beat
-            try:
-                line = template.format(**fmt)
-            except KeyError:
-                continue
-            if line not in lines:
+            for _ in range(len(beats)):
+                beat = beats[beat_idx % len(beats)]
+                beat_idx += 1
+                fmt = dict(ctx)
+                fmt['beat'] = beat
+                try:
+                    line = template.format(**fmt)
+                except KeyError:
+                    line = None
+                    break
+                if line in seen:
+                    continue
                 lines.append(line)
+                seen.add(line)
+                break
             if len(lines) >= limit:
                 return lines
     return lines
 
 
-def crit_hit_flavor_lines(scene_id, ctx, category, limit=16):
-    return _beat_flavor(CRIT_HIT_BEAT_TEMPLATES, scene_id, ctx, category, limit)
+def crit_hit_flavor_lines(scene_id, ctx, category, limit=16, per_template=None):
+    return _beat_flavor(CRIT_HIT_BEAT_TEMPLATES, scene_id, ctx, category, limit, per_template)
 
 
-def crit_fail_flavor_lines(scene_id, ctx, category, limit=16):
-    return _beat_flavor(CRIT_FAIL_BEAT_TEMPLATES, scene_id, ctx, category, limit)
+def crit_fail_flavor_lines(scene_id, ctx, category, limit=16, per_template=None):
+    return _beat_flavor(CRIT_FAIL_BEAT_TEMPLATES, scene_id, ctx, category, limit, per_template)

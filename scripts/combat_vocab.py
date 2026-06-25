@@ -212,23 +212,28 @@ def load_generic_crits():
     return _GENERIC_CRITS
 
 
-def contextualize_crit_line(line, ctx):
-    """Wrap generic crit lines with scene place/where for extra variety."""
+def contextualize_crit_line(line, ctx, variant=0):
+    """Give a generic crit line light scene framing. Returns a single line;
+    ``variant`` cycles the framing so different generic lines get different
+    shapes instead of each line spawning three near-identical copies (which is
+    what made whole crit pools read as the same sentence over and over)."""
     place = ctx.get('place', 'here')
     where = ctx.get('where', 'here')
     if not line:
-        return []
+        return None
     if line.startswith('I ') or line == 'I':
         lead = line
     elif len(line) > 1:
         lead = line[0].lower() + line[1:]
     else:
         lead = line.lower()
-    return [
+    styles = [
         f'In {place}, {lead}',
         f'{line} in {where}',
-        f'{line} — {place}, naturally',
+        f'{line}, {place} as ever',
+        line,
     ]
+    return styles[variant % len(styles)]
 
 
 def generate_crit_lines(scene_id, category, suffix):
@@ -243,8 +248,11 @@ def generate_crit_lines(scene_id, category, suffix):
         if len(lines) >= OUTCOME_POOL_SIZE:
             break
     if len(lines) < OUTCOME_POOL_SIZE:
+        # Scene-specific beats as a capped, round-robin minority (each sentence
+        # shape used at most twice) so the pool does not collapse into one shape
+        # with only the scene detail swapped.
         flavor = (crit_hit_flavor_lines if is_hit else crit_fail_flavor_lines)(
-            scene_id, ctx, category, limit=24
+            scene_id, ctx, category, limit=OUTCOME_POOL_SIZE, per_template=2
         )
         for line in flavor:
             if line not in lines and crit_line_is_valid(scene_id, category, line, is_hit):
@@ -254,9 +262,13 @@ def generate_crit_lines(scene_id, category, suffix):
     if len(lines) < OUTCOME_POOL_SIZE:
         hits, fails = load_generic_crits()
         generic_pool = hits.get(category, []) if is_hit else fails.get(category, [])
-        for raw in generic_pool:
-            for variant in contextualize_crit_line(raw, ctx):
-                if variant not in lines and crit_line_is_valid(scene_id, category, variant, is_hit):
+        # Each generic line at most twice, with a rotating framing so we add
+        # distinct sentence bodies rather than four copies of each. We would
+        # rather return a smaller, varied pool than pad with repetition.
+        for extra in range(2):
+            for idx, raw in enumerate(generic_pool):
+                variant = contextualize_crit_line(raw, ctx, variant=idx + extra)
+                if variant and variant not in lines and crit_line_is_valid(scene_id, category, variant, is_hit):
                     lines.append(variant)
                 if len(lines) >= OUTCOME_POOL_SIZE:
                     break

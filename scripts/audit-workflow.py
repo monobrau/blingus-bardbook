@@ -352,7 +352,9 @@ def audit():
                 lines = categories.get(key, [])
                 if not lines:
                     errors.append(f'Empty pool: {scene_id} / {key}')
-                elif len(lines) < 32:
+                elif len(lines) < 20:
+                    # Variety-first: crit pools float rather than pad generic
+                    # crit bodies into near-duplicate framings.
                     warnings.append(f'Short pool ({len(lines)}): {scene_id} / {key}')
                 for line in lines:
                     for issue in crit_category_ok(line, scene_id, suffix):
