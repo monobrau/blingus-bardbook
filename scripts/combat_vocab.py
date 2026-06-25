@@ -218,7 +218,6 @@ def contextualize_crit_line(line, ctx, variant=0):
     shapes instead of each line spawning three near-identical copies (which is
     what made whole crit pools read as the same sentence over and over)."""
     place = ctx.get('place', 'here')
-    where = ctx.get('where', 'here')
     if not line:
         return None
     if line.startswith('I ') or line == 'I':
@@ -227,11 +226,14 @@ def contextualize_crit_line(line, ctx, variant=0):
         lead = line[0].lower() + line[1:]
     else:
         lead = line.lower()
+    # Prefix framings only: suffix tags like "{line} in {where}" collide with
+    # lines that already end in a phrase ("...in the chest in this place") and
+    # "{line}, {place} as ever" just reads awkwardly. A leading clause always
+    # scans cleanly regardless of how the generic line ends.
     styles = [
         f'In {place}, {lead}',
-        f'{line} in {where}',
-        f'{line}, {place} as ever',
         line,
+        f'Right here in {place}, {lead}',
     ]
     return styles[variant % len(styles)]
 
