@@ -25,6 +25,24 @@ def unescape(s: str) -> str:
     return s.replace('\\"', '"').replace("\\\\", "\\")
 
 
+def normalize_key(k: str) -> str:
+    """Category headers: render an em/en dash separator as a spaced hyphen."""
+    return re.sub(r"\s*[\u2014\u2013]\s*", " - ", k)
+
+
+def strip_dashes(s: str) -> str:
+    """House style: no em/en dashes in prose; convert to commas, then tidy."""
+    if not s or ("\u2014" not in s and "\u2013" not in s):
+        return s
+    s = re.sub(r"\s*[\u2014\u2013]\s*", ", ", s)
+    s = re.sub(r"^[\s,]+", "", s)
+    s = re.sub(r"\s+,", ",", s)
+    s = re.sub(r",\s*,", ", ", s)
+    s = re.sub(r",\s*([.;:!?])", r"\1", s)
+    s = re.sub(r"[ \t]{2,}", " ", s)
+    return s
+
+
 def normalize(s: str) -> str:
     s = s.lower()
     s = re.sub(r"[^a-z0-9\s]", " ", s)
@@ -61,15 +79,15 @@ def parse_js_map(path: Path, const_name: str) -> dict:
     for line in block.splitlines():
         m = re.match(r"\s+'((?:\\'|[^'])*)':\s*\[", line)
         if m:
-            cat = m.group(1).replace("\\'", "'")
+            cat = normalize_key(m.group(1).replace("\\'", "'"))
             result[cat] = []
             continue
         m2 = ITEM_RE.search(line)
         if m2 and cat:
             item = {
-                "t": unescape(m2.group(1)),
-                "s": unescape(m2.group(2)),
-                "a": unescape(m2.group(3)),
+                "t": strip_dashes(unescape(m2.group(1))),
+                "s": strip_dashes(unescape(m2.group(2))),
+                "a": strip_dashes(unescape(m2.group(3))),
             }
             if "adult:true" in line:
                 item["adult"] = True
@@ -122,7 +140,7 @@ def score_parody(item: dict) -> int:
     elif len(t_last) > 3 and len(s_last) > 3 and t_last[-3:] == s_last[-3:]:
         score += 1
 
-    if re.search(r"[;—]", t):
+    if re.search(r"[;,]", t):
         score += 1
     if 55 <= len(t) <= 115:
         score += 1
@@ -153,8 +171,14 @@ def merge_extra(obj: dict, extra: dict) -> dict:
     """Fold hand-written candidate parodies into the parsed pool before scoring."""
     merged = {k: list(v) for k, v in obj.items()}
     for key, items in (extra or {}).items():
+        key = normalize_key(key)
         merged.setdefault(key, [])
-        merged[key].extend(items)
+        for item in items:
+            clean = dict(item)
+            for field in ("t", "s", "a"):
+                if field in clean:
+                    clean[field] = strip_dashes(clean[field])
+            merged[key].append(clean)
     return merged
 
 
@@ -184,9 +208,9 @@ def serialize_map(name: str, obj: dict) -> str:
         lines.append(f"  '{esc_key}': [")
         for item in items:
             adult = ", adult:true" if item.get("adult") else ""
-            t = item["t"].replace("\\", "\\\\").replace('"', '\\"')
-            s = item["s"].replace("\\", "\\\\").replace('"', '\\"')
-            a = item["a"].replace("\\", "\\\\").replace('"', '\\"')
+            t = strip_dashes(item["t"]).replace("\\", "\\\\").replace('"', '\\"')
+            s = strip_dashes(item["s"]).replace("\\", "\\\\").replace('"', '\\"')
+            a = strip_dashes(item["a"]).replace("\\", "\\\\").replace('"', '\\"')
             lines.append(f'    {{t:"{t}", s:"{s}", a:"{a}"{adult}}},')
         lines.append("  ],")
     lines.append("};")
@@ -212,7 +236,7 @@ def main():
     curated_bardic = curate_parody_map(merge_extra(bardic, BARDIC_EXTRA), 9, 2)
 
     spells_path.write_text(
-        "/**\n * Spell parody data (curated revamp — best song-faithful parodies per spell)\n */\n"
+        "/**\n * Spell parody data (curated revamp, best song-faithful parodies per spell)\n */\n"
         "window.BlingusData = window.BlingusData || {};\n\n"
         + serialize_map("spells", curated_spells)
         + "\n\n"
@@ -223,7 +247,7 @@ def main():
     )
 
     bardic_path.write_text(
-        "/**\n * Bardic inspiration data (curated revamp — best song-faithful parodies per type)\n */\n"
+        "/**\n * Bardic inspiration data (curated revamp, best song-faithful parodies per type)\n */\n"
         "window.BlingusData = window.BlingusData || {};\n\n"
         + serialize_map("bardic", curated_bardic)
         + "\n\nwindow.BlingusData.bardic = bardic;\n",

@@ -5,7 +5,7 @@ window.BlingusData = window.BlingusData || {};
 
 const criticalHits = {
   "Arrows": [
-    "My arrow strikes true in a blur of motion\u2014here, then there, then finding its mark",
+    "My arrow strikes true in a blur of motion, here, then there, then finding its mark",
     "My arrow finds its mark, sinking deep into their flesh with a satisfying thud",
     "My arrowhead digs between their ribs, and I see them gasp and stagger backward",
     "My arrow strikes with brutal force, tearing through fabric and flesh alike",

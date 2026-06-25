@@ -1,6 +1,6 @@
 /**
  * Character action data for Blingus's Bardbook
- * Roleplay lines by scene — expanded for workflow picker
+ * Roleplay lines by scene, expanded for workflow picker
  */
 window.BlingusData = window.BlingusData || {};
 
@@ -614,7 +614,7 @@ const characterActions = {
     "Collecting a story from whoever listens below for future performances",
     "Keeping one hand near your gear while exploring the tower",
     "Asking innocent questions about arrow slits and wind that aren't innocent at all",
-    "Working whoever listens below in the tower for gossip, drinks, or both\u2014journalism with wings",
+    "Working whoever listens below in the tower for gossip, drinks, or both, journalism with wings",
     "Watching whoever listens below while pretending to mind my own business (poorly)",
     "Collecting material from whoever listens below for a future performance they'll regret encouraging",
     "Offering unsolicited performance notes to whoever listens below in the tower",
@@ -1267,15 +1267,15 @@ const characterActions = {
   ],
   "Carnival / Feywild (Wild Beyond The Witchlight)": [
     "Trying to win a carnival game but suspecting it's rigged (it probably is)",
-    "Asking about lost things\u2014yours, theirs, anyone's (you're collecting information)",
+    "Asking about lost things, yours, theirs, anyone's (you're collecting information)",
     "Checking if time feels weird here (Prismeer's time distortion is confusing)",
     "Looking for the Witchlight Carnival entrance (it moves, you know)",
-    "Asking locals about the three hags\u2014Bavlorna, Endelyn, Skabatha (just curious, totally normal)",
+    "Asking locals about the three hags, Bavlorna, Endelyn, Skabatha (just curious, totally normal)",
     "Trying to avoid making any deals with fey creatures (they're tricky)",
     "Checking if your emotions feel different here (lost things include feelings)",
     "Looking for signs of Zybilna's influence (she's the archfey, after all)",
     "Asking about carnival tickets and if they're actually worth anything",
-    "Trying to figure out which domain you're in\u2014Hither, Thither, or Yon",
+    "Trying to figure out which domain you're in, Hither, Thither, or Yon",
     "Checking if the colors seem too vibrant (feywild is weird like that)",
     "Asking if anyone has seen a wayfarer fairy before (you're rare, you know)",
     "Trying to avoid Bavlorna's swamp (it smells terrible)",
@@ -1287,13 +1287,13 @@ const characterActions = {
     "Looking for other carnival-goers who might know something",
     "Trying to blend in with the fey crowd (you're a fairy, it should work)",
     "Checking if your gear is still safe from rust monsters (they could be anywhere!)",
-    "Asking about the Tarrasque (just in case it's in Prismeer\u2014you never know)",
+    "Asking about the Tarrasque (just in case it's in Prismeer, you never know)",
     "Trying to avoid eye contact with hags (they're dangerous)",
     "Looking for pixies, sprites, or other fey creatures to chat with",
     "Asking about the rules of Prismeer (there probably aren't any, but you should check)",
     "Trying to find the exit (if there is one)",
     "Checking if your wayfarer abilities work differently in the Feywild",
-    "Asking about lost emotions\u2014can you find them? (probably not, but worth asking)",
+    "Asking about lost emotions, can you find them? (probably not, but worth asking)",
     "Trying to avoid getting caught in a hag's bargain",
     "Looking for clues about what happened to Zybilna",
     "Asking about carnival games and if winning actually matters",
