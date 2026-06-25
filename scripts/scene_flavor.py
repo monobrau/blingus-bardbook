@@ -690,6 +690,39 @@ SKILL_BEAT_TEMPLATES = {
     },
 }
 
+# Survival and Nature lean hard on wilderness framing ("trail sign", "the land",
+# "plant or beast"), which turns to nonsense once the beat is an indoor or social
+# detail (a tankard, a courtier's smile). For non-wilderness scenes we swap in
+# instinct/danger-sense versions where the beat is a warning cue, not flora.
+NONWILD_SKILL_BEAT_TEMPLATES = {
+    'Survival': {
+        'Success': [
+            'I read {beat} as the warning it is and steer us the safer way',
+            'I clock {beat} early and pick our way through before it becomes a problem',
+            'I predict trouble from {beat} and reroute before we pay for it',
+            'I keep us provisioned and ready even with {beat} working against us',
+        ],
+        'Failure': [
+            'I misread {beat} and lead us the wrong way with confident wrongness',
+            'I ignore the warning in {beat} until it is almost too late',
+            'I misjudge {beat} and we pay for it in time and morale',
+        ],
+    },
+    'Nature': {
+        'Success': [
+            'I catch the change in the air around {beat} and warn the party something is off',
+            'I trust my gut about {beat} and steer us toward safer ground',
+            'I notice things go still around {beat} and know to be ready',
+            'I read the signs around {beat} and call what is coming before it arrives',
+        ],
+        'Failure': [
+            'I misread the signs around {beat} and nearly walk us into trouble',
+            'I ignore my gut about {beat} until we are already in it',
+            'I misjudge {beat} and pick the worse way forward',
+        ],
+    },
+}
+
 
 def flavor_lines_for(scene_id, skill, suffix, ctx, line_is_valid_fn, limit=18, per_template=None):
     """Build beat-driven lines for a scene/skill/outcome.
@@ -700,8 +733,11 @@ def flavor_lines_for(scene_id, skill, suffix, ctx, line_is_valid_fn, limit=18, p
     how many times each structure may repeat, keeping the pool varied; default is
     one line per beat available.
     """
+    from outcome_vocab import SCENE_TYPE  # local import avoids a circular import
     beats = SCENE_BEATS.get(scene_id, SCENE_BEATS.get('Village', []))
     templates = SKILL_BEAT_TEMPLATES.get(skill, {}).get(suffix, [])
+    if SCENE_TYPE.get(scene_id) != 'wilderness' and skill in NONWILD_SKILL_BEAT_TEMPLATES:
+        templates = NONWILD_SKILL_BEAT_TEMPLATES[skill].get(suffix, templates)
     if not beats or not templates:
         return []
 

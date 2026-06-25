@@ -240,7 +240,7 @@ SKILL_TEMPLATES = {
             "I underestimate {fauna} near {place} and learn animals don't care about my reputation",
             "I confuse edible and toxic {flora} in {where}—survival is not my genre",
             "I ignore {whose} warnings and trust bad nature lore because I'm stubborn",
-            "The wilds around {place} outsmart my knowledge today and I'm humble about it",
+            "Nature outsmarts my knowledge in {place} today and I'm humble about it",
         ],
     },
     'Perception': {
@@ -378,7 +378,7 @@ SKILL_TEMPLATES = {
     'Survival': {
         'Success': [
             "I read {trail} in {terrain_nat} and choose the path that won't kill the mood or us",
-            "I find {shelter} in {place} before weather turns lethal or melodramatic",
+            "I find {shelter} in {place} before the elements turn lethal or melodramatic",
             "I start a fire in {where} with stubborn materials and unreasonable optimism",
             "I locate {forage} or water when supplies run low and morale lower",
             "I rig {shelter} from what {place} offers and keep {who} alive and complaining less",
@@ -394,7 +394,36 @@ SKILL_TEMPLATES = {
             "I eat the wrong {forage} and feel it later in ways performance can't fix",
             "I ignore signs of {weather} in {place} until we're in trouble and I'm out of quips",
             "I lose the path in {where} and panic sets in among {who}",
-            "The wilds around {place} beat my survival instincts today—humbling and damp",
+            "The conditions in {place} beat my survival instincts today, humbling and damp",
+        ],
+    },
+}
+
+# In social/urban scenes "Survival" is street smarts, not wilderness craft, so the
+# default templates (start a fire, forage, predict weather) read as nonsense. These
+# replacements keep Survival about reading danger, finding the way out, and
+# stretching resources, using only scene-agnostic vocab.
+SOCIAL_SKILL_TEMPLATES = {
+    'Survival': {
+        'Success': [
+            "I read the mood in {place} and know which way trouble will come from",
+            "I find the quickest way out of {place} before we might need it",
+            "I sense the danger building in {where} and steer {who} clear of it",
+            "I know when to leave {place} and when to stay, and I am right this time",
+            "I stretch our coin and supplies in {place} further than anyone expects",
+            "I pick the safe corner in {where} with my back to the wall on instinct",
+            "I read who in {place} is trouble and quietly plan around them",
+            "I keep us fed, rested, and out of fights in {place} like it is its own skill",
+        ],
+        'Failure': [
+            "I misread the mood in {place} and walk us straight toward the trouble",
+            "I pick the worst spot in {where} with my back to every door at once",
+            "I miss the danger building in {place} until it is already on us",
+            "I burn through our coin and supplies in {place} with nothing to show",
+            "I stay too long in {where} when every instinct said leave",
+            "I trust the wrong stranger in {place} and we pay for my confidence",
+            "I lose track of the exits in {where} right when {who} need one",
+            "My survival instincts desert me in {place} today, humbling and public",
         ],
     },
 }

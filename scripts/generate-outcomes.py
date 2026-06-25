@@ -24,7 +24,7 @@ from outcome_vocab import (  # noqa: E402
     line_is_valid,
     vocab_for,
 )
-from skill_templates_v2 import SKILL_TEMPLATES  # noqa: E402
+from skill_templates_v2 import SKILL_TEMPLATES, SOCIAL_SKILL_TEMPLATES  # noqa: E402
 
 from scene_flavor import flavor_lines_for  # noqa: E402
 from scene_crit_unique import scene_crit_lines, type_crit_lines  # noqa: E402
@@ -429,15 +429,23 @@ def generate_lines(scene_id, skill, suffix):
                 return
 
     # Lead with the structurally varied, scene-aware generic templates so the pool
-    # never collapses to a few sentence shapes with only the beat swapped.
-    add_templates(SKILL_TEMPLATES[skill][outcome])
+    # never collapses to a few sentence shapes with only the beat swapped. In
+    # social scenes some skills (Survival) need a street-smarts replacement set
+    # because the wilderness defaults make no sense indoors.
+    v2_templates = SKILL_TEMPLATES[skill][outcome]
+    social_override = SCENE_TYPE.get(scene_id) == 'social' and skill in SOCIAL_SKILL_TEMPLATES
+    if social_override:
+        v2_templates = SOCIAL_SKILL_TEMPLATES[skill][outcome]
+    add_templates(v2_templates)
     # Scene-specific beats, round-robin, each sentence shape used at most twice. We
     # deliberately do NOT pad the pool past what the templates can express without
     # heavy repetition: a smaller, varied pool reads far better than a padded one.
     if not full():
         add_beats(want=OUTCOME_POOL_SIZE, per_template=2)
     # Legacy templates, but skip ones that are just truncated copies of the above.
-    if not full():
+    # Skip them entirely when a social override replaced the defaults, since the
+    # legacy set carries the same wilderness framing we just swapped out.
+    if not full() and not social_override:
         add_templates(LEGACY_SKILL_TEMPLATES[skill][outcome], skip_stems=True)
 
     return [normalize_line(line) for line in lines[:OUTCOME_POOL_SIZE]]

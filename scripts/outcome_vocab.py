@@ -780,7 +780,7 @@ SKILL_TEMPLATES = {
             "I underestimate {fauna} near {place}",
             "I confuse edible and toxic {flora} in {where}",
             "I ignore {whose} warnings and trust bad nature lore",
-            "The wilds around {place} outsmart my knowledge today",
+            "Nature outsmarts my knowledge in {place} today",
         ],
     },
     'Perception': {
@@ -918,7 +918,7 @@ SKILL_TEMPLATES = {
     'Survival': {
         'Success': [
             "I read {trail} in {terrain_nat} and choose the safe path",
-            "I find {shelter} in {place} before weather turns lethal",
+            "I find {shelter} in {place} before the elements turn lethal",
             "I start a fire in {where} with stubborn materials",
             "I locate {forage} or water when supplies run low",
             "I rig {shelter} from what {place} offers and keep {who} alive",
@@ -934,7 +934,7 @@ SKILL_TEMPLATES = {
             "I eat the wrong {forage} and feel it later",
             "I ignore {weather} signs in {place} until we're in trouble",
             "I lose the path in {where} and panic sets in",
-            "The wilds around {place} beat my survival instincts today",
+            "The conditions in {place} beat my survival instincts today",
         ],
     },
 }

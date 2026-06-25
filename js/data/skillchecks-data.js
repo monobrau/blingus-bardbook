@@ -440,7 +440,7 @@ const skillChecks = {
     "I underestimate wolf sign in the mud near the area",
     "I confuse edible and toxic berries I recognize on sight in here",
     "I ignore the party's warnings and trust bad nature lore",
-    "The wilds around the area outsmart my knowledge today",
+    "Nature outsmarts my knowledge in the area today",
     "I misidentify berries I recognize on sight in here and nearly poison us with confidence",
     "I read wolf sign in the mud sign wrong in the ridge we have to descend and choose a route worth a tragic ballad",
     "I dismiss a black line of storm on the horizon signs in here and we pay for it like an unpaid bar tab",
@@ -448,7 +448,7 @@ const skillChecks = {
     "I underestimate wolf sign in the mud near the area and learn animals don't care about my reputation",
     "I confuse edible and toxic berries I recognize on sight in here, survival is not my genre",
     "I ignore the party's warnings and trust bad nature lore because I'm stubborn",
-    "The wilds around the area outsmart my knowledge today and I'm humble about it",
+    "Nature outsmarts my knowledge in the area today and I'm humble about it",
   ],
   "Perception - Success": [
     "I spot a cave mouth hidden by brush in the area before anyone else",
@@ -671,7 +671,7 @@ const skillChecks = {
   ],
   "Survival - Success": [
     "I read prints leading toward the pass in the ridge we have to descend and choose the safe path",
-    "I find a rock overhang out of the wind in the area before weather turns lethal",
+    "I find a rock overhang out of the wind in the area before the elements turn lethal",
     "I start a fire in here with stubborn materials",
     "I locate cattails and edible roots or water when supplies run low",
     "I rig a rock overhang out of the wind from what the area offers and keep the party alive",
@@ -679,7 +679,7 @@ const skillChecks = {
     "I navigate the ridge we have to descend without getting turned around",
     "I preserve supplies in the area when options are thin",
     "I read prints leading toward the pass in the ridge we have to descend and choose the path that won't kill the mood or us",
-    "I find a rock overhang out of the wind in the area before weather turns lethal or melodramatic",
+    "I find a rock overhang out of the wind in the area before the elements turn lethal or melodramatic",
     "I start a fire in here with stubborn materials and unreasonable optimism",
     "I locate cattails and edible roots or water when supplies run low and morale lower",
     "I rig a rock overhang out of the wind from what the area offers and keep the party alive and complaining less",
@@ -695,7 +695,7 @@ const skillChecks = {
     "I eat the wrong cattails and edible roots and feel it later",
     "I ignore a black line of storm on the horizon signs in the area until we're in trouble",
     "I lose the path in here and panic sets in",
-    "The wilds around the area beat my survival instincts today",
+    "The conditions in the area beat my survival instincts today",
     "I misread prints leading toward the pass in the ridge we have to descend and lead us astray with confident wrongness",
     "I can't get a fire going in the area despite trying and cursing poetically",
     "I choose the wrong camp in here and we pay for it in cold and regret",
@@ -703,7 +703,7 @@ const skillChecks = {
     "I eat the wrong cattails and edible roots and feel it later in ways performance can't fix",
     "I ignore signs of a black line of storm on the horizon in the area until we're in trouble and I'm out of quips",
     "I lose the path in here and panic sets in among the party",
-    "The wilds around the area beat my survival instincts today, humbling and damp",
+    "The conditions in the area beat my survival instincts today, humbling and damp",
   ],
 };
 window.BlingusData.skillChecks = skillChecks;
