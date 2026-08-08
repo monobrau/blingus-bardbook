@@ -30,7 +30,8 @@ $allowedOrigins = [
     'http://bardbook.knospe.org',
 ];
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-if (in_array($origin, $allowedOrigins) || empty($allowedOrigins)) {
+$localOrigin = (bool) preg_match('#^https?://(localhost|127\.0\.0\.1)(:\d+)?$#', $origin);
+if (in_array($origin, $allowedOrigins, true) || $localOrigin || empty($allowedOrigins)) {
     header('Access-Control-Allow-Origin: ' . ($origin ?: '*'));
 } else {
     header('Access-Control-Allow-Origin: ' . ($allowedOrigins[0] ?? '*'));

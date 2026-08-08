@@ -97,11 +97,30 @@ Each suggestion includes the appropriate D&D 5e skill or tool proficiency.
 
 ## 🚀 Usage
 
-### Local Usage
-Simply open `index.html` in your web browser. All functionality is client-side using JavaScript and localStorage for persistence.
+### Local mode (no nginx / Apache)
+Cross-platform launcher that spins up a local server and opens your browser:
+
+```bash
+# macOS / Linux
+./start-local
+
+# Windows
+start-local.cmd
+
+# Or directly
+python3 scripts/local_server.py
+```
+
+- Default URL: `http://127.0.0.1:8765/`
+- Prefers **PHP CLI** when `php` is on PATH (full karaoke + PHP APIs)
+- Otherwise uses **Python 3** (stdlib only) for the app, Claude Outcomes, and JSON data save/load
+- Options: `--port 9000`, `--no-browser`, `--engine php|python|auto`
+- Claude generate needs `ANTHROPIC_API_KEY` or `api/.anthropic_key`
+
+Do **not** open `index.html` via `file://` — Outcomes and APIs need the local server.
 
 ### Server Deployment
-For server-side storage with automatic sync:
+For always-on hosting with PHP-FPM / Nginx:
 1. Deploy to a web server with PHP (PHP-FPM recommended)
 2. Ensure the `/data/` directory exists and is writable
 3. Configure Nginx/Apache to execute PHP files (see `NGINX_CONFIG.md` and `PHP_SETUP.md`)

@@ -1,9 +1,10 @@
 /**
- * Multi-step workflow for actions, critical hits/fails, and skill checks.
- * Step 1: Location / scene
- * Step 2: Outcome (roleplay, crit hit/fail, skill success/failure — always all five)
- * Step 3: Weapon, magic type, or skill (when the outcome needs it)
- * Step 4: Target filter (narrows/highlighting only — never hides outcomes)
+ * Progressive Outcomes wizard (pill questions):
+ * 1. What do you need? (outcome type)
+ * 2. Where are you? (scene pills)
+ * 3. Attack type / skill (when needed)
+ * 4. Weapon or bard spell (combat) / target
+ * 5. Focus name (optional)
  */
 (function () {
   'use strict';
@@ -13,16 +14,6 @@
     'outcomes', 'actions', 'criticalHits', 'criticalFailures', 'skillChecks',
   ]);
 
-  const WEAPON_CATEGORIES = [
-    'Arrows', 'Crossbolts', 'Swords', 'Polearms', 'Knives',
-    'Blunt Weapons', 'Axes and Hammers', 'Other Weapons',
-  ];
-
-  const MAGIC_CATEGORIES = [
-    'Fire', 'Cold', 'Lightning', 'Thunder', 'Psychic',
-    'Force', 'Necrotic', 'Radiant', 'Acid',
-  ];
-
   const SKILL_NAMES = [
     'Acrobatics', 'Animal Handling', 'Arcana', 'Athletics', 'Deception',
     'History', 'Insight', 'Intimidation', 'Investigation', 'Medicine',
@@ -30,13 +21,159 @@
     'Sleight of Hand', 'Stealth', 'Survival',
   ];
 
-  const OUTCOME_MODS = [
-    { id: 'roleplay', label: '🎭 Roleplay' },
-    { id: 'hit', label: '⚔️ Crit Hit' },
-    { id: 'fail', label: '💥 Crit Fail' },
-    { id: 'success', label: '✅ Success' },
-    { id: 'failure', label: '❌ Failure' },
+  /** Crit hit/fail: damage family first, then D&D 5.5e (2024) options. */
+  const ATTACK_TYPES = [
+    { id: 'slash', label: '⚔️ Slash' },
+    { id: 'pierce', label: '🏹 Pierce' },
+    { id: 'blunt', label: '🔨 Blunt' },
+    { id: 'magic', label: '✨ Magic' },
   ];
+
+  const ATTACK_OPTIONS = {
+    slash: [
+      {
+        label: 'Weapons',
+        ids: [
+          'Battleaxe', 'Greataxe', 'Handaxe', 'Longsword', 'Scimitar',
+          'Greatsword', 'Glaive', 'Halberd', 'Sickle', 'Whip',
+        ],
+      },
+    ],
+    pierce: [
+      {
+        label: 'Weapons',
+        ids: [
+          'Dagger', 'Shortsword', 'Rapier', 'Spear', 'Javelin', 'Trident',
+          'Pike', 'Morningstar', 'War Pick', 'Shortbow', 'Longbow',
+          'Light Crossbow', 'Hand Crossbow', 'Heavy Crossbow', 'Dart',
+        ],
+      },
+    ],
+    blunt: [
+      {
+        label: 'Weapons',
+        ids: [
+          'Club', 'Greatclub', 'Mace', 'Light Hammer', 'Warhammer', 'Maul',
+          'Flail', 'Quarterstaff', 'Sling',
+        ],
+      },
+    ],
+    magic: [
+      {
+        label: 'Bard Cantrips',
+        ids: ['Vicious Mockery', 'Thunderclap', 'Starry Wisp', 'True Strike'],
+      },
+      {
+        label: 'Bard Spells',
+        ids: [
+          'Dissonant Whispers', 'Thunderwave', 'Earth Tremor',
+          'Cloud of Daggers', 'Shatter', 'Heat Metal', 'Phantasmal Force',
+          'Phantasmal Killer', 'Synaptic Static',
+        ],
+      },
+    ],
+  };
+
+  const OUTCOME_MODS = [
+    { id: 'roleplay', label: '🎭 Roleplay', group: 'scene' },
+    { id: 'hit', label: '⚔️ Crit Hit', group: 'scene' },
+    { id: 'fail', label: '💥 Crit Fail', group: 'scene' },
+    { id: 'success', label: '✅ Success', group: 'scene' },
+    { id: 'failure', label: '❌ Failure', group: 'scene' },
+    { id: 'battleCry', label: '📢 Battle Cry', group: 'speech' },
+    { id: 'insult', label: '🗡️ Insult', group: 'speech' },
+    { id: 'compliment', label: '💬 Compliment', group: 'speech' },
+    { id: 'introduction', label: '🎭 Chaucer Intro', group: 'speech' },
+  ];
+
+  const SPEECH_META = {
+    battleCry: {
+      section: 'outcomes',
+      category: 'battleCries',
+      metaLabel: 'Battle Cry',
+      modalPrefix: '📢',
+    },
+    insult: {
+      section: 'outcomes',
+      category: 'insults',
+      metaLabel: 'Insult',
+      modalPrefix: '🗡️',
+    },
+    compliment: {
+      section: 'outcomes',
+      category: 'compliments',
+      metaLabel: 'Compliment',
+      modalPrefix: '💬',
+    },
+    introduction: {
+      section: 'outcomes',
+      category: 'introductions',
+      metaLabel: 'Chaucer Introduction',
+      modalPrefix: '🎭',
+    },
+  };
+
+  /** Fallback roster; prefers live list from localStorage / script.js when present. */
+  const DEFAULT_PARTY_MEMBERS = [
+    { id: 'blingus', name: 'Blingus', label: '🧚 Blingus' },
+    { id: 'brawn', name: "Brawn O'Neil", label: '💪 Brawn' },
+    { id: 'puck', name: 'Puck Pinewhistle', label: '✨ Puck' },
+    { id: 'vadania', name: 'Vadania Amakiir', label: '🏹 Vadania' },
+    { id: 'bo', name: 'Bo', label: '🍺 Bo' },
+  ];
+
+  const PARTY_LABEL_ICONS = {
+    blingus: '🧚',
+    brawn: '💪',
+    puck: '✨',
+    puke: '✨',
+    vadania: '🏹',
+    vandan: '🏹',
+    'van damme': '🎭',
+    bo: '🍺',
+  };
+
+  // Canonical name is Vadania; nicknames still resolve for pills / party mode.
+  const PARTY_NAME_ALIASES = {
+    vadania: 'Vadania Amakiir',
+    vandan: 'Vadania Amakiir',
+    'van damme': 'Vadania Amakiir',
+    vandamme: 'Vadania Amakiir',
+    puke: 'Puck Pinewhistle',
+  };
+
+  function partyIconFor(name) {
+    const key = String(name || '').trim().toLowerCase();
+    if (PARTY_LABEL_ICONS[key]) return PARTY_LABEL_ICONS[key];
+    const first = key.split(/\s+/)[0];
+    return PARTY_LABEL_ICONS[first] || '🎲';
+  }
+
+  function getPartyMembers() {
+    try {
+      const raw = localStorage.getItem('blingusPartyMembersV1');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length) {
+          return parsed
+            .filter((n) => typeof n === 'string' && n.trim())
+            .map((name) => {
+              const trimmed = name.trim();
+              const canonical = PARTY_NAME_ALIASES[trimmed.toLowerCase()] || trimmed;
+              const short = canonical.split(/\s+/)[0];
+              return {
+                id: short.toLowerCase().replace(/[^a-z0-9]+/g, ''),
+                name: canonical,
+                label: `${partyIconFor(canonical)} ${short}`,
+              };
+            });
+        }
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    return DEFAULT_PARTY_MEMBERS.slice();
+  }
 
   const SCENE_GROUPS = [
     {
@@ -62,6 +199,84 @@
       label: 'Special',
       ids: ['Carnival / Feywild (Wild Beyond The Witchlight)'],
     },
+  ];
+
+  const SETTINGS = [
+    { id: 'indoors', label: '🏠 Indoors' },
+    { id: 'outdoors', label: '🌲 Outdoors' },
+  ];
+
+  /** Which preset places make sense for each setting. Custom typed places always allowed. */
+  const SCENES_BY_SETTING = {
+    indoors: new Set([
+      'Tavern', 'Inn', 'Shop', 'Temple', 'Blacksmith', 'Castle', 'Dungeon',
+      'Cave', 'Crypt', 'Tower', 'Fort', 'Sewers', 'Mine', 'Listening for Rumors',
+      'Carnival / Feywild (Wild Beyond The Witchlight)',
+    ]),
+    outdoors: new Set([
+      'Village', 'Town Square', 'Market', 'Ruins', 'Forest', 'Mountains', 'Hills',
+      'Desert', 'Jungle', 'Plains', 'Swamp / Marsh', 'Coast', 'Tundra', 'Bad Weather',
+      'Travelling / On the Trail', 'Camp',
+      'Carnival / Feywild (Wild Beyond The Witchlight)',
+    ]),
+  };
+
+  const WEATHER_OPTIONS = [
+    { id: 'clear', label: '☀️ Clear' },
+    { id: 'overcast', label: '☁️ Overcast' },
+    { id: 'rain', label: '🌧️ Rain' },
+    { id: 'storm', label: '⛈️ Storm' },
+    { id: 'fog', label: '🌫️ Fog' },
+    { id: 'snow', label: '❄️ Snow' },
+    { id: 'blizzard', label: '🌬️ Blizzard' },
+    { id: 'sweltering', label: '🔥 Sweltering' },
+    { id: 'windy', label: '🍃 Windy' },
+    { id: 'weird', label: '✨ Magical weather' },
+  ];
+
+  const LIGHTING_OPTIONS = [
+    { id: 'bright', label: '🔆 Bright' },
+    { id: 'dim', label: '🌗 Dim' },
+    { id: 'candlelight', label: '🕯️ Candlelight' },
+    { id: 'torches', label: '🔥 Torches' },
+    { id: 'hearth', label: '🪵 Hearth glow' },
+    { id: 'magical', label: '✨ Magical light' },
+    { id: 'darkness', label: '🌑 Darkness' },
+    { id: 'flickering', label: '💫 Flickering' },
+  ];
+
+  const ENVIRONMENT_SHARED = [
+    { id: 'crowded', label: 'Crowded' },
+    { id: 'empty', label: 'Empty' },
+    { id: 'noisy', label: 'Noisy' },
+    { id: 'quiet', label: 'Quiet' },
+    { id: 'smoky', label: 'Smoky' },
+    { id: 'wet', label: 'Wet' },
+    { id: 'slippery', label: 'Slippery' },
+    { id: 'cramped', label: 'Cramped' },
+    { id: 'echoey', label: 'Echoey' },
+    { id: 'unstable', label: 'Unstable' },
+    { id: 'magical', label: 'Magical aura' },
+    { id: 'festive', label: 'Festive' },
+    { id: 'hostile', label: 'Hostile mood' },
+    { id: 'bloodied', label: 'Bloodied' },
+    { id: 'onFire', label: 'On fire' },
+    { id: 'flooded', label: 'Flooded' },
+    { id: 'dusty', label: 'Dusty' },
+    { id: 'stinking', label: 'Stinking' },
+  ];
+
+  const ENVIRONMENT_INDOORS = [
+    { id: 'tightQuarters', label: 'Tight quarters' },
+    { id: 'multiLevel', label: 'Multiple levels' },
+    { id: 'hiddenDoors', label: 'Hidden doors' },
+  ];
+
+  const ENVIRONMENT_OUTDOORS = [
+    { id: 'highGround', label: 'High ground' },
+    { id: 'cover', label: 'Plenty of cover' },
+    { id: 'openField', label: 'Open field' },
+    { id: 'difficultTerrain', label: 'Difficult terrain' },
   ];
 
   const SCENE_LABELS = {
@@ -141,6 +356,10 @@
     fail: ['any', 'self', 'ally', 'environment', 'object', 'enemy', 'npc'],
     success: ['any', 'self', 'ally', 'enemy', 'environment', 'npc', 'object'],
     failure: ['any', 'self', 'ally', 'environment', 'npc', 'object'],
+    battleCry: ['any', 'enemy', 'ally', 'self', 'npc'],
+    insult: ['any', 'enemy', 'npc', 'ally', 'self'],
+    compliment: ['any', 'ally', 'npc', 'self', 'enemy'],
+    introduction: ['any', 'ally', 'self', 'npc', 'enemy'],
   };
 
   const ENEMY_PATTERN = /\b(their|them|they|foe|foes|enemy|enemies|opponent|target|adversary|my target)\b/i;
@@ -158,28 +377,52 @@
 
   let state = {
     location: null,
-    outcomeMod: 'roleplay',
+    setting: null,
+    weather: null,
+    lighting: null,
+    environment: [],
+    outcomeMod: null,
+    attackType: null,
     subtype: null,
     targets: ['any'],
+    focusName: '',
   };
 
-  let activeSection = 'actions';
+  let activeSection = 'outcomes';
   let onChangeCallback = null;
   let panelEl = null;
   let sceneSelectEl = null;
+  let sceneStepEl = null;
+  let settingChipsEl = null;
+  let placeBlockEl = null;
+  let sceneGroupsEl = null;
+  let sceneInputEl = null;
+  let sceneInputBound = false;
+  let conditionBlockEl = null;
+  let weatherBlockEl = null;
+  let weatherChipsEl = null;
+  let lightingBlockEl = null;
+  let lightingChipsEl = null;
+  let environmentChipsEl = null;
   let outcomeStepEl = null;
   let outcomeLabelEl = null;
   let outcomeEl = null;
+  let attackTypeStepEl = null;
+  let attackTypeLabelEl = null;
+  let attackTypeChipsEl = null;
   let detailStepEl = null;
   let detailSelectEl = null;
+  let detailChipsEl = null;
   let detailLabelEl = null;
   let roleplayHintEl = null;
+  let targetStepEl = null;
+  let targetLabelEl = null;
   let targetEl = null;
+  let nameBlockEl = null;
+  let partyChipsEl = null;
+  let nameInputEl = null;
+  let nameInputBound = false;
   let summaryEl = null;
-  let sceneSelectBuilt = false;
-  let detailSelectBound = false;
-  let lastDetailOutcomeMod = null;
-  let lastDetailSection = null;
 
   function isWorkflowSection(section) {
     return WORKFLOW_SECTIONS.has(section);
@@ -214,26 +457,37 @@
     return outcomeMod === 'success' || outcomeMod === 'failure';
   }
 
+  function isSpeechMod(outcomeMod) {
+    return Boolean(SPEECH_META[outcomeMod]);
+  }
+
   function needsDetail(outcomeMod) {
-    return outcomeMod !== 'roleplay';
+    return isCombatMod(outcomeMod) || isSkillMod(outcomeMod);
+  }
+
+  function needsAttackType(outcomeMod) {
+    return isCombatMod(outcomeMod);
   }
 
   function defaultSubtype(outcomeMod) {
-    if (isCombatMod(outcomeMod)) return WEAPON_CATEGORIES[0];
     if (isSkillMod(outcomeMod)) return SKILL_NAMES[0];
     return null;
+  }
+
+  function attackTypeLabel(attackType) {
+    return ATTACK_TYPES.find((t) => t.id === attackType)?.label || attackType || '';
   }
 
   function defaultOutcomeMod(section = activeSection) {
     if (section === 'criticalHits') return 'hit';
     if (section === 'criticalFailures') return 'fail';
     if (section === 'skillChecks') return 'success';
-    if (section === 'outcomes') return state.outcomeMod || 'roleplay';
-    return 'roleplay';
+    if (section === 'actions') return 'roleplay';
+    // Unified outcomes wizard starts blank until the user picks.
+    return null;
   }
 
   function getOutcomeModsForSection(section = activeSection) {
-    // Unified outcomes tab: all five modes in one tree.
     if (section === 'outcomes') return OUTCOME_MODS;
     if (section === 'actions') return OUTCOME_MODS.filter((m) => m.id === 'roleplay');
     if (section === 'criticalHits') return OUTCOME_MODS.filter((m) => m.id === 'hit');
@@ -243,24 +497,51 @@
   }
 
   function clampOutcomeMod(outcomeMod = state.outcomeMod, section = activeSection) {
+    if (!outcomeMod) return null;
     const allowed = getOutcomeModsForSection(section).map((m) => m.id);
     return allowed.includes(outcomeMod) ? outcomeMod : defaultOutcomeMod(section);
   }
 
   function applyTabPreset(section) {
-    // Legacy tabs redirect into the unified outcomes experience.
     if (section === 'actions' || section === 'criticalHits'
       || section === 'criticalFailures' || section === 'skillChecks') {
       section = 'outcomes';
     }
     activeSection = section;
-    state.outcomeMod = clampOutcomeMod(defaultOutcomeMod(section), section);
-    state.subtype = needsDetail(state.outcomeMod) ? (state.subtype || defaultSubtype(state.outcomeMod)) : null;
-    if (!state.location) state.location = defaultLocation();
-    if (!state.targets.length) state.targets = ['any'];
-    state.targets = sanitizeTargets(state.outcomeMod, state.targets);
+    // Fresh wizard each time you open Outcomes.
+    resetWizardState();
+    if (window.OutcomeGenerate?.clearLastResult) {
+      window.OutcomeGenerate.clearLastResult();
+    }
     renderPanel();
     notifyChange();
+  }
+
+  function resetWizardState() {
+    state.outcomeMod = null;
+    state.setting = null;
+    state.location = null;
+    state.weather = null;
+    state.lighting = null;
+    state.environment = [];
+    state.attackType = null;
+    state.subtype = null;
+    state.targets = ['any'];
+    state.focusName = '';
+  }
+
+  function environmentOptionsFor(setting = state.setting) {
+    const shared = ENVIRONMENT_SHARED.slice();
+    if (setting === 'indoors') return shared.concat(ENVIRONMENT_INDOORS);
+    if (setting === 'outdoors') return shared.concat(ENVIRONMENT_OUTDOORS);
+    return shared;
+  }
+
+  function formatEnvironment(ids = state.environment) {
+    const opts = environmentOptionsFor();
+    return (ids || [])
+      .map((id) => opts.find((o) => o.id === id)?.label || id)
+      .filter(Boolean);
   }
 
   /** Payload for Claude generation from the current tree. */
@@ -271,12 +552,22 @@
     }
     const targets = sanitizeTargets(state.outcomeMod, state.targets);
     const target = targets.includes('any') ? 'any' : targets.join(', ');
+    const name = (state.focusName || '').trim();
+    const mood = window.OutcomeGenerate?.getMood?.() || '';
     return {
       ready: true,
       scene: ctx.location,
+      setting: state.setting || '',
+      weather: state.weather || '',
+      lighting: state.lighting || '',
+      environment: formatEnvironment(),
       outcome: state.outcomeMod,
+      attackType: state.attackType || '',
       detail: state.subtype || '',
       target,
+      name,
+      partyMember: isPartyFocusName(name),
+      mood,
       count: 5,
       summary: buildSummary(ctx),
       metaLabel: ctx.metaLabel,
@@ -286,18 +577,40 @@
     };
   }
 
+  function isPartyFocusName(name) {
+    const needle = String(name || '').trim().toLowerCase();
+    if (!needle) return false;
+    if (PARTY_NAME_ALIASES[needle]) return true;
+    return getPartyMembers().some((member) => {
+      const full = member.name.toLowerCase();
+      const first = full.split(/\s+/)[0];
+      return needle === full || needle === first || needle === member.id.toLowerCase();
+    });
+  }
+
+  function showNamePicker(outcomeMod = state.outcomeMod, targets = state.targets) {
+    if (isSpeechMod(outcomeMod)) return true;
+    const personTargets = new Set(['ally', 'enemy', 'npc', 'self']);
+    return sanitizeTargets(outcomeMod, targets).some((id) => personTargets.has(id));
+  }
+
   function resolveOutcomeContext(workflowState = state) {
     const location = normalizeLocationId(workflowState.location);
     const { outcomeMod, subtype } = workflowState;
 
+    if (!outcomeMod) {
+      return { ready: false, reason: 'Start with what happened — pick an outcome type.' };
+    }
+
+    if (!workflowState.setting) {
+      return { ready: false, reason: 'Indoors or outdoors first.' };
+    }
+
     if (!location) {
-      return { ready: false, reason: 'Pick where Blingus is first — location and scene matter!' };
+      return { ready: false, reason: 'Where exactly? Pick a place or type one.' };
     }
 
     if (outcomeMod === 'roleplay') {
-      if (!getSceneIds().includes(location)) {
-        return { ready: false, reason: 'Pick a valid location or scene above.' };
-      }
       return {
         ready: true,
         section: 'actions',
@@ -309,8 +622,30 @@
       };
     }
 
+    if (isSpeechMod(outcomeMod)) {
+      const meta = SPEECH_META[outcomeMod];
+      return {
+        ready: true,
+        section: meta.section,
+        category: meta.category,
+        location,
+        outcomeMod,
+        metaLabel: meta.metaLabel,
+        modalPrefix: meta.modalPrefix,
+      };
+    }
+
+    if (isCombatMod(outcomeMod) && !workflowState.attackType) {
+      return { ready: false, reason: 'Attack type? Slash, pierce, blunt, or magic.' };
+    }
+
     if (!subtype) {
-      return { ready: false, reason: 'Pick a weapon, magic type, or skill for this outcome.' };
+      return {
+        ready: false,
+        reason: isCombatMod(outcomeMod)
+          ? 'Which weapon or bard spell? Pick one below.'
+          : 'Which skill? Pick one below.',
+      };
     }
 
     if (outcomeMod === 'hit') {
@@ -320,6 +655,7 @@
         category: subtype,
         location,
         outcomeMod,
+        attackType: workflowState.attackType,
         metaLabel: 'Critical Hit',
         modalPrefix: '⚔️',
       };
@@ -332,6 +668,7 @@
         category: subtype,
         location,
         outcomeMod,
+        attackType: workflowState.attackType,
         metaLabel: 'Critical Fail',
         modalPrefix: '💥',
       };
@@ -618,23 +955,37 @@
   }
 
   function buildSummary(context) {
-    if (!context.ready) return context.reason || 'Complete the steps above to see outcomes.';
+    if (!context.ready) return context.reason || 'Answer the questions above, then Generate.';
     const sceneLabel = getSceneLabel(state.location);
     const targetLabels = state.targets.includes('any')
-      ? 'any target'
+      ? 'any focus'
       : state.targets.map((id) => TARGETS.find((t) => t.id === id)?.label || id).join(', ');
 
     const modLabel = OUTCOME_MODS.find((m) => m.id === state.outcomeMod)?.label || state.outcomeMod;
     let detail = '';
-    if (state.outcomeMod === 'roleplay') {
-      detail = 'roleplay actions';
+    if (state.outcomeMod === 'roleplay' || isSpeechMod(state.outcomeMod)) {
+      detail = null;
     } else if (isSkillMod(state.outcomeMod)) {
       detail = `${state.subtype} · ${state.outcomeMod === 'success' ? 'Success' : 'Failure'}`;
     } else {
-      detail = `${state.subtype} · ${modLabel}`;
+      const atk = attackTypeLabel(state.attackType).replace(/^[^\s]+\s/, '');
+      detail = `${atk} · ${state.subtype}`;
     }
 
-    return `${sceneLabel} · ${detail} · ${targetLabels}`;
+    const settingLabel = SETTINGS.find((s) => s.id === state.setting)?.label || state.setting;
+    const weatherLabel = WEATHER_OPTIONS.find((w) => w.id === state.weather)?.label;
+    const lightingLabel = LIGHTING_OPTIONS.find((l) => l.id === state.lighting)?.label;
+    const envLabels = formatEnvironment();
+
+    const moodLabel = window.OutcomeGenerate?.getMoodMeta?.()?.label || '';
+    const parts = [moodLabel, modLabel, settingLabel, sceneLabel].filter(Boolean);
+    if (weatherLabel) parts.push(weatherLabel);
+    if (lightingLabel) parts.push(lightingLabel);
+    if (envLabels.length) parts.push(envLabels.join(', '));
+    if (detail) parts.push(detail);
+    parts.push(targetLabels);
+    if ((state.focusName || '').trim()) parts.push(state.focusName.trim());
+    return parts.join(' · ');
   }
 
   function syncCategorySelect(context) {
@@ -656,41 +1007,101 @@
   }
 
   function setState(partial) {
-    if (partial.location) {
-      partial.location = normalizeLocationId(partial.location);
+    if (Object.prototype.hasOwnProperty.call(partial, 'location')) {
+      const loc = String(partial.location || '').trim();
+      partial.location = loc ? normalizeLocationId(loc) : null;
     }
-    if (partial.outcomeMod) {
+    if (Object.prototype.hasOwnProperty.call(partial, 'outcomeMod') && partial.outcomeMod) {
       partial.outcomeMod = clampOutcomeMod(partial.outcomeMod);
     }
-    const prevOutcomeMod = state.outcomeMod;
-    state = { ...state, ...partial };
-    if (partial.outcomeMod) {
-      const prevKind = isCombatMod(prevOutcomeMod) ? 'combat'
-        : isSkillMod(prevOutcomeMod) ? 'skill' : null;
-      const nextKind = isCombatMod(state.outcomeMod) ? 'combat'
-        : isSkillMod(state.outcomeMod) ? 'skill' : null;
-      if (!needsDetail(state.outcomeMod)) {
-        state.subtype = null;
-      } else if (prevKind !== nextKind || !state.subtype) {
-        state.subtype = defaultSubtype(state.outcomeMod);
+
+    const changingOutcome = Object.prototype.hasOwnProperty.call(partial, 'outcomeMod')
+      && partial.outcomeMod !== state.outcomeMod;
+    const changingSetting = Object.prototype.hasOwnProperty.call(partial, 'setting')
+      && partial.setting !== state.setting;
+    const changingLocation = Object.prototype.hasOwnProperty.call(partial, 'location')
+      && partial.location !== state.location;
+    const changingAttackType = Object.prototype.hasOwnProperty.call(partial, 'attackType')
+      && partial.attackType !== state.attackType;
+
+    // Changing an earlier answer clears everything downstream.
+    if (changingOutcome) {
+      partial.setting = null;
+      partial.location = null;
+      partial.weather = null;
+      partial.lighting = null;
+      partial.environment = [];
+      partial.attackType = null;
+      partial.subtype = null;
+      partial.targets = ['any'];
+      partial.focusName = '';
+    } else if (changingSetting) {
+      partial.location = null;
+      partial.weather = null;
+      partial.lighting = null;
+      partial.environment = [];
+      partial.attackType = null;
+      partial.subtype = null;
+      partial.targets = ['any'];
+      partial.focusName = '';
+    } else if (changingLocation) {
+      if (needsDetail(partial.outcomeMod || state.outcomeMod)) {
+        partial.attackType = null;
+        partial.subtype = null;
       }
-      state.targets = sanitizeTargets(state.outcomeMod, state.targets);
+      partial.targets = ['any'];
+      partial.focusName = '';
+    } else if (changingAttackType) {
+      partial.subtype = null;
     }
-    if (partial.targets) {
-      state.targets = sanitizeTargets(state.outcomeMod, partial.targets);
+
+    state = { ...state, ...partial };
+
+    if (!needsDetail(state.outcomeMod)) {
+      state.subtype = null;
+      state.attackType = null;
+    } else if (!needsAttackType(state.outcomeMod)) {
+      state.attackType = null;
     }
-    if (partial.location) {
+    if (state.setting === 'indoors') state.weather = null;
+    if (state.setting === 'outdoors') state.lighting = null;
+    const allowedEnv = new Set(environmentOptionsFor().map((o) => o.id));
+    state.environment = (state.environment || []).filter((id) => allowedEnv.has(id));
+    state.targets = sanitizeTargets(state.outcomeMod, state.targets);
+    if (!showNamePicker(state.outcomeMod, state.targets)) {
+      state.focusName = '';
+    }
+
+    if (state.location) {
       ensureSceneLoaded(state.location);
+    }
+    if (window.OutcomeGenerate?.clearLastResult) {
+      window.OutcomeGenerate.clearLastResult();
     }
     renderPanel();
     notifyChange();
   }
 
+  function toggleEnvironment(envId) {
+    const allowed = new Set(environmentOptionsFor().map((o) => o.id));
+    if (!allowed.has(envId)) return;
+    const set = new Set(state.environment || []);
+    if (set.has(envId)) set.delete(envId);
+    else set.add(envId);
+    state.environment = [...set];
+    if (window.OutcomeGenerate?.clearLastResult) {
+      window.OutcomeGenerate.clearLastResult();
+    }
+    renderEnvironmentChips();
+    notifyChange();
+  }
+
   function toggleTarget(targetId) {
-    if (!getAllowedTargetIds().includes(targetId)) return;
+    if (!state.outcomeMod || !getAllowedTargetIds().includes(targetId)) return;
 
     if (targetId === 'any') {
       state.targets = ['any'];
+      if (!isSpeechMod(state.outcomeMod)) state.focusName = '';
       renderPanel();
       notifyChange();
       return;
@@ -703,15 +1114,60 @@
       next.push(targetId);
     }
     state.targets = sanitizeTargets(state.outcomeMod, next.length ? next : ['any']);
+    if (!showNamePicker(state.outcomeMod, state.targets)) {
+      state.focusName = '';
+    }
     renderPanel();
     notifyChange();
   }
 
-  function renderChip(container, { id, label, active, disabled, onClick, title, compact }) {
+  function setFocusName(name, { fromInput = false } = {}) {
+    state.focusName = (name || '').trim();
+    if (!fromInput && nameInputEl) {
+      nameInputEl.value = state.focusName;
+    }
+    if (window.OutcomeGenerate?.clearLastResult) {
+      window.OutcomeGenerate.clearLastResult();
+    }
+    renderPartyChips();
+    notifyChange();
+  }
+
+  function renderPartyChips() {
+    if (!partyChipsEl) return;
+    const current = (state.focusName || '').trim();
+    partyChipsEl.innerHTML = '';
+    renderChip(partyChipsEl, {
+      id: 'none',
+      label: 'None',
+      active: !current,
+      onClick: () => setFocusName(''),
+    });
+    getPartyMembers().forEach((member) => {
+      renderChip(partyChipsEl, {
+        id: member.id,
+        label: member.label,
+        active: current === member.name || current.toLowerCase() === member.name.toLowerCase(),
+        onClick: () => setFocusName(member.name),
+      });
+    });
+  }
+
+  function renderNamePicker() {
+    if (!nameBlockEl) return;
+    const show = detailReady() && showNamePicker();
+    nameBlockEl.hidden = !show;
+    if (!show) return;
+    renderPartyChips();
+    if (nameInputEl && document.activeElement !== nameInputEl) {
+      nameInputEl.value = state.focusName || '';
+    }
+  }
+
+  function renderChip(container, { id, label, active, disabled, onClick, title }) {
     const chip = document.createElement('button');
     chip.type = 'button';
-    chip.className = 'chip'
-      + (compact ? ' chip--compact' : '')
+    chip.className = 'chip chip--pill'
       + (active ? ' chip--active' : '')
       + (disabled ? ' chip--disabled' : '');
     chip.textContent = label;
@@ -730,132 +1186,362 @@
     container.appendChild(chip);
   }
 
-  function appendSelectOptions(selectEl, groupLabel, ids, labelFn) {
-    if (!ids.length) return;
-    const group = document.createElement('optgroup');
-    group.label = groupLabel;
-    ids.forEach((id) => {
-      const option = document.createElement('option');
-      option.value = id;
-      option.textContent = labelFn ? labelFn(id) : id;
-      group.appendChild(option);
-    });
-    selectEl.appendChild(group);
+  function syncSceneInput() {
+    if (!sceneInputEl || document.activeElement === sceneInputEl) return;
+    sceneInputEl.value = state.location || '';
   }
 
-  function buildSceneSelect() {
-    if (!sceneSelectEl || sceneSelectBuilt) return;
+  function setCustomLocation(value, { fromInput = false } = {}) {
+    const loc = String(value || '').trim();
+    const next = loc ? normalizeLocationId(loc) : null;
+    const prev = state.location;
+    if (next === prev) {
+      if (!fromInput) syncSceneInput();
+      return;
+    }
+
+    const known = new Set(getSceneIds());
+    const leftKnown = Boolean(prev && known.has(normalizeLocationId(prev)));
+    const enteredKnown = Boolean(next && known.has(next));
+    // Typing a custom place should not wipe later answers on every keystroke.
+    if (!next || leftKnown || enteredKnown) {
+      if (needsDetail(state.outcomeMod)) {
+        state.attackType = null;
+        state.subtype = null;
+      }
+      state.targets = ['any'];
+      state.focusName = '';
+    }
+
+    state.location = next;
+    if (state.location) ensureSceneLoaded(state.location);
+    if (window.OutcomeGenerate?.clearLastResult) {
+      window.OutcomeGenerate.clearLastResult();
+    }
+    if (!fromInput && sceneInputEl) sceneInputEl.value = state.location || '';
+    renderPanel();
+    notifyChange();
+  }
+
+  function renderSettingChips() {
+    if (!settingChipsEl) return;
+    settingChipsEl.innerHTML = '';
+    SETTINGS.forEach((setting) => {
+      renderChip(settingChipsEl, {
+        id: setting.id,
+        label: setting.label,
+        active: state.setting === setting.id,
+        onClick: () => setState({ setting: setting.id }),
+      });
+    });
+  }
+
+  function renderWeatherChips() {
+    if (!weatherChipsEl) return;
+    weatherChipsEl.innerHTML = '';
+    renderChip(weatherChipsEl, {
+      id: 'none',
+      label: 'Any',
+      active: !state.weather,
+      onClick: () => setState({ weather: null }),
+    });
+    WEATHER_OPTIONS.forEach((opt) => {
+      renderChip(weatherChipsEl, {
+        id: opt.id,
+        label: opt.label,
+        active: state.weather === opt.id,
+        onClick: () => setState({ weather: opt.id }),
+      });
+    });
+  }
+
+  function renderLightingChips() {
+    if (!lightingChipsEl) return;
+    lightingChipsEl.innerHTML = '';
+    renderChip(lightingChipsEl, {
+      id: 'none',
+      label: 'Any',
+      active: !state.lighting,
+      onClick: () => setState({ lighting: null }),
+    });
+    LIGHTING_OPTIONS.forEach((opt) => {
+      renderChip(lightingChipsEl, {
+        id: opt.id,
+        label: opt.label,
+        active: state.lighting === opt.id,
+        onClick: () => setState({ lighting: opt.id }),
+      });
+    });
+  }
+
+  function renderEnvironmentChips() {
+    if (!environmentChipsEl) return;
+    environmentChipsEl.innerHTML = '';
+    environmentOptionsFor().forEach((opt) => {
+      renderChip(environmentChipsEl, {
+        id: opt.id,
+        label: opt.label,
+        active: (state.environment || []).includes(opt.id),
+        onClick: () => toggleEnvironment(opt.id),
+      });
+    });
+  }
+
+  function renderScenePills() {
+    if (!sceneGroupsEl) return;
+    sceneGroupsEl.innerHTML = '';
+    const known = new Set(getSceneIds());
+    const allowed = SCENES_BY_SETTING[state.setting] || known;
+    const selected = normalizeLocationId(state.location);
+    const selectedIsKnown = Boolean(selected && known.has(selected) && allowed.has(selected));
 
     SCENE_GROUPS.forEach((group) => {
-      const ids = group.ids.filter((id) => getSceneIds().includes(id));
-      appendSelectOptions(sceneSelectEl, group.label, ids, getSceneLabel);
+      const ids = group.ids.filter((id) => known.has(id) && allowed.has(id));
+      if (!ids.length) return;
+      const block = document.createElement('div');
+      block.className = 'workflow__scene-group';
+      const heading = document.createElement('div');
+      heading.className = 'workflow__scene-group-label';
+      heading.textContent = group.label;
+      block.appendChild(heading);
+      const chips = document.createElement('div');
+      chips.className = 'chips chips--pills';
+      chips.setAttribute('role', 'group');
+      chips.setAttribute('aria-label', group.label);
+      ids.forEach((id) => {
+        renderChip(chips, {
+          id,
+          label: getSceneLabel(id),
+          active: selectedIsKnown && selected === id,
+          onClick: () => setState({ location: id }),
+        });
+      });
+      block.appendChild(chips);
+      sceneGroupsEl.appendChild(block);
     });
 
     const grouped = new Set(SCENE_GROUPS.flatMap((g) => g.ids));
-    const orphans = getSceneIds().filter((id) => !grouped.has(id));
-    appendSelectOptions(sceneSelectEl, 'Other', orphans, getSceneLabel);
+    const orphans = getSceneIds().filter((id) => !grouped.has(id) && allowed.has(id));
+    if (orphans.length) {
+      const block = document.createElement('div');
+      block.className = 'workflow__scene-group';
+      const heading = document.createElement('div');
+      heading.className = 'workflow__scene-group-label';
+      heading.textContent = 'Other';
+      block.appendChild(heading);
+      const chips = document.createElement('div');
+      chips.className = 'chips chips--pills';
+      orphans.forEach((id) => {
+        renderChip(chips, {
+          id,
+          label: getSceneLabel(id),
+          active: selectedIsKnown && selected === id,
+          onClick: () => setState({ location: id }),
+        });
+      });
+      block.appendChild(chips);
+      sceneGroupsEl.appendChild(block);
+    }
 
-    sceneSelectEl.addEventListener('change', () => {
-      if (sceneSelectEl.value) setState({ location: sceneSelectEl.value });
+    if (sceneSelectEl && selectedIsKnown) {
+      sceneSelectEl.value = selected;
+    }
+    syncSceneInput();
+  }
+
+  function renderAttackTypePills() {
+    if (!attackTypeChipsEl) return;
+    attackTypeChipsEl.innerHTML = '';
+    ATTACK_TYPES.forEach((type) => {
+      renderChip(attackTypeChipsEl, {
+        id: type.id,
+        label: type.label,
+        active: state.attackType === type.id,
+        onClick: () => setState({ attackType: type.id }),
+      });
+    });
+  }
+
+  function renderDetailPills() {
+    if (!detailChipsEl) return;
+    detailChipsEl.innerHTML = '';
+    if (!needsDetail(state.outcomeMod) || !state.location) return;
+
+    const groups = [];
+    if (isCombatMod(state.outcomeMod)) {
+      if (!state.attackType || !ATTACK_OPTIONS[state.attackType]) return;
+      ATTACK_OPTIONS[state.attackType].forEach((group) => groups.push(group));
+    } else if (isSkillMod(state.outcomeMod)) {
+      groups.push({ label: 'Skills', ids: SKILL_NAMES });
+    }
+
+    groups.forEach((group) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'workflow__detail-group';
+      if (groups.length > 1 || isCombatMod(state.outcomeMod)) {
+        const heading = document.createElement('div');
+        heading.className = 'workflow__scene-group-label';
+        heading.textContent = group.label;
+        wrap.appendChild(heading);
+      }
+      const chips = document.createElement('div');
+      chips.className = 'chips chips--pills';
+      group.ids.forEach((id) => {
+        renderChip(chips, {
+          id,
+          label: id,
+          active: state.subtype === id,
+          onClick: () => setState({ subtype: id }),
+        });
+      });
+      wrap.appendChild(chips);
+      detailChipsEl.appendChild(wrap);
     });
 
-    sceneSelectBuilt = true;
-  }
-
-  function syncSceneSelect() {
-    if (!sceneSelectEl) return;
-    buildSceneSelect();
-    const loc = normalizeLocationId(state.location);
-    if (loc && Array.from(sceneSelectEl.options).some((opt) => opt.value === loc)) {
-      sceneSelectEl.value = loc;
-    }
-  }
-
-  function syncDetailSelect() {
-    if (!detailSelectEl || !detailStepEl) return;
-
-    const showDetail = needsDetail(state.outcomeMod);
-    detailStepEl.style.display = showDetail ? '' : 'none';
-    if (detailLabelEl) {
-      if (isCombatMod(state.outcomeMod)) detailLabelEl.textContent = 'Weapon / magic';
-      else if (isSkillMod(state.outcomeMod)) detailLabelEl.textContent = 'Skill';
-      else detailLabelEl.textContent = 'Weapon / skill';
-    }
-
-    if (!showDetail) return;
-
-    const rebuildDetail = lastDetailOutcomeMod !== state.outcomeMod
-      || (isSkillMod(state.outcomeMod) && lastDetailSection !== activeSection);
-    if (rebuildDetail) {
-      detailSelectEl.innerHTML = '';
-      if (isCombatMod(state.outcomeMod)) {
-        appendSelectOptions(detailSelectEl, 'Weapons', WEAPON_CATEGORIES);
-        appendSelectOptions(detailSelectEl, 'Magic', MAGIC_CATEGORIES);
-      } else if (isSkillMod(state.outcomeMod)) {
-        appendSelectOptions(detailSelectEl, 'Skills', SKILL_NAMES);
-      }
-      lastDetailOutcomeMod = state.outcomeMod;
-      lastDetailSection = activeSection;
-    }
-
-    const options = Array.from(detailSelectEl.options);
-    if (state.subtype && options.some((opt) => opt.value === state.subtype)) {
+    if (detailSelectEl && state.subtype) {
       detailSelectEl.value = state.subtype;
-    } else {
-      const fallback = defaultSubtype(state.outcomeMod);
-      detailSelectEl.value = fallback;
-      state.subtype = fallback;
     }
+  }
+
+  function detailReady() {
+    if (!state.outcomeMod || !state.setting || !state.location) return false;
+    if (!needsDetail(state.outcomeMod)) return true;
+    if (needsAttackType(state.outcomeMod) && !state.attackType) return false;
+    return Boolean(state.subtype);
   }
 
   function renderPanel() {
-    if (!panelEl) return;
+    if (!panelEl || !outcomeEl) return;
 
-    panelEl.classList.toggle('workflow--skills', activeSection === 'skillChecks');
-
-    if (roleplayHintEl) {
-      roleplayHintEl.style.display = state.outcomeMod === 'roleplay' ? '' : 'none';
+    panelEl.classList.toggle('workflow--skills', isSkillMod(state.outcomeMod));
+    if (window.OutcomeGenerate?.initMoodUI) {
+      window.OutcomeGenerate.initMoodUI();
     }
 
-    syncSceneSelect();
-    syncDetailSelect();
-
-    const outcomeMods = getOutcomeModsForSection();
-    const showOutcomeStep = outcomeMods.length > 1;
-    if (outcomeStepEl) outcomeStepEl.hidden = !showOutcomeStep;
     if (outcomeLabelEl) {
-      if (activeSection === 'skillChecks') {
-        outcomeLabelEl.innerHTML = 'Result <span class="workflow__hint">(Success or Failure category)</span>';
-      } else {
-        outcomeLabelEl.textContent = 'Outcome';
-      }
+      outcomeLabelEl.textContent = '1. What do you need?';
     }
 
     outcomeEl.innerHTML = '';
-    outcomeMods.forEach((mod) => {
-      renderChip(outcomeEl, {
-        id: mod.id,
-        label: mod.label,
-        active: state.outcomeMod === mod.id,
-        compact: true,
-        onClick: () => setState({ outcomeMod: mod.id }),
-      });
-    });
+    const mods = getOutcomeModsForSection();
+    const sceneMods = mods.filter((m) => m.group !== 'speech');
+    const speechMods = mods.filter((m) => m.group === 'speech');
 
-    targetEl.innerHTML = '';
-    const allowedTargets = new Set(getAllowedTargetIds());
-    TARGETS.forEach((target) => {
-      const disabled = !allowedTargets.has(target.id);
-      renderChip(targetEl, {
-        id: target.id,
-        label: target.label,
-        active: state.targets.includes(target.id),
-        compact: true,
-        disabled,
-        title: disabled ? `Doesn't apply to ${OUTCOME_MODS.find((m) => m.id === state.outcomeMod)?.label || 'this outcome'}` : '',
-        onClick: () => toggleTarget(target.id),
+    function appendOutcomeGroup(label, groupMods) {
+      if (!groupMods.length) return;
+      const block = document.createElement('div');
+      block.className = 'workflow__outcome-group';
+      const heading = document.createElement('div');
+      heading.className = 'workflow__scene-group-label';
+      heading.textContent = label;
+      block.appendChild(heading);
+      const chips = document.createElement('div');
+      chips.className = 'chips chips--pills';
+      chips.setAttribute('role', 'group');
+      chips.setAttribute('aria-label', label);
+      groupMods.forEach((mod) => {
+        renderChip(chips, {
+          id: mod.id,
+          label: mod.label,
+          active: state.outcomeMod === mod.id,
+          onClick: () => setState({ outcomeMod: mod.id }),
+        });
       });
-    });
+      block.appendChild(chips);
+      outcomeEl.appendChild(block);
+    }
+
+    if (speechMods.length && sceneMods.length) {
+      appendOutcomeGroup('Scene outcomes', sceneMods);
+      appendOutcomeGroup('Lines & quips', speechMods);
+    } else {
+      mods.forEach((mod) => {
+        renderChip(outcomeEl, {
+          id: mod.id,
+          label: mod.label,
+          active: state.outcomeMod === mod.id,
+          onClick: () => setState({ outcomeMod: mod.id }),
+        });
+      });
+    }
+
+    const showScene = Boolean(state.outcomeMod);
+    if (sceneStepEl) sceneStepEl.hidden = !showScene;
+    if (showScene) {
+      renderSettingChips();
+      const showPlace = Boolean(state.setting);
+      if (placeBlockEl) placeBlockEl.hidden = !showPlace;
+      if (showPlace) renderScenePills();
+      const showConditions = showPlace && Boolean(state.location);
+      if (conditionBlockEl) conditionBlockEl.hidden = !showConditions;
+      if (weatherBlockEl) weatherBlockEl.hidden = !(showConditions && state.setting === 'outdoors');
+      if (lightingBlockEl) lightingBlockEl.hidden = !(showConditions && state.setting === 'indoors');
+      if (showConditions) {
+        if (state.setting === 'outdoors') renderWeatherChips();
+        if (state.setting === 'indoors') renderLightingChips();
+        renderEnvironmentChips();
+      }
+    } else if (sceneInputEl && document.activeElement !== sceneInputEl) {
+      sceneInputEl.value = '';
+    }
+
+    const placeReady = Boolean(state.setting && state.location);
+    const showAttackType = showScene && placeReady && needsAttackType(state.outcomeMod);
+    if (attackTypeStepEl) attackTypeStepEl.hidden = !showAttackType;
+    if (attackTypeLabelEl) attackTypeLabelEl.textContent = '3. Attack type?';
+    if (showAttackType) renderAttackTypePills();
+
+    const showDetail = showScene && placeReady && needsDetail(state.outcomeMod)
+      && (!needsAttackType(state.outcomeMod) || Boolean(state.attackType));
+    if (detailStepEl) detailStepEl.hidden = !showDetail;
+    if (detailLabelEl) {
+      if (isCombatMod(state.outcomeMod)) {
+        const n = 4;
+        detailLabelEl.textContent = state.attackType === 'magic'
+          ? `${n}. Which bard spell?`
+          : `${n}. Which weapon?`;
+      } else if (isSkillMod(state.outcomeMod)) {
+        detailLabelEl.textContent = '3. Which skill?';
+      } else {
+        detailLabelEl.textContent = '3. Which skill or weapon?';
+      }
+    }
+    if (roleplayHintEl) roleplayHintEl.style.display = 'none';
+    if (showDetail) renderDetailPills();
+
+    const showTarget = detailReady();
+    if (targetStepEl) targetStepEl.hidden = !showTarget;
+    if (targetLabelEl) {
+      let n = 3;
+      if (isCombatMod(state.outcomeMod)) n = 5;
+      else if (isSkillMod(state.outcomeMod)) n = 4;
+      if (isSpeechMod(state.outcomeMod)) {
+        targetLabelEl.innerHTML = `${n}. Who is this about? <span class="workflow__hint">(optional)</span>`;
+      } else {
+        targetLabelEl.innerHTML = `${n}. Who or what is the focus? <span class="workflow__hint">(optional)</span>`;
+      }
+    }
+    if (targetEl) {
+      targetEl.innerHTML = '';
+      if (showTarget) {
+        const allowedTargets = new Set(getAllowedTargetIds());
+        TARGETS.forEach((target) => {
+          const disabled = !allowedTargets.has(target.id);
+          renderChip(targetEl, {
+            id: target.id,
+            label: target.label,
+            active: state.targets.includes(target.id),
+            disabled,
+            title: disabled
+              ? `Doesn't apply to ${OUTCOME_MODS.find((m) => m.id === state.outcomeMod)?.label || 'this outcome'}`
+              : '',
+            onClick: () => toggleTarget(target.id),
+          });
+        });
+      }
+    }
+    if (showTarget) renderNamePicker();
+    else if (nameBlockEl) nameBlockEl.hidden = true;
   }
 
   function showPanel(show) {
@@ -863,37 +1549,85 @@
     panelEl.style.display = show ? '' : 'none';
     const chipsRow = document.getElementById('categoryChipsRow');
     if (chipsRow) chipsRow.style.display = show ? 'none' : '';
+    const searchRow = document.getElementById('searchToolbarRow');
+    if (searchRow) searchRow.style.display = show ? 'none' : '';
+    const filtersRow = document.getElementById('filtersToolbarRow');
+    if (filtersRow && show) filtersRow.style.display = 'none';
   }
 
   function init(options = {}) {
     panelEl = document.getElementById('workflowPanel');
     sceneSelectEl = document.getElementById('workflowSceneSelect');
+    sceneStepEl = document.getElementById('workflowSceneStep');
+    settingChipsEl = document.getElementById('workflowSettingChips');
+    placeBlockEl = document.getElementById('workflowPlaceBlock');
+    sceneGroupsEl = document.getElementById('workflowSceneGroups');
+    sceneInputEl = document.getElementById('workflowSceneInput');
+    conditionBlockEl = document.getElementById('workflowConditionBlock');
+    weatherBlockEl = document.getElementById('workflowWeatherBlock');
+    weatherChipsEl = document.getElementById('workflowWeatherChips');
+    lightingBlockEl = document.getElementById('workflowLightingBlock');
+    lightingChipsEl = document.getElementById('workflowLightingChips');
+    environmentChipsEl = document.getElementById('workflowEnvironmentChips');
     outcomeStepEl = document.getElementById('workflowOutcomeStep');
     outcomeLabelEl = document.getElementById('workflowOutcomeLabel');
     outcomeEl = document.getElementById('workflowOutcomeChips');
+    attackTypeStepEl = document.getElementById('workflowAttackTypeStep');
+    attackTypeLabelEl = document.getElementById('workflowAttackTypeLabel');
+    attackTypeChipsEl = document.getElementById('workflowAttackTypeChips');
     detailStepEl = document.getElementById('workflowDetailStep');
     detailSelectEl = document.getElementById('workflowDetailSelect');
+    detailChipsEl = document.getElementById('workflowDetailChips');
     detailLabelEl = document.getElementById('workflowDetailLabel');
     roleplayHintEl = document.getElementById('workflowRoleplayHint');
+    targetStepEl = document.getElementById('workflowTargetStep');
+    targetLabelEl = document.getElementById('workflowTargetLabel');
     targetEl = document.getElementById('workflowTargetChips');
+    nameBlockEl = document.getElementById('workflowNameBlock');
+    partyChipsEl = document.getElementById('workflowPartyChips');
+    nameInputEl = document.getElementById('workflowNameInput');
     summaryEl = document.getElementById('workflowSummary');
     onChangeCallback = options.onChange || null;
 
     if (!panelEl) return;
 
-    if (detailSelectEl && !detailSelectBound) {
-      detailSelectEl.addEventListener('change', () => {
-        if (detailSelectEl.value) setState({ subtype: detailSelectEl.value });
+    if (sceneInputEl && !sceneInputBound) {
+      sceneInputEl.addEventListener('input', () => {
+        setCustomLocation(sceneInputEl.value, { fromInput: true });
       });
-      detailSelectBound = true;
+      sceneInputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          sceneInputEl.blur();
+        }
+      });
+      sceneInputBound = true;
     }
 
-    state.location = normalizeLocationId(state.location || defaultLocation());
-    if (needsDetail(state.outcomeMod)) {
-      state.subtype = state.subtype || defaultSubtype(state.outcomeMod);
+    if (nameInputEl && !nameInputBound) {
+      nameInputEl.addEventListener('input', () => {
+        setFocusName(nameInputEl.value, { fromInput: true });
+      });
+      nameInputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          nameInputEl.blur();
+        }
+      });
+      nameInputBound = true;
     }
-    state.targets = sanitizeTargets(state.outcomeMod, state.targets);
-    ensureSceneLoaded(state.location);
+
+    // Wizard starts blank — user answers questions top to bottom.
+    resetWizardState();
+    if (!window.__blingusMoodListenerBound) {
+      window.addEventListener('blingus-mood-change', () => {
+        if (window.OutcomeGenerate?.clearLastResult) {
+          window.OutcomeGenerate.clearLastResult();
+        }
+        notifyChange();
+      });
+      window.__blingusMoodListenerBound = true;
+    }
     renderPanel();
     notifyChange();
   }

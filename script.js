@@ -18,8 +18,12 @@
   const {
     spells, adultSpells, bardic, mockery, characterActions,
     criticalHits, criticalFailures, skillChecks,
-    battleCries, insults, compliments, introductions
   } = window.BlingusData;
+  // Curated generator pools retired — Claude Outcomes owns battle cries / insults / etc.
+  const battleCries = [];
+  const insults = [];
+  const compliments = [];
+  const introductions = [];
 
   const $ = (sel, root = document) => root.querySelector(sel);
   const content = $('#content');
@@ -67,22 +71,13 @@
       debugLog('User generators:', userGens);
       debugLog('Deleted defaults:', deleted);
       debugLog('Edited defaults:', edited);
-      debugLog('Merged battle cries:', getMergedGenerators('battleCries'));
-      debugLog('Merged insults:', getMergedGenerators('insults'));
-      debugLog('Merged compliments:', getMergedGenerators('compliments'));
-      debugLog('Merged introductions:', getMergedGenerators('introductions'));
-      debugLog('Raw localStorage:', {
-        generators: localStorage.getItem(generatorsKey),
-        deletedDefaults: localStorage.getItem(deletedGeneratorDefaultsKey),
-        editedDefaults: localStorage.getItem(editedDefaultsKey)
-      });
       return { userGens, deleted, edited };
     };
   }
   
   // Clear all Blingus data - can be called from console
   window.clearBlingusData = function() {
-    if (confirm('Clear ALL Blingus data? This will delete favorites, custom items, history, generators, and all customizations. This cannot be undone!')) {
+    if (confirm('Clear ALL Blingus data? This will delete favorites, custom items, history, and all customizations. This cannot be undone!')) {
       const keys = [
         favoritesKey,
         userItemsKey,
@@ -391,6 +386,14 @@
   const generatorsKey = 'blingusGeneratorsV1';
   const editedDefaultsKey = 'blingusEditedDefaultsV1';
   const deletedGeneratorDefaultsKey = 'blingusDeletedGeneratorDefaultsV1';
+  const partyMembersKey = 'blingusPartyMembersV1';
+  const DEFAULT_PARTY_MEMBERS = [
+    'Blingus',
+    'Brawn O\'Neil',
+    'Puck Pinewhistle',
+    'Vadania Amakiir',
+    'Bo',
+  ];
   
   // File-based storage - auto-detect server vs local
   let dataDirectoryHandle = null;
@@ -642,6 +645,7 @@
           if (data.editedGeneratorDefaults !== undefined) localStorage.setItem(editedDefaultsKey, JSON.stringify(data.editedGeneratorDefaults));
           if (data.deletedGeneratorDefaults !== undefined) localStorage.setItem(deletedGeneratorDefaultsKey, JSON.stringify(data.deletedGeneratorDefaults));
           if (data.darkMode !== undefined) localStorage.setItem(darkModeKey, data.darkMode ? 'true' : 'false');
+          if (data.partyMembers !== undefined) localStorage.setItem(partyMembersKey, JSON.stringify(data.partyMembers));
           
           return true;
         }
@@ -734,33 +738,26 @@
       defaultCriticalHits: criticalHits,
       defaultCriticalFailures: criticalFailures,
       defaultSkillChecks: skillChecks,
-      defaultGenerators: {
-        battleCries: battleCries,
-        insults: insults,
-        compliments: compliments,
-        introductions: introductions
-      },
-      
       // User preferences
       favorites: JSON.parse(localStorage.getItem(favoritesKey) || '[]'),
       darkMode: localStorage.getItem(darkModeKey) === 'true',
       
       // User-added content
       userItems: JSON.parse(localStorage.getItem(userItemsKey) || '{}'),
-      generators: JSON.parse(localStorage.getItem(generatorsKey) || '{"battleCries":[],"insults":[],"compliments":[],"introductions":[]}'),
       
       // Default item modifications (edits and deletions)
       deletedDefaults: JSON.parse(localStorage.getItem(deletedDefaultsKey) || '{}'),
-      editedGeneratorDefaults: JSON.parse(localStorage.getItem(editedDefaultsKey) || '{"battleCries":{},"insults":{},"compliments":{},"introductions":{}}'),
-      deletedGeneratorDefaults: JSON.parse(localStorage.getItem(deletedGeneratorDefaultsKey) || '{"battleCries":[],"insults":[],"compliments":[],"introductions":[]}'),
       
       // Usage history
       history: JSON.parse(localStorage.getItem(historyKey) || '[]'),
+
+      // Party roster for Outcomes targeting
+      partyMembers: loadPartyMembers(),
       
       // Metadata
       version: '1.4',
       timestamp: new Date().toISOString(),
-      exportNote: 'Complete export including all default items (spells, bardic, mockery, actions, criticalHits, criticalFailures, skillChecks, generators) plus all user customizations (favorites, custom items, edits, deletions, history, YouTube and local karaoke settings).'
+      exportNote: 'Complete export including default song/action datasets plus user customizations (favorites, custom items, edits, deletions, history, YouTube and local karaoke settings).'
     };
   }
   
@@ -827,6 +824,7 @@
       if (data.editedGeneratorDefaults !== undefined) localStorage.setItem(editedDefaultsKey, JSON.stringify(data.editedGeneratorDefaults));
       if (data.deletedGeneratorDefaults !== undefined) localStorage.setItem(deletedGeneratorDefaultsKey, JSON.stringify(data.deletedGeneratorDefaults));
       if (data.darkMode !== undefined) localStorage.setItem(darkModeKey, data.darkMode ? 'true' : 'false');
+      if (data.partyMembers !== undefined) localStorage.setItem(partyMembersKey, JSON.stringify(data.partyMembers));
       
       return true;
     } catch (error) {
@@ -1028,6 +1026,108 @@
   }
 
   // Get merged generators (defaults + user-added, respecting edits and deletions)
+  function loadPartyMembers() {
+    try {
+      const raw = localStorage.getItem(partyMembersKey);
+      if (!raw) return DEFAULT_PARTY_MEMBERS.slice();
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return DEFAULT_PARTY_MEMBERS.slice();
+      const cleaned = parsed
+        .filter((n) => typeof n === 'string')
+        .map((n) => n.trim())
+        .filter(Boolean);
+      const migrated = migratePartyRoster(cleaned.length ? cleaned : DEFAULT_PARTY_MEMBERS.slice());
+      if (JSON.stringify(migrated) !== JSON.stringify(cleaned)) {
+        try { localStorage.setItem(partyMembersKey, JSON.stringify(migrated)); } catch (e) { /* ignore */ }
+      }
+      return migrated;
+    } catch (e) {
+      return DEFAULT_PARTY_MEMBERS.slice();
+    }
+  }
+
+  /**
+   * Canonical name is Vadania Amakiir; table nicknames (Vandan, Van Damme)
+   * collapse to that so the roster stays one person.
+   */
+  function migratePartyRoster(members) {
+    const out = [];
+    let needsVadania = false;
+    members.forEach((name) => {
+      const key = name.toLowerCase();
+      if (
+        key === 'vandan'
+        || key === 'van damme'
+        || key === 'vandamme'
+        || key === 'vadania'
+      ) {
+        needsVadania = true;
+        return;
+      }
+      if (key === 'vadania amakiir') {
+        needsVadania = true;
+        return;
+      }
+      out.push(name);
+    });
+    if (needsVadania && !out.some((n) => n.toLowerCase() === 'vadania amakiir')) {
+      out.push('Vadania Amakiir');
+    }
+    return out.length ? out : DEFAULT_PARTY_MEMBERS.slice();
+  }
+
+  function savePartyMembers(members) {
+    const cleaned = (Array.isArray(members) ? members : [])
+      .filter((n) => typeof n === 'string')
+      .map((n) => n.trim())
+      .filter(Boolean);
+    const unique = [];
+    const seen = new Set();
+    cleaned.forEach((name) => {
+      const key = name.toLowerCase();
+      if (seen.has(key)) return;
+      seen.add(key);
+      unique.push(name);
+    });
+    localStorage.setItem(partyMembersKey, JSON.stringify(unique));
+    scheduleFileSave();
+    return unique;
+  }
+
+  function addPartyMember(name) {
+    const trimmed = String(name || '').trim();
+    if (!trimmed) return loadPartyMembers();
+    const members = loadPartyMembers();
+    if (members.some((m) => m.toLowerCase() === trimmed.toLowerCase())) {
+      return members;
+    }
+    members.push(trimmed);
+    return savePartyMembers(members);
+  }
+
+  function removePartyMember(name) {
+    const key = String(name || '').trim().toLowerCase();
+    const members = loadPartyMembers().filter((m) => m.toLowerCase() !== key);
+    return savePartyMembers(members.length ? members : DEFAULT_PARTY_MEMBERS.slice());
+  }
+
+  function formatDirectedLine(name, line) {
+    return name + ':\n' + line;
+  }
+
+  function pickIntroductionForName(name, pool) {
+    const needle = String(name || '').trim().toLowerCase();
+    if (!needle) return null;
+    const tokens = needle.split(/\s+/).filter(Boolean);
+    const first = tokens[0] || needle;
+    const matches = pool.filter((line) => {
+      const lower = String(line).toLowerCase();
+      return lower.includes(needle) || lower.includes(first);
+    });
+    if (!matches.length) return null;
+    return matches[Math.floor(Math.random() * matches.length)];
+  }
+
   function getMergedGenerators(type) {
     const defaults = {
       battleCries: battleCries,
@@ -1752,8 +1852,10 @@
       });
       const adultList = (adultSpells[cat] || []).filter(item => {
         const itemId = getItemId('spells', item);
+        // adultSpells is the correct bucket; also honor legacy deletes wrongly stored under spells
         const deletedIds = deletedDefaults.adultSpells?.[cat] || [];
-        return !deletedIds.includes(itemId);
+        const legacyDeleted = deletedDefaults.spells?.[cat] || [];
+        return !deletedIds.includes(itemId) && !legacyDeleted.includes(itemId);
       });
       baseList = [...spellList, ...adultList];
     } else if (section === 'bardic') {
@@ -2025,10 +2127,15 @@
       }
       
       // Add edit button for ALL items (both default and user-added)
-      // Use baseList we already have to determine if item is user-added
-      const fullIndex = baseList.findIndex(x => {
-        return x.t === item.t && x.s === item.s && x.a === item.a && (x.adult === item.adult || (!x.adult && !item.adult));
-      });
+      // Prefer object identity so duplicate song titles map to the correct card
+      let fullIndex = baseList.indexOf(item);
+      if (fullIndex < 0) {
+        fullIndex = baseList.findIndex(x => {
+          return x.t === item.t && x.s === item.s && x.a === item.a && (x.adult === item.adult || (!x.adult && !item.adult))
+            && (x.youtube || '') === (item.youtube || '')
+            && (x.localKaraoke || '') === (item.localKaraoke || '');
+        });
+      }
       
       // Determine default count (after filtering deleted)
       let defaultCount;
@@ -2039,7 +2146,9 @@
         }).length;
         const adultCount = (adultSpells[cat] || []).filter(item => {
           const itemId = getItemId('spells', item);
-          return !(deletedDefaults.adultSpells?.[cat] || []).includes(itemId);
+          const deletedAdult = deletedDefaults.adultSpells?.[cat] || [];
+          const legacyDeleted = deletedDefaults.spells?.[cat] || [];
+          return !deletedAdult.includes(itemId) && !legacyDeleted.includes(itemId);
         }).length;
         defaultCount = spellCount + adultCount;
       } else {
@@ -2080,7 +2189,9 @@
           }).length;
           const adultDefaultCount = (adultSpells[cat] || []).filter(item => {
             const itemId = getItemId('spells', item);
-            return !(deletedDefaults.adultSpells?.[cat] || []).includes(itemId);
+            const deletedAdult = deletedDefaults.adultSpells?.[cat] || [];
+            const legacyDeleted = deletedDefaults.spells?.[cat] || [];
+            return !deletedAdult.includes(itemId) && !legacyDeleted.includes(itemId);
           }).length;
           const userAdultStartIndex = spellDefaultCount + adultDefaultCount + userSpells.length;
           if (fullIndex >= userAdultStartIndex) {
@@ -2238,7 +2349,7 @@
     randomHint.style.fontSize = '14px';
     randomHint.style.opacity = '0.7';
     randomHint.style.textAlign = 'center';
-    randomHint.textContent = 'Uses your Blingus personality setting (Data → Personality)';
+    randomHint.textContent = 'Uses current mood + Personality (beside mood, or Settings → Voice)';
 
     randomCard.appendChild(randomBtn);
     randomCard.appendChild(randomHint);
@@ -2249,7 +2360,7 @@
       const tip = document.createElement('div');
       tip.className = 'card';
       tip.style.opacity = '0.8';
-      tip.textContent = 'Complete the tree above, then Generate. No static list — every batch is fresh from Claude.';
+      tip.textContent = 'Answer the questions above, then Generate. Every batch is fresh from Claude.';
       content.appendChild(tip);
       return;
     }
@@ -3738,7 +3849,14 @@
     }
   }
   
+  let isSavingEditItem = false;
   function saveEditItem() {
+    // Guard against duplicate listeners (button + document delegation) double-firing
+    if (isSavingEditItem) {
+      console.log('saveEditItem ignored — already in progress');
+      return;
+    }
+    isSavingEditItem = true;
     console.log('=== saveEditItem FUNCTION CALLED ===');
     console.log('Timestamp:', new Date().toISOString());
     console.log('Section:', currentEditingSection, 'Category:', currentEditingCategory);
@@ -3749,6 +3867,14 @@
     
     // Show immediate feedback
     showToast('Saving...');
+    try {
+      saveEditItemBody();
+    } finally {
+      isSavingEditItem = false;
+    }
+  }
+
+  function saveEditItemBody() {
     
     const section = currentEditingSection;
     const category = currentEditingCategory;
@@ -3898,6 +4024,7 @@
         if (!newItem.youtube) newItem.youtube = pending.youtube || pending.localKaraoke;
       } else if (currentEditingItem?.localKaraoke) {
         newItem.localKaraoke = currentEditingItem.localKaraoke;
+        if (!newItem.youtube) newItem.youtube = currentEditingItem.youtube || currentEditingItem.localKaraoke;
       }
       
       console.log('Final newItem:', newItem);
@@ -3918,29 +4045,39 @@
         userItems[section][category][currentEditingIndex] = newItem;
         showToast('Item updated');
       } else if (currentEditingIndex === -1 && isDefaultItem) {
-        // Editing a default item - hide original and add edited version (simplified)
+        // Editing a default item - hide original and add/update edited version
         const originalItem = currentEditingItem;
         const originalId = getItemId(section, originalItem);
+        // Adult defaults live under adultSpells (deleteEditItem already does this)
+        const deleteSection = (section === 'spells' && originalItem?.adult) ? 'adultSpells' : section;
 
-        if (!deletedDefaults[section]) {
-          deletedDefaults[section] = {};
+        if (!deletedDefaults[deleteSection]) {
+          deletedDefaults[deleteSection] = {};
         }
-        if (!deletedDefaults[section][category]) {
-          deletedDefaults[section][category] = [];
+        if (!deletedDefaults[deleteSection][category]) {
+          deletedDefaults[deleteSection][category] = [];
         }
-        if (!deletedDefaults[section][category].includes(originalId)) {
-          deletedDefaults[section][category].push(originalId);
+        if (!deletedDefaults[deleteSection][category].includes(originalId)) {
+          deletedDefaults[deleteSection][category].push(originalId);
         }
 
-        // Add edited version to user items
         if (!userItems[section]) {
           userItems[section] = {};
         }
         if (!userItems[section][category]) {
           userItems[section][category] = [];
         }
-        userItems[section][category].push(newItem);
-        showToast('Default item edited (original hidden)');
+        // Prefer updating an existing override instead of stacking duplicates
+        const existingIdx = userItems[section][category].findIndex((x) =>
+          x && x.t === newItem.t && x.s === newItem.s && x.a === newItem.a
+        );
+        if (existingIdx >= 0) {
+          userItems[section][category][existingIdx] = newItem;
+          showToast('Item updated');
+        } else {
+          userItems[section][category].push(newItem);
+          showToast('Default item edited (original hidden)');
+        }
         saveDeletedDefaults(deletedDefaults);
       } else {
         // Adding new item (simplified)
@@ -4049,15 +4186,18 @@
   sectionSelect.addEventListener('change', () => { 
     buildCategories(); 
     const section = sectionSelect.value;
-    // Hide favorites toggle on workflow sections (no star UI on string cards)
-    if (window.ActionWorkflow?.isWorkflowSection(section)) {
-      favoritesOnly.parentElement.style.display = 'none';
-    } else {
-      favoritesOnly.parentElement.style.display = '';
+    const isWorkflow = !!window.ActionWorkflow?.isWorkflowSection(section);
+    // Hide search / favorites on Outcomes (wizard is the task chrome)
+    const searchRow = document.getElementById('searchToolbarRow');
+    if (searchRow) searchRow.style.display = isWorkflow ? 'none' : '';
+    if (favoritesOnly?.parentElement) {
+      favoritesOnly.parentElement.style.display = isWorkflow ? 'none' : '';
     }
+    const filtersRow = document.getElementById('filtersToolbarRow');
+    if (filtersRow && isWorkflow) filtersRow.style.display = 'none';
     // Ensure a category is selected after building categories
     setTimeout(() => {
-      if (window.ActionWorkflow?.isWorkflowSection(section)) {
+      if (isWorkflow) {
         window.ActionWorkflow.applyTabPreset(section);
       } else if (categorySelect.options.length > 0 && !categorySelect.value) {
         categorySelect.selectedIndex = 0;
@@ -4081,18 +4221,21 @@
   
   // Load dark mode preference
   const savedDarkMode = localStorage.getItem(darkModeKey) === 'true';
-  if (savedDarkMode) {
-    darkModeToggle.checked = true;
+  if (darkModeToggle) {
+    if (savedDarkMode) {
+      darkModeToggle.checked = true;
+      applyDarkMode(true);
+    }
+    darkModeToggle.addEventListener('change', (e) => {
+      applyDarkMode(e.target.checked);
+      localStorage.setItem(darkModeKey, e.target.checked ? 'true' : 'false');
+      scheduleFileSave();
+      // Re-render to update card backgrounds that use inline styles
+      render();
+    });
+  } else if (savedDarkMode) {
     applyDarkMode(true);
   }
-  
-  darkModeToggle.addEventListener('change', (e) => {
-    applyDarkMode(e.target.checked);
-    localStorage.setItem(darkModeKey, e.target.checked ? 'true' : 'false');
-    scheduleFileSave();
-    // Re-render to update card backgrounds that use inline styles
-    render();
-  });
   searchInput.addEventListener('input', render);
   clearBtn.addEventListener('click', () => { searchInput.value = ''; render(); });
   
@@ -4232,10 +4375,19 @@
         return;
       }
       window.BlingusKaraoke.openSearch(song, artist, (pending, row) => {
-        editYoutube.value = pending.youtube || pending.localKaraoke;
+        const videoId = pending.youtube || pending.localKaraoke;
+        editYoutube.value = videoId || '';
+        // Persist onto the in-memory edit item so Save still works if pending is cleared
+        if (currentEditingItem && typeof currentEditingItem === 'object') {
+          currentEditingItem.localKaraoke = pending.localKaraoke || videoId;
+          currentEditingItem.youtube = videoId;
+        }
         if (localKaraokeStatus) {
           localKaraokeStatus.style.display = 'block';
-          localKaraokeStatus.textContent = '✅ Downloaded: ' + (row.title || pending.localKaraoke);
+          localKaraokeStatus.textContent = '✅ Downloaded: ' + (row.title || pending.localKaraoke) + ' — click Save to keep';
+        }
+        if (youtubeSuggestionText && song && artist) {
+          youtubeSuggestionText.textContent = 'Re-download or change karaoke for "' + song + '" by ' + artist;
         }
         showToast('Karaoke ready — save item to keep link');
       });
@@ -4275,60 +4427,195 @@
     generatorModal.setAttribute('aria-hidden', 'true');
   }
 
-  // Attach event listeners to existing generator buttons in HTML
-  const battleCryBtn = document.getElementById('battleCryBtn');
-  if (battleCryBtn) {
-    battleCryBtn.addEventListener('click', () => {
-      const mergedCries = getMergedGenerators('battleCries');
-      if (mergedCries.length === 0) {
-        showToast('No battle cries available');
-        return;
-      }
-      const cry = mergedCries[Math.floor(Math.random() * mergedCries.length)];
-      showGeneratorModal('⚔️ Battle Cry', cry, 'battleCries');
+  // --- Party target picker for insults / compliments / intros ---
+  const generatorTargetModal = document.getElementById('generatorTargetModal');
+  const generatorTargetTitle = document.getElementById('generatorTargetTitle');
+  const generatorTargetHint = document.getElementById('generatorTargetHint');
+  const generatorTargetParty = document.getElementById('generatorTargetParty');
+  const generatorTargetName = document.getElementById('generatorTargetName');
+  const generatorTargetRemember = document.getElementById('generatorTargetRemember');
+  const generatorTargetGenerateBtn = document.getElementById('generatorTargetGenerateBtn');
+  const generatorTargetCancelBtn = document.getElementById('generatorTargetCancelBtn');
+  const generatorTargetClose = document.getElementById('generatorTargetClose');
+  let pendingGeneratorKind = null;
+  let selectedPartyName = '';
+
+  const GENERATOR_TARGET_META = {
+    insults: {
+      title: '🗡️ Insult who?',
+      hint: 'Pick a party member or type who you are roasting.',
+      empty: 'No insults available',
+      resultTitle: '🗡️ Insult',
+      type: 'insults',
+    },
+    compliments: {
+      title: '💬 Compliment who?',
+      hint: 'Pick a party member or type who you are praising.',
+      empty: 'No compliments available',
+      resultTitle: '💬 Compliment',
+      type: 'compliments',
+    },
+    introductions: {
+      title: '🎭 Introduce who?',
+      hint: 'Pick a party member (intros are written per character) or type a name to match.',
+      empty: 'No introductions available',
+      resultTitle: '🎭 Chaucer Introduction',
+      type: 'introductions',
+    },
+  };
+
+  function closeGeneratorTargetModal() {
+    if (!generatorTargetModal) return;
+    generatorTargetModal.classList.remove('show');
+    generatorTargetModal.setAttribute('aria-hidden', 'true');
+    pendingGeneratorKind = null;
+    selectedPartyName = '';
+  }
+
+  function renderPartyTargetChips() {
+    if (!generatorTargetParty) return;
+    generatorTargetParty.innerHTML = '';
+    const members = loadPartyMembers();
+    if (!members.length) {
+      const empty = document.createElement('span');
+      empty.className = 'generator-target-hint';
+      empty.textContent = 'No party members yet — type a name below.';
+      generatorTargetParty.appendChild(empty);
+      return;
+    }
+    members.forEach((name) => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'generator-target-chip' + (selectedPartyName === name ? ' is-selected' : '');
+      chip.setAttribute('role', 'option');
+      chip.setAttribute('aria-selected', selectedPartyName === name ? 'true' : 'false');
+
+      const label = document.createElement('span');
+      label.textContent = name;
+      chip.appendChild(label);
+
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'generator-target-chip__remove';
+      remove.title = 'Remove from party list';
+      remove.setAttribute('aria-label', 'Remove ' + name);
+      remove.textContent = '×';
+      remove.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        removePartyMember(name);
+        if (selectedPartyName === name) {
+          selectedPartyName = '';
+          if (generatorTargetName) generatorTargetName.value = '';
+        }
+        renderPartyTargetChips();
+      });
+      chip.appendChild(remove);
+
+      chip.addEventListener('click', () => {
+        selectedPartyName = name;
+        if (generatorTargetName) generatorTargetName.value = name;
+        renderPartyTargetChips();
+        if (generatorTargetName) generatorTargetName.focus();
+      });
+      generatorTargetParty.appendChild(chip);
     });
   }
 
-  const insultBtn = document.getElementById('insultBtn');
-  if (insultBtn) {
-    insultBtn.addEventListener('click', () => {
-      const mergedInsults = getMergedGenerators('insults');
-      if (mergedInsults.length === 0) {
-        showToast('No insults available');
+  function openGeneratorTargetPicker(kind) {
+    const meta = GENERATOR_TARGET_META[kind];
+    if (!meta || !generatorTargetModal) {
+      showToast('Target picker unavailable');
+      return;
+    }
+    const pool = getMergedGenerators(meta.type);
+    if (!pool.length) {
+      showToast(meta.empty);
+      return;
+    }
+    pendingGeneratorKind = kind;
+    selectedPartyName = '';
+    if (generatorTargetTitle) generatorTargetTitle.textContent = meta.title;
+    if (generatorTargetHint) generatorTargetHint.textContent = meta.hint;
+    if (generatorTargetName) generatorTargetName.value = '';
+    if (generatorTargetRemember) generatorTargetRemember.checked = true;
+    renderPartyTargetChips();
+    generatorTargetModal.classList.add('show');
+    generatorTargetModal.setAttribute('aria-hidden', 'false');
+    if (generatorTargetName) {
+      setTimeout(() => generatorTargetName.focus(), 0);
+    }
+  }
+
+  function runTargetedGenerator() {
+    const kind = pendingGeneratorKind;
+    const meta = GENERATOR_TARGET_META[kind];
+    if (!meta) return;
+
+    const typed = generatorTargetName ? generatorTargetName.value.trim() : '';
+    const name = typed || selectedPartyName;
+    if (!name) {
+      showToast('Pick a party member or type a name');
+      return;
+    }
+
+    if (generatorTargetRemember && generatorTargetRemember.checked) {
+      addPartyMember(name);
+    }
+
+    const pool = getMergedGenerators(meta.type);
+    if (!pool.length) {
+      showToast(meta.empty);
+      closeGeneratorTargetModal();
+      return;
+    }
+
+    let text = null;
+    if (kind === 'introductions') {
+      text = pickIntroductionForName(name, pool);
+      if (!text) {
+        showToast('No introduction matches "' + name + '" — pick Brawn, Puck, Vadania, Bo, or Blingus, or add one in Manage Generators');
         return;
       }
-      const insult = mergedInsults[Math.floor(Math.random() * mergedInsults.length)];
-      showGeneratorModal('🗡️ Insult', insult, 'insults');
+    } else {
+      const line = pool[Math.floor(Math.random() * pool.length)];
+      text = formatDirectedLine(name, line);
+    }
+
+    closeGeneratorTargetModal();
+    showGeneratorModal(meta.resultTitle + ' — ' + name, text, meta.type);
+  }
+
+  if (generatorTargetGenerateBtn) {
+    generatorTargetGenerateBtn.addEventListener('click', runTargetedGenerator);
+  }
+  if (generatorTargetCancelBtn) {
+    generatorTargetCancelBtn.addEventListener('click', closeGeneratorTargetModal);
+  }
+  if (generatorTargetClose) {
+    generatorTargetClose.addEventListener('click', closeGeneratorTargetModal);
+  }
+  if (generatorTargetModal) {
+    generatorTargetModal.addEventListener('click', (e) => {
+      if (e.target === generatorTargetModal) closeGeneratorTargetModal();
+    });
+  }
+  if (generatorTargetName) {
+    generatorTargetName.addEventListener('input', () => {
+      const typed = generatorTargetName.value.trim();
+      const match = loadPartyMembers().find((m) => m.toLowerCase() === typed.toLowerCase());
+      selectedPartyName = match || '';
+      renderPartyTargetChips();
+    });
+    generatorTargetName.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        runTargetedGenerator();
+      }
     });
   }
 
-  const complimentBtn = document.getElementById('complimentBtn');
-  if (complimentBtn) {
-    complimentBtn.addEventListener('click', () => {
-      const mergedCompliments = getMergedGenerators('compliments');
-      if (mergedCompliments.length === 0) {
-        showToast('No compliments available');
-        return;
-      }
-      const compliment = mergedCompliments[Math.floor(Math.random() * mergedCompliments.length)];
-      showGeneratorModal('💬 Compliment', compliment, 'compliments');
-    });
-  }
-
-  const introductionBtn = document.getElementById('introductionBtn');
-  if (introductionBtn) {
-    introductionBtn.addEventListener('click', () => {
-      const mergedIntroductions = getMergedGenerators('introductions');
-      if (mergedIntroductions.length === 0) {
-        showToast('No introductions available');
-        return;
-      }
-      const introduction = mergedIntroductions[Math.floor(Math.random() * mergedIntroductions.length)];
-      showGeneratorModal('🎭 Chaucer Introduction', introduction, 'introductions');
-    });
-  }
-
-  // Generator modal event listeners
+  // Random-line modal event listeners (still used by legacy "Feeling Chaotic")
   generatorCopyBtn.addEventListener('click', () => {
     const text = generatorCopyBtn.dataset.textToCopy;
     const generatorType = generatorCopyBtn.dataset.generatorType;
@@ -4470,6 +4757,11 @@
               importedCount++;
               importedCategories.push('dark mode');
             }
+            if (data.partyMembers !== undefined) {
+              localStorage.setItem(partyMembersKey, JSON.stringify(data.partyMembers));
+              importedCount++;
+              importedCategories.push('party members');
+            }
             
             const message = importedCount > 0 
               ? `Imported ${importedCount} categories: ${importedCategories.join(', ')}. Reloading...`
@@ -4544,14 +4836,43 @@
     historyBtn.addEventListener('click', showHistoryModal);
   }
 
+  function openPersonalitySettings() {
+    if (window.OutcomeGenerate?.openPersonalityModal) {
+      window.OutcomeGenerate.openPersonalityModal();
+    } else {
+      showToast('Personality settings failed to load');
+    }
+  }
+
   const personalityBtn = document.getElementById('personalityBtn');
   if (personalityBtn) {
-    personalityBtn.addEventListener('click', () => {
-      if (window.OutcomeGenerate?.openPersonalityModal) {
-        window.OutcomeGenerate.openPersonalityModal();
-      } else {
-        showToast('Personality settings failed to load');
-      }
+    personalityBtn.addEventListener('click', openPersonalitySettings);
+  }
+  const settingsPersonalityBtn = document.getElementById('settingsPersonalityBtn');
+  if (settingsPersonalityBtn) {
+    settingsPersonalityBtn.addEventListener('click', openPersonalitySettings);
+  }
+
+  const settingsModal = document.getElementById('settingsModal');
+  const settingsBtn = document.getElementById('settingsBtn');
+  function showSettingsModal() {
+    if (!settingsModal) return;
+    settingsModal.classList.add('show');
+    settingsModal.setAttribute('aria-hidden', 'false');
+  }
+  function closeSettingsModal() {
+    if (!settingsModal) return;
+    settingsModal.classList.remove('show');
+    settingsModal.setAttribute('aria-hidden', 'true');
+  }
+  if (settingsBtn) {
+    settingsBtn.addEventListener('click', showSettingsModal);
+  }
+  document.getElementById('settingsModalClose')?.addEventListener('click', closeSettingsModal);
+  document.getElementById('settingsCloseBtn')?.addEventListener('click', closeSettingsModal);
+  if (settingsModal) {
+    settingsModal.addEventListener('click', (e) => {
+      if (e.target === settingsModal) closeSettingsModal();
     });
   }
 
@@ -4721,6 +5042,10 @@
   document.addEventListener('keydown', (e) => {
     // Handle Escape key for modals
     if (e.key === 'Escape') {
+      if (settingsModal?.classList.contains('show')) {
+        closeSettingsModal();
+        return;
+      }
       if (editModal.classList.contains('show')) {
         closeEditModal();
         return;

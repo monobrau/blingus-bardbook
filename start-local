@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Cross-platform local mode entry (macOS / Linux / Git Bash).
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+cd "$ROOT"
+
+if command -v python3 >/dev/null 2>&1; then
+  exec python3 "$ROOT/scripts/local_server.py" "$@"
+fi
+if command -v python >/dev/null 2>&1; then
+  exec python "$ROOT/scripts/local_server.py" "$@"
+fi
+
+echo "Python 3 is required for local mode (or install PHP CLI and run:" >&2
+echo "  php -S 127.0.0.1:8765 -t . scripts/local-router.php" >&2
+exit 1

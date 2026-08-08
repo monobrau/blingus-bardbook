@@ -206,29 +206,6 @@ function writeStringArray(name, items) {
   return lines.join('\n');
 }
 
-function writeGenerators(battleCries, insults, introductions, compliments) {
-  const dedupedInsults = dedupeStrings(insults, 0.7).slice(0, 35);
-  const header = `/**
- * Generator data (curated revamp)
- */
-window.BlingusData = window.BlingusData || {};
-
-`;
-  const body = [
-    writeStringArray('battleCries', battleCries),
-    writeStringArray('insults', dedupedInsults),
-    writeStringArray('introductions', introductions.slice(0, 8)),
-    writeStringArray('compliments', compliments.slice(0, 25)),
-  ].join('\n\n');
-  const footer = `
-window.BlingusData.battleCries = battleCries;
-window.BlingusData.insults = insults;
-window.BlingusData.introductions = introductions;
-window.BlingusData.compliments = compliments;
-`;
-  fs.writeFileSync(path.join(dataDir, 'generators-data.js'), header + body + footer);
-}
-
 const LORE_ARTISTS = new Set([
   'Mockery',
   'D&D Lore',
@@ -402,10 +379,6 @@ const criticalHits = loadModuleExport(path.join(dataDir, 'criticals-data.js'), '
 const criticalFailures = loadModuleExport(path.join(dataDir, 'criticals-data.js'), 'criticalFailures');
 const skillChecks = loadModuleExport(path.join(dataDir, 'skillchecks-data.js'), 'skillChecks');
 const mockery = loadModuleExport(path.join(dataDir, 'mockery-data.js'), 'mockery');
-const battleCries = loadModuleExport(path.join(dataDir, 'generators-data.js'), 'battleCries');
-const insults = loadModuleExport(path.join(dataDir, 'generators-data.js'), 'insults');
-const introductions = loadModuleExport(path.join(dataDir, 'generators-data.js'), 'introductions');
-const compliments = loadModuleExport(path.join(dataDir, 'generators-data.js'), 'compliments');
 
 const curatedSpells = curateParodyMap(spells, 5, 2);
 const curatedAdultSpells = curateParodyMap(adultSpells, 3, 1);
@@ -417,7 +390,6 @@ writeActions(curateStringMap(actions, 12, 2));
 writeCriticals(curateStringMap(criticalHits, 5), curateStringMap(criticalFailures, 5));
 writeSkillChecks(curateStringMap(skillChecks, 4));
 writeMockery(curateMockery(mockery, 12));
-writeGenerators(battleCries, insults, introductions, compliments);
 
 console.log('Curation complete.');
 console.log(

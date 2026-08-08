@@ -21,7 +21,6 @@ $moduleFiles = [
   'action-workflow.js',
   'outcome-generate.js',
   'karaoke-manager.js',
-  'data/generators-data.js',
   'data/spells-data.js',
   'data/bardic-data.js',
   'data/mockery-data.js',
@@ -56,18 +55,18 @@ foreach ($moduleFiles as $file) {
   <link rel="stylesheet" href="styles.css?v=<?php echo $versions['styles.css']; ?>" />
 </head>
 <body>
-  <header class="banner">
+  <header class="banner banner--compact">
     <div class="banner__wrap">
       <div class="crest" aria-hidden="true">⚔️</div>
       <h1>Blingus's Bardbook</h1>
       <div class="crest" aria-hidden="true">🛡️</div>
     </div>
-    <p class="subtitle">Iconic song‑parody spell lines, mockery, and a step‑by‑step picker for what Blingus says, does, hits, or rolls</p>
+    <p class="subtitle">Song parodies, mockery, and Claude-backed lines for the table</p>
   </header>
 
   <nav class="toolbar" aria-label="Controls">
     <div class="toolbar__container">
-      <!-- Section Tabs Row -->
+      <!-- Section Tabs + utilities -->
       <div class="toolbar__row toolbar__row--tabs">
         <div class="tabs" role="tablist" aria-label="Content sections">
           <button class="tab tab--active" role="tab" data-section="spells" aria-selected="true" data-tooltip="Spell song parodies (Press 1)">
@@ -87,6 +86,10 @@ foreach ($moduleFiles as $file) {
             <span class="tab__label">Outcomes</span>
           </button>
         </div>
+        <div class="toolbar__utilities">
+          <button type="button" id="historyBtn" class="btn btn--secondary btn--compact" data-tooltip="Recently used items (Press H)">History</button>
+          <button type="button" id="settingsBtn" class="btn btn--secondary btn--compact" data-tooltip="Edit, data, dark mode, personality" aria-haspopup="dialog">Settings</button>
+        </div>
       </div>
 
       <!-- Category Chips Row (spells, bardic, mockery) -->
@@ -96,27 +99,64 @@ foreach ($moduleFiles as $file) {
         </div>
       </div>
 
-      <!-- Multi-step workflow (actions, crits, skills) -->
-      <div id="workflowPanel" class="workflow toolbar__row" style="display: none;" aria-label="Blingus action workflow">
-        <div class="workflow__grid">
-          <div class="workflow__field workflow__field--scene">
-            <label class="workflow__label" for="workflowSceneSelect">Scene</label>
-            <select id="workflowSceneSelect" class="workflow__select" aria-label="Location or scene"></select>
+      <!-- Progressive Outcomes wizard (pill questions) -->
+      <div id="workflowPanel" class="workflow workflow--wizard toolbar__row" style="display: none;" aria-label="Blingus outcome wizard">
+        <div class="workflow__wizard">
+          <div class="workflow__step workflow__step--mood" id="workflowMoodStep">
+            <div class="workflow__mood-head">
+              <div class="workflow__question">Blingus's mood <span class="workflow__hint">(colors every Claude line)</span></div>
+              <button type="button" id="personalityBtn" class="btn btn--ghost btn--compact" data-tooltip="Edit standing personality for Claude">Personality</button>
+            </div>
+            <div class="chips chips--pills" id="workflowMoodChips" role="group" aria-label="Blingus mood"></div>
           </div>
-          <div class="workflow__field workflow__field--outcome" id="workflowOutcomeStep">
-            <div class="workflow__label" id="workflowOutcomeLabel">Outcome</div>
-            <div class="chips chips--compact" id="workflowOutcomeChips" role="group" aria-label="Outcome type"></div>
+          <div class="workflow__step" id="workflowOutcomeStep">
+            <div class="workflow__question" id="workflowOutcomeLabel">1. What do you need?</div>
+            <div id="workflowOutcomeChips" class="workflow__outcome-groups" role="group" aria-label="Outcome type"></div>
           </div>
-          <div class="workflow__field workflow__field--detail" id="workflowDetailStep">
-            <label class="workflow__label" for="workflowDetailSelect" id="workflowDetailLabel">Weapon / skill</label>
-            <select id="workflowDetailSelect" class="workflow__select" aria-label="Weapon, magic type, or skill"></select>
-            <div class="workflow__hint" id="workflowRoleplayHint" style="display: none;">Roleplay uses lines from the scene above.</div>
+          <div class="workflow__step" id="workflowSceneStep" hidden>
+            <div class="workflow__question" id="workflowSceneLabel">2. Where are you?</div>
+            <div class="workflow__scene-group-label">Indoors or outdoors?</div>
+            <div class="chips chips--pills" id="workflowSettingChips" role="group" aria-label="Indoors or outdoors"></div>
+            <div id="workflowPlaceBlock" hidden>
+              <div class="workflow__scene-group-label">Place</div>
+              <div id="workflowSceneGroups" class="workflow__scene-groups"></div>
+              <input type="text" id="workflowSceneInput" class="workflow__name-input" placeholder="Or type a place…" maxlength="80" autocomplete="off" />
+            </div>
+            <div id="workflowConditionBlock" hidden>
+              <div id="workflowWeatherBlock" hidden>
+                <div class="workflow__scene-group-label">Weather <span class="workflow__hint">(optional)</span></div>
+                <div class="chips chips--pills" id="workflowWeatherChips" role="group" aria-label="Weather"></div>
+              </div>
+              <div id="workflowLightingBlock" hidden>
+                <div class="workflow__scene-group-label">Lighting <span class="workflow__hint">(optional)</span></div>
+                <div class="chips chips--pills" id="workflowLightingChips" role="group" aria-label="Lighting"></div>
+              </div>
+              <div class="workflow__scene-group-label">Environment <span class="workflow__hint">(optional, multi)</span></div>
+              <div class="chips chips--pills" id="workflowEnvironmentChips" role="group" aria-label="Environment"></div>
+            </div>
           </div>
-          <div class="workflow__field workflow__field--targets">
-            <div class="workflow__label">Target <span class="workflow__hint">(filter)</span></div>
-            <div class="chips chips--compact workflow__targets" id="workflowTargetChips" role="group" aria-label="Targets"></div>
+          <div class="workflow__step" id="workflowAttackTypeStep" hidden>
+            <div class="workflow__question" id="workflowAttackTypeLabel">3. Attack type?</div>
+            <div class="chips chips--pills" id="workflowAttackTypeChips" role="group" aria-label="Attack type"></div>
+          </div>
+          <div class="workflow__step" id="workflowDetailStep" hidden>
+            <div class="workflow__question" id="workflowDetailLabel">3. Which skill or weapon?</div>
+            <div class="chips chips--pills" id="workflowDetailChips" role="group" aria-label="Weapon, spell, or skill"></div>
+            <div class="workflow__hint" id="workflowRoleplayHint" style="display: none;">Roleplay does not need a skill or weapon.</div>
+          </div>
+          <div class="workflow__step" id="workflowTargetStep" hidden>
+            <div class="workflow__question" id="workflowTargetLabel">3. Who or what is the focus? <span class="workflow__hint">(optional)</span></div>
+            <div class="chips chips--pills workflow__targets" id="workflowTargetChips" role="group" aria-label="Targets"></div>
+            <div class="workflow__name-block" id="workflowNameBlock" hidden>
+              <div class="workflow__scene-group-label">Party / name</div>
+              <div class="chips chips--pills" id="workflowPartyChips" role="group" aria-label="Party members"></div>
+              <input type="text" id="workflowNameInput" class="workflow__name-input" placeholder="Or type a name…" maxlength="80" autocomplete="off" />
+            </div>
           </div>
         </div>
+        <!-- Hidden legacy selects kept for any residual sync code -->
+        <select id="workflowSceneSelect" class="workflow__select" hidden aria-hidden="true"></select>
+        <select id="workflowDetailSelect" class="workflow__select" hidden aria-hidden="true"></select>
         <div id="workflowSummary" class="workflow__summary" aria-live="polite"></div>
       </div>
 
@@ -133,86 +173,82 @@ foreach ($moduleFiles as $file) {
       </select>
       <select id="categorySelect" style="display: none;" aria-hidden="true"></select>
 
-      <!-- Search & Quick Filters Row -->
-      <div class="toolbar__row toolbar__row--search">
+      <!-- Search (parody tabs only; hidden on Outcomes) -->
+      <div class="toolbar__row toolbar__row--search" id="searchToolbarRow">
         <label class="search" style="flex: 1; min-width: 200px;">
-          <input id="searchInput" type="search" placeholder="Search all lyrics, songs, artists, or actions..." />
+          <input id="searchInput" type="search" placeholder="Search lyrics, songs, artists…" />
         </label>
         <button id="clearBtn" class="btn btn--secondary" data-tooltip="Clear search (Esc)">Clear</button>
         <label class="toggle" data-tooltip="Show only starred items (Ctrl+F)">
           <input type="checkbox" id="favoritesOnly" />
-          <span>⭐ Favorites</span>
+          <span>Favorites</span>
         </label>
-        <label class="toggle" data-tooltip="Toggle dark theme (Ctrl+D)">
-          <input type="checkbox" id="darkModeToggle" />
-          <span>🌙 Dark</span>
-        </label>
-      </div>
-
-      <!-- Button Groups Row -->
-      <div class="toolbar__row toolbar__row--button-groups">
-        <!-- Content Actions Group -->
-        <div class="button-group">
-          <span class="button-group__label">Content</span>
-          <div>
-            <button id="addEditBtn" class="btn btn--group" data-tooltip="Add or edit items">✏️ Edit Items</button>
-            <button id="historyBtn" class="btn btn--group" data-tooltip="View recently used items (Press H)">📜 History</button>
-          </div>
-        </div>
-
-        <!-- Generators Group -->
-        <div class="button-group">
-          <span class="button-group__label">Generators</span>
-          <div>
-            <button id="battleCryBtn" class="btn btn--group" data-tooltip="Random battle cry">⚔️</button>
-            <button id="insultBtn" class="btn btn--group" data-tooltip="Random insult">🗡️</button>
-            <button id="complimentBtn" class="btn btn--group" data-tooltip="Random compliment">💬</button>
-            <button id="introductionBtn" class="btn btn--group" data-tooltip="Chaucer introduction">🎭</button>
-            <button id="manageGeneratorsBtn" class="btn btn--group" data-tooltip="Manage generator content">⚙️</button>
-          </div>
-        </div>
-
-        <!-- Data Management Group -->
-        <div class="button-group">
-          <span class="button-group__label">Data</span>
-          <div>
-            <button id="exportBtn" class="btn btn--group" data-tooltip="Export all data">📥 Export</button>
-            <button id="importBtn" class="btn btn--group" data-tooltip="Import data">📤 Import</button>
-            <button id="fileStorageBtn" class="btn btn--group" data-tooltip="File or server storage">💾</button>
-            <button id="personalityBtn" class="btn btn--group" data-tooltip="Edit Blingus personality for Claude">🪶 Personality</button>
-          </div>
-        </div>
       </div>
 
       <!-- Fuzzy Search Toggle (hidden by default, dynamically added by search-enhancements.js) -->
-      <div class="toolbar__row toolbar__row--filters" style="display: none;">
+      <div class="toolbar__row toolbar__row--filters" id="filtersToolbarRow" style="display: none;">
       </div>
     </div>
   </nav>
 
+  <!-- Settings drawer (admin / rare controls) -->
+  <div id="settingsModal" class="modal" role="dialog" aria-labelledby="settingsTitle" aria-hidden="true">
+    <div class="modal__content settings-modal">
+      <div class="modal__header">
+        <h2 id="settingsTitle">Settings</h2>
+        <button type="button" class="modal__close" id="settingsModalClose" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal__body settings-modal__body">
+        <section class="settings-section">
+          <h3 class="settings-section__label">Appearance</h3>
+          <label class="toggle settings-toggle" data-tooltip="Toggle dark theme (Ctrl+D)">
+            <input type="checkbox" id="darkModeToggle" />
+            <span>Dark mode</span>
+          </label>
+        </section>
+        <section class="settings-section">
+          <h3 class="settings-section__label">Content</h3>
+          <div class="settings-actions">
+            <button type="button" id="addEditBtn" class="btn">Edit items</button>
+          </div>
+        </section>
+        <section class="settings-section">
+          <h3 class="settings-section__label">Data</h3>
+          <div class="settings-actions">
+            <button type="button" id="exportBtn" class="btn">Export</button>
+            <button type="button" id="importBtn" class="btn">Import</button>
+            <button type="button" id="fileStorageBtn" class="btn" data-tooltip="File or server storage">Storage</button>
+          </div>
+        </section>
+        <section class="settings-section">
+          <h3 class="settings-section__label">Voice</h3>
+          <p class="settings-section__hint">Standing Claude personality. Mood (on Outcomes) colors each batch.</p>
+          <div class="settings-actions">
+            <button type="button" id="settingsPersonalityBtn" class="btn">Edit personality</button>
+          </div>
+        </section>
+      </div>
+      <div class="modal__footer">
+        <button type="button" id="settingsCloseBtn" class="btn">Done</button>
+      </div>
+    </div>
+  </div>
+
   <main id="content" class="content" aria-live="polite"></main>
 
-  <footer class="footer">
-    <div style="font-size: 15px; margin-bottom: 10px;">
-      💡 <strong>Quick Tips:</strong> Click any line to copy • Star your favorites • Use keyboard shortcuts for power users
-    </div>
-    <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; font-size: 13px; opacity: 0.9;">
-      <span>⌨️ <kbd>?</kbd> Help</span>
-      <span>⌨️ <kbd>Ctrl+K</kbd> Search</span>
-      <span>⌨️ <kbd>1-4</kbd> Sections</span>
-      <span>⌨️ <kbd>H</kbd> History</span>
-      <span>⌨️ <kbd>↑↓</kbd> Navigate</span>
-      <span>⌨️ <kbd>Enter</kbd> Copy</span>
+  <footer class="footer footer--compact">
+    <div class="footer__tips">
+      Click a line to copy · <kbd>?</kbd> shortcuts · <kbd>H</kbd> history · <kbd>1-4</kbd> sections
     </div>
   </footer>
 
   <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
-  <!-- Generator Display Modal -->
+  <!-- Quick random line modal (legacy actions "Feeling Chaotic") -->
   <div id="generatorModal" class="modal" role="dialog" aria-labelledby="generatorTitle" aria-hidden="true">
     <div class="modal__content" style="max-width: 600px;">
       <div class="modal__header">
-        <h2 id="generatorTitle">Generated Text</h2>
+        <h2 id="generatorTitle">Random Line</h2>
         <button class="modal__close" id="generatorModalClose" aria-label="Close">&times;</button>
       </div>
       <div class="modal__body">
@@ -237,35 +273,6 @@ foreach ($moduleFiles as $file) {
       </div>
       <div class="modal__footer">
         <button id="historyCloseBtn" class="btn">Close</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Generator Management Modal -->
-  <div id="generatorManageModal" class="modal" role="dialog" aria-labelledby="generatorManageTitle" aria-hidden="true">
-    <div class="modal__content" style="max-width: 700px;">
-      <div class="modal__header">
-        <h2 id="generatorManageTitle">Manage Generators</h2>
-        <button class="modal__close" id="generatorManageClose" aria-label="Close">&times;</button>
-      </div>
-      <div class="modal__body">
-        <div style="margin-bottom: 16px;">
-          <label>Generator Type
-            <select id="generatorTypeSelect" style="width: 100%; padding: 8px; border: 1px solid var(--burnt); border-radius: 6px;">
-              <option value="battleCries">⚔️ Battle Cries</option>
-              <option value="insults">🗡️ Insults</option>
-              <option value="compliments">💬 Compliments</option>
-              <option value="introductions">🎭 Chaucer Introductions</option>
-            </select>
-          </label>
-        </div>
-        <div style="margin-bottom: 16px;">
-          <button id="addGeneratorBtn" class="btn" style="width: 100%;">➕ Add New</button>
-        </div>
-        <div id="generatorsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 400px; overflow-y: auto;"></div>
-      </div>
-      <div class="modal__footer">
-        <button id="generatorManageCloseBtn" class="btn">Close</button>
       </div>
     </div>
   </div>
@@ -303,27 +310,6 @@ foreach ($moduleFiles as $file) {
         <button id="youtubePlayerCloseBtn" class="btn">Close</button>
       </div>
       <div id="karaokePlayerResizeHandle" class="karaoke-player-resize-handle" title="Drag to resize (saved automatically)" aria-hidden="true"></div>
-    </div>
-  </div>
-
-  <!-- Generator Edit Modal -->
-  <div id="generatorEditModal" class="modal" role="dialog" aria-labelledby="generatorEditTitle" aria-hidden="true">
-    <div class="modal__content" style="max-width: 600px;">
-      <div class="modal__header">
-        <h2 id="generatorEditTitle">Add Generator Item</h2>
-        <button class="modal__close" id="generatorEditClose" aria-label="Close">&times;</button>
-      </div>
-      <div class="modal__body">
-        <label>
-          Text
-          <textarea id="generatorEditText" rows="3" style="width: 100%; padding: 8px; border: 1px solid var(--burnt); border-radius: 6px; font-family: inherit;"></textarea>
-        </label>
-      </div>
-      <div class="modal__footer">
-        <button id="saveGeneratorBtn" class="btn">Save</button>
-        <button id="cancelGeneratorBtn" class="btn">Cancel</button>
-        <button id="deleteGeneratorBtn" class="btn" style="background: #c44; color: white; display: none;">Delete</button>
-      </div>
     </div>
   </div>
 
@@ -415,7 +401,6 @@ foreach ($moduleFiles as $file) {
   <script src="js/karaoke-manager.js?v=<?php echo $versions['karaoke-manager.js']; ?>"></script>
 
   <!-- Data modules (load before main script) -->
-  <script src="js/data/generators-data.js?v=<?php echo $versions['data/generators-data.js']; ?>"></script>
   <script src="js/data/spells-data.js?v=<?php echo $versions['data/spells-data.js']; ?>"></script>
   <script src="js/data/bardic-data.js?v=<?php echo $versions['data/bardic-data.js']; ?>"></script>
   <script src="js/data/mockery-data.js?v=<?php echo $versions['data/mockery-data.js']; ?>"></script>

@@ -20,8 +20,9 @@ $allowedOrigins = [
 ];
 
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-if (in_array($origin, $allowedOrigins, true)) {
-    header('Access-Control-Allow-Origin: ' . $origin);
+$localOrigin = (bool) preg_match('#^https?://(localhost|127\.0\.0\.1)(:\d+)?$#', $origin);
+if (in_array($origin, $allowedOrigins, true) || $localOrigin) {
+    header('Access-Control-Allow-Origin: ' . ($origin !== '' ? $origin : 'http://127.0.0.1'));
 } else {
     header('Access-Control-Allow-Origin: ' . ($allowedOrigins[0] ?? '*'));
 }
