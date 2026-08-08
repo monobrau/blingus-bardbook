@@ -25,3 +25,7 @@ __pycache__/
 *.sqlite
 *.sqlite3
 
+# Anthropic API key (server-local only — never commit)
+api/.anthropic_key
+**/.anthropic_key
+

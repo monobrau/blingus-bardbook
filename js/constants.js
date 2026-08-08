@@ -53,7 +53,8 @@ window.BlingusConstants = (function() {
     LOAD_ENDPOINT: '/api/load.php',
     VERSION_ENDPOINT: '/api/version.php',
     KARAOKE_ENDPOINT: '/api/karaoke.php',
-    DATA_ENDPOINT: '/api/blingus-data.php'
+    DATA_ENDPOINT: '/api/blingus-data.php',
+    GENERATE_ENDPOINT: '/api/generate-outcome.php'
   };
 
   // Keyboard shortcuts
@@ -64,7 +65,7 @@ window.BlingusConstants = (function() {
     HELP: ['?', 'Shift+/'],
     HISTORY: ['h'],
     RANDOM: ['r'],
-    SECTIONS: ['1', '2', '3', '4', '5', '6', '7']
+    SECTIONS: ['1', '2', '3', '4']
   };
 
   // Section configuration
@@ -72,6 +73,7 @@ window.BlingusConstants = (function() {
     SPELLS: { value: 'spells', label: 'Spell Parodies', icon: '🔮', key: '1' },
     BARDIC: { value: 'bardic', label: 'Bardic Inspiration', icon: '✨', key: '2' },
     MOCKERY: { value: 'mockery', label: 'Vicious Mockery', icon: '🗡️', key: '3' },
+    OUTCOMES: { value: 'outcomes', label: 'Scene Outcomes', icon: '🎲', key: '4' },
     ACTIONS: { value: 'actions', label: 'Character Actions', icon: '🎭', key: '4' },
     CRITICAL_HITS: { value: 'criticalHits', label: 'Critical Hits', icon: '⚔️', key: '5' },
     CRITICAL_FAILURES: { value: 'criticalFailures', label: 'Critical Failures', icon: '💥', key: '6' },

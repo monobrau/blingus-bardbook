@@ -2163,121 +2163,103 @@
   }
 
   function renderWorkflowOutcomes() {
-    const q = (searchInput.value || '').trim().toLowerCase();
-    const wfState = window.ActionWorkflow?.getState?.() || { targets: ['any'], outcomeMod: 'roleplay' };
-    const context = window.ActionWorkflow?.resolveOutcomeContext?.() || { ready: false, reason: 'Use the steps above to narrow down outcomes.' };
+    const selection = window.ActionWorkflow?.getGenerateSelection?.()
+      || { ready: false, reason: 'Use the steps above to choose a scene and outcome.' };
 
     clearElement(content);
 
-    if (!context.ready) {
+    if (!selection.ready) {
       const emptyCard = document.createElement('div');
       emptyCard.className = 'card';
-      emptyCard.textContent = context.reason;
+      emptyCard.textContent = selection.reason;
       content.appendChild(emptyCard);
       return;
     }
 
-    const { section, category, metaLabel, modalPrefix, location } = context;
-    const sceneLabel = window.ActionWorkflow.getSceneLabel(location);
-    const basePool = getMergedData(section, category);
-    const mergedPool = window.ActionWorkflow.buildWorkflowOutcomePool(basePool, wfState, context);
-
-    if (!mergedPool.length) {
-      const emptyCard = document.createElement('div');
-      emptyCard.className = 'card';
-      emptyCard.textContent = 'No outcomes yet for this combination. Try Edit Items to add some.';
-      content.appendChild(emptyCard);
-      return;
-    }
-
-    let validTexts = window.ActionWorkflow.filterValidOutcomes(mergedPool, wfState, context);
-    if (q) {
-      validTexts = validTexts.filter((text) => text.toLowerCase().includes(q));
-    }
-    if (favoritesOnly && favoritesOnly.checked) {
-      validTexts = validTexts.filter((text) => favorites.has(getItemId(section, text)));
-    }
-
-    const defaultsMap = section === 'actions' ? characterActions
-      : section === 'criticalHits' ? criticalHits
-      : section === 'criticalFailures' ? criticalFailures
-      : skillChecks;
-    const defaults = defaultsMap[category] || [];
-
+    const isDark = document.body.classList.contains('dark-mode');
+    const { section, category, metaLabel, modalPrefix } = selection;
     const cardClass = section === 'actions' ? 'action-card'
       : section === 'criticalHits' ? 'critical-hit-card'
       : section === 'criticalFailures' ? 'critical-failure-card'
       : 'skill-check-card';
-
-    const dataAttr = section === 'actions' ? 'actionText'
-      : section === 'criticalHits' ? 'hitText'
-      : section === 'criticalFailures' ? 'failureText'
-      : 'checkText';
-
-    const isDark = document.body.classList.contains('dark-mode');
-    const userAddedCount = (userItems[section] && userItems[section][category]) ? userItems[section][category].length : 0;
-    const filteredDefaultCount = mergedPool.length - userAddedCount;
 
     const intro = document.createElement('div');
     intro.className = 'card workflow-outcomes-intro';
     intro.style.fontSize = '14px';
     intro.style.opacity = '0.85';
     intro.style.padding = '12px 16px';
-    if (validTexts.length) {
-      const filteredNote = validTexts.length < mergedPool.length
-        ? ` (${mergedPool.length - validTexts.length} hidden — don't fit this selection)`
-        : '';
-      intro.textContent = `${validTexts.length} valid outcome${validTexts.length === 1 ? '' : 's'} for this scene and choices${filteredNote}`;
-    } else {
-      intro.textContent = window.ActionWorkflow.getEmptyOutcomeHint(wfState, context, mergedPool.length, 0)
-        || 'No valid outcomes for this selection.';
-    }
+    intro.textContent = `${selection.summary} — Claude will write 5 lines for this selection.`;
     content.appendChild(intro);
 
-    if (validTexts.length > 0) {
-      const randomCard = document.createElement('article');
-      randomCard.className = 'card random-card';
-      randomCard.style.background = isDark ? 'linear-gradient(135deg, #3d3d5e 0%, #2d2d44 100%)' : 'linear-gradient(135deg, #f7e7c4 0%, #fff9eb 100%)';
-      randomCard.style.border = '2px solid var(--accent)';
+    const randomCard = document.createElement('article');
+    randomCard.className = 'card random-card';
+    randomCard.style.background = isDark
+      ? 'linear-gradient(135deg, #3d3d5e 0%, #2d2d44 100%)'
+      : 'linear-gradient(135deg, #f7e7c4 0%, #fff9eb 100%)';
+    randomCard.style.border = '2px solid var(--accent)';
 
-      const randomBtn = document.createElement('button');
-      randomBtn.className = 'btn btn-random';
-      randomBtn.style.width = '100%';
-      randomBtn.style.padding = '16px';
-      randomBtn.style.fontSize = '18px';
-      randomBtn.style.fontWeight = 'bold';
-      randomBtn.textContent = '🎲 Feeling Chaotic? 🎲';
-      randomBtn.addEventListener('click', () => {
-        const pick = pickWithVariety(validTexts, `workflow|${section}|${location}|${category}|${wfState.outcomeMod}|${(wfState.targets || ['any']).join('+')}`);
-        const titleParts = [modalPrefix, sceneLabel];
-        if (section !== 'actions') titleParts.push(category);
-        showGeneratorModal(titleParts.join(' · '), pick, section);
-      });
+    const randomBtn = document.createElement('button');
+    randomBtn.className = 'btn btn-random';
+    randomBtn.style.width = '100%';
+    randomBtn.style.padding = '16px';
+    randomBtn.style.fontSize = '18px';
+    randomBtn.style.fontWeight = 'bold';
+    randomBtn.textContent = '✨ Generate 5 lines';
+    randomBtn.addEventListener('click', async () => {
+      if (!window.OutcomeGenerate) {
+        showToast('Outcome generator failed to load');
+        return;
+      }
+      randomBtn.disabled = true;
+      randomBtn.textContent = '⏳ Asking Claude…';
+      try {
+        const lines = await window.OutcomeGenerate.generate(selection);
+        lines.forEach((line) => {
+          try {
+            addToHistory(
+              line,
+              section || 'outcomes',
+              category || selection.detail || selection.outcome
+            );
+          } catch (e) {
+            /* history optional */
+          }
+        });
+        renderWorkflowOutcomes();
+      } catch (err) {
+        showToast(err?.message || 'Generate failed');
+        randomBtn.disabled = false;
+        randomBtn.textContent = '✨ Generate 5 lines';
+      }
+    });
 
-      const randomHint = document.createElement('div');
-      randomHint.style.marginTop = '8px';
-      randomHint.style.fontSize = '14px';
-      randomHint.style.opacity = '0.7';
-      randomHint.style.textAlign = 'center';
-      randomHint.textContent = `Random pick from ${validTexts.length} valid outcome${validTexts.length === 1 ? '' : 's'} (skips your recent picks)`;
+    const randomHint = document.createElement('div');
+    randomHint.style.marginTop = '8px';
+    randomHint.style.fontSize = '14px';
+    randomHint.style.opacity = '0.7';
+    randomHint.style.textAlign = 'center';
+    randomHint.textContent = 'Uses your Blingus personality setting (Data → Personality)';
 
-      randomCard.appendChild(randomBtn);
-      randomCard.appendChild(randomHint);
-      content.appendChild(randomCard);
+    randomCard.appendChild(randomBtn);
+    randomCard.appendChild(randomHint);
+    content.appendChild(randomCard);
+
+    const lines = window.OutcomeGenerate?.getLastResult?.(selection) || [];
+    if (!lines.length) {
+      const tip = document.createElement('div');
+      tip.className = 'card';
+      tip.style.opacity = '0.8';
+      tip.textContent = 'Complete the tree above, then Generate. No static list — every batch is fresh from Claude.';
+      content.appendChild(tip);
+      return;
     }
 
-    for (let i = 0; i < validTexts.length; i++) {
-      const item = validTexts[i];
-      const fullIndex = basePool.indexOf(item);
-      const isDefaultItem = defaults.includes(item);
-      const deletedIds = deletedDefaults[section]?.[category] || [];
-      const isDeletedDefault = deletedIds.includes(getItemId(section, item));
-      const isUserAdded = fullIndex >= filteredDefaultCount;
-      const userIndex = isUserAdded ? fullIndex - filteredDefaultCount : null;
-
+    for (let i = 0; i < lines.length; i++) {
+      const item = lines[i];
       const card = document.createElement('article');
       card.className = `card ${cardClass}`;
       card.style.cursor = 'pointer';
+      card.style.borderLeft = '4px solid var(--accent)';
 
       const copyBtn = document.createElement('button');
       copyBtn.className = 'card__copy';
@@ -2285,42 +2267,22 @@
       copyBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         content.querySelectorAll(`.${cardClass}`).forEach((c) => c.classList.remove('highlighted'));
-        copyToClipboard(item, section, category);
+        copyToClipboard(item, section || 'outcomes', category || selection.detail || selection.outcome);
       });
-
-      const editBtn = document.createElement('button');
-      editBtn.className = 'card__edit';
-      editBtn.textContent = '✎';
-      editBtn.title = 'Edit or delete this item';
-      if (isUserAdded) {
-        card.style.borderLeft = '4px solid #2b6f3a';
-        card.style.background = isDark ? '#2d3d2d' : '#f0f8f0';
-      } else if (isDefaultItem && !isDeletedDefault) {
-        card.style.borderLeft = '4px solid #4a90e2';
-        card.style.background = isDark ? '#2d3d4d' : '#f0f4f8';
-      }
-      editBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        openEditModal(section, category, item, isUserAdded ? userIndex : (isDefaultItem ? -1 : null));
-      });
-      card.appendChild(editBtn);
 
       card.addEventListener('click', () => {
         content.querySelectorAll(`.${cardClass}`).forEach((c) => c.classList.remove('highlighted'));
-        copyToClipboard(item, section, category);
+        copyToClipboard(item, section || 'outcomes', category || selection.detail || selection.outcome);
       });
 
       const p = document.createElement('div');
       p.textContent = item;
       p.style.fontSize = '16px';
       p.style.lineHeight = '1.6';
-      p.dataset[dataAttr] = item;
 
       const meta = document.createElement('div');
       meta.className = 'card__meta';
-      meta.textContent = section === 'actions'
-        ? `${metaLabel} — ${sceneLabel}`
-        : `${metaLabel} — ${sceneLabel} · ${category}`;
+      meta.textContent = `${modalPrefix || '🎲'} ${metaLabel || 'Outcome'} — ${selection.summary}`;
 
       card.appendChild(copyBtn);
       card.appendChild(p);
@@ -4580,6 +4542,17 @@
   const historyBtn = document.getElementById('historyBtn');
   if (historyBtn) {
     historyBtn.addEventListener('click', showHistoryModal);
+  }
+
+  const personalityBtn = document.getElementById('personalityBtn');
+  if (personalityBtn) {
+    personalityBtn.addEventListener('click', () => {
+      if (window.OutcomeGenerate?.openPersonalityModal) {
+        window.OutcomeGenerate.openPersonalityModal();
+      } else {
+        showToast('Personality settings failed to load');
+      }
+    });
   }
 
   // File storage button - attach to existing button in HTML

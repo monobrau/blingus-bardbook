@@ -8,7 +8,10 @@
 (function () {
   'use strict';
 
-  const WORKFLOW_SECTIONS = new Set(['actions', 'criticalHits', 'criticalFailures', 'skillChecks']);
+  // Unified "outcomes" tab plus legacy section ids for old bookmarks/shortcuts.
+  const WORKFLOW_SECTIONS = new Set([
+    'outcomes', 'actions', 'criticalHits', 'criticalFailures', 'skillChecks',
+  ]);
 
   const WEAPON_CATEGORIES = [
     'Arrows', 'Crossbolts', 'Swords', 'Polearms', 'Knives',
@@ -183,7 +186,10 @@
   }
 
   function getSceneIds() {
-    return Object.keys(window.BlingusData?.characterActions || {});
+    const fromActions = Object.keys(window.BlingusData?.characterActions || {});
+    if (fromActions.length) return fromActions;
+    const types = window.BlingusData?.sceneTypes || {};
+    return Object.keys(types);
   }
 
   function normalizeLocationId(locationId) {
@@ -222,10 +228,13 @@
     if (section === 'criticalHits') return 'hit';
     if (section === 'criticalFailures') return 'fail';
     if (section === 'skillChecks') return 'success';
+    if (section === 'outcomes') return state.outcomeMod || 'roleplay';
     return 'roleplay';
   }
 
   function getOutcomeModsForSection(section = activeSection) {
+    // Unified outcomes tab: all five modes in one tree.
+    if (section === 'outcomes') return OUTCOME_MODS;
     if (section === 'actions') return OUTCOME_MODS.filter((m) => m.id === 'roleplay');
     if (section === 'criticalHits') return OUTCOME_MODS.filter((m) => m.id === 'hit');
     if (section === 'criticalFailures') return OUTCOME_MODS.filter((m) => m.id === 'fail');
@@ -239,14 +248,42 @@
   }
 
   function applyTabPreset(section) {
+    // Legacy tabs redirect into the unified outcomes experience.
+    if (section === 'actions' || section === 'criticalHits'
+      || section === 'criticalFailures' || section === 'skillChecks') {
+      section = 'outcomes';
+    }
     activeSection = section;
     state.outcomeMod = clampOutcomeMod(defaultOutcomeMod(section), section);
-    state.subtype = needsDetail(state.outcomeMod) ? defaultSubtype(state.outcomeMod) : null;
+    state.subtype = needsDetail(state.outcomeMod) ? (state.subtype || defaultSubtype(state.outcomeMod)) : null;
     if (!state.location) state.location = defaultLocation();
     if (!state.targets.length) state.targets = ['any'];
     state.targets = sanitizeTargets(state.outcomeMod, state.targets);
     renderPanel();
     notifyChange();
+  }
+
+  /** Payload for Claude generation from the current tree. */
+  function getGenerateSelection() {
+    const ctx = resolveOutcomeContext();
+    if (!ctx.ready) {
+      return { ready: false, reason: ctx.reason };
+    }
+    const targets = sanitizeTargets(state.outcomeMod, state.targets);
+    const target = targets.includes('any') ? 'any' : targets.join(', ');
+    return {
+      ready: true,
+      scene: ctx.location,
+      outcome: state.outcomeMod,
+      detail: state.subtype || '',
+      target,
+      count: 5,
+      summary: buildSummary(ctx),
+      metaLabel: ctx.metaLabel,
+      modalPrefix: ctx.modalPrefix,
+      section: ctx.section,
+      category: ctx.category,
+    };
   }
 
   function resolveOutcomeContext(workflowState = state) {
@@ -866,6 +903,7 @@
     isWorkflowSection,
     applyTabPreset,
     resolveOutcomeContext,
+    getGenerateSelection,
     filterByTargets,
     filterByScene,
     filterValidOutcomes,

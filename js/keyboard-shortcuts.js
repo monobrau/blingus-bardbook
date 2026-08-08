@@ -62,14 +62,14 @@
       return true;
     },
 
-    // Section shortcuts (1-7)
+    // Section shortcuts (1-4: Spells, Bardic, Mockery, Outcomes)
     '1': () => selectSection(0),
     '2': () => selectSection(1),
     '3': () => selectSection(2),
     '4': () => selectSection(3),
-    '5': () => selectSection(4),
-    '6': () => selectSection(5),
-    '7': () => selectSection(6),
+    '5': () => selectSection(3),
+    '6': () => selectSection(3),
+    '7': () => selectSection(3),
 
     // Help modal
     '?': () => {

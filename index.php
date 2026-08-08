@@ -19,6 +19,7 @@ $moduleFiles = [
   'search-enhancements.js',
   'keyboard-shortcuts.js',
   'action-workflow.js',
+  'outcome-generate.js',
   'karaoke-manager.js',
   'data/generators-data.js',
   'data/spells-data.js',
@@ -81,21 +82,9 @@ foreach ($moduleFiles as $file) {
             <span class="tab__icon">🗡️</span>
             <span class="tab__label">Mockery</span>
           </button>
-          <button class="tab" role="tab" data-section="actions" aria-selected="false" data-tooltip="Character action ideas (Press 4)">
-            <span class="tab__icon">🎭</span>
-            <span class="tab__label">Actions</span>
-          </button>
-          <button class="tab" role="tab" data-section="criticalHits" aria-selected="false" data-tooltip="Critical hit descriptions (Press 5)">
-            <span class="tab__icon">⚔️</span>
-            <span class="tab__label">Crit Hits</span>
-          </button>
-          <button class="tab" role="tab" data-section="criticalFailures" aria-selected="false" data-tooltip="Critical failure descriptions (Press 6)">
-            <span class="tab__icon">💥</span>
-            <span class="tab__label">Crit Fails</span>
-          </button>
-          <button class="tab" role="tab" data-section="skillChecks" aria-selected="false" data-tooltip="Skill check results (Press 7)">
+          <button class="tab" role="tab" data-section="outcomes" aria-selected="false" data-tooltip="Scene outcomes via Claude (Press 4)">
             <span class="tab__icon">🎲</span>
-            <span class="tab__label">Skills</span>
+            <span class="tab__label">Outcomes</span>
           </button>
         </div>
       </div>
@@ -136,6 +125,7 @@ foreach ($moduleFiles as $file) {
         <option value="spells">Spell Parodies</option>
         <option value="bardic">Bardic Inspiration</option>
         <option value="mockery">Vicious Mockery</option>
+        <option value="outcomes">Scene Outcomes</option>
         <option value="actions">What's Your Character Doing?</option>
         <option value="criticalHits">Critical Hit Description</option>
         <option value="criticalFailures">Critical Failure Description</option>
@@ -189,6 +179,7 @@ foreach ($moduleFiles as $file) {
             <button id="exportBtn" class="btn btn--group" data-tooltip="Export all data">📥 Export</button>
             <button id="importBtn" class="btn btn--group" data-tooltip="Import data">📤 Import</button>
             <button id="fileStorageBtn" class="btn btn--group" data-tooltip="File or server storage">💾</button>
+            <button id="personalityBtn" class="btn btn--group" data-tooltip="Edit Blingus personality for Claude">🪶 Personality</button>
           </div>
         </div>
       </div>
@@ -208,7 +199,7 @@ foreach ($moduleFiles as $file) {
     <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; font-size: 13px; opacity: 0.9;">
       <span>⌨️ <kbd>?</kbd> Help</span>
       <span>⌨️ <kbd>Ctrl+K</kbd> Search</span>
-      <span>⌨️ <kbd>1-7</kbd> Sections</span>
+      <span>⌨️ <kbd>1-4</kbd> Sections</span>
       <span>⌨️ <kbd>H</kbd> History</span>
       <span>⌨️ <kbd>↑↓</kbd> Navigate</span>
       <span>⌨️ <kbd>Enter</kbd> Copy</span>
@@ -434,8 +425,9 @@ foreach ($moduleFiles as $file) {
   <script src="js/data/scene-outcomes.js?v=<?php echo $versions['data/scene-outcomes.js']; ?>"></script>
   <script>window.BlingusSceneVersion = "<?php echo $versions['data/scene-outcomes.js']; ?>";</script>
 
-  <!-- Action workflow (after data modules) -->
+  <!-- Action workflow + Claude outcome generation (after data modules) -->
   <script src="js/action-workflow.js?v=<?php echo $versions['action-workflow.js']; ?>"></script>
+  <script src="js/outcome-generate.js?v=<?php echo $versions['outcome-generate.js']; ?>"></script>
 
   <!-- Main application script -->
   <script src="script.js?v=<?php echo $versions['script.js']; ?>"></script>
