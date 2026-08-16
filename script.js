@@ -77,9 +77,9 @@
   
   // Clear all Blingus data - can be called from console
   window.clearBlingusData = function() {
-    if (confirm('Clear ALL Blingus data? This will delete favorites, custom items, history, and all customizations. This cannot be undone!')) {
+    if (confirm('Clear ALL Blingus data? This will delete custom items, history, and all customizations. This cannot be undone!')) {
       const keys = [
-        favoritesKey,
+        'blingusFavoritesV1',
         userItemsKey,
         deletedDefaultsKey,
         historyKey,
@@ -97,7 +97,6 @@
   
   const sectionSelect = $('#sectionSelect');
   const categorySelect = $('#categorySelect');
-  const favoritesOnly = $('#favoritesOnly');
   const searchInput = $('#searchInput');
   const clearBtn = $('#clearBtn');
   const toast = $('#toast');
@@ -209,8 +208,6 @@
       CARD: 'card',
       CARD_HIGHLIGHTED: 'highlighted',
       CARD_ACTION: 'action-card',
-      CARD_FAV: 'card__fav',
-      CARD_FAV_ON: 'on',
       CARD_COPY: 'card__copy',
       CARD_EDIT: 'card__edit',
       CARD_META: 'card__meta',
@@ -389,7 +386,6 @@
   }
   
   // localStorage keys
-  const favoritesKey = 'blingusFavoritesV1';
   const userItemsKey = 'blingusUserItemsV1';
   const deletedDefaultsKey = 'blingusDeletedDefaultsV1';
   const historyKey = 'blingusHistoryV1';
@@ -634,7 +630,6 @@
         if (result.success && result.data) {
           // Apply loaded data to localStorage
           const data = result.data;
-          if (data.favorites !== undefined) localStorage.setItem(favoritesKey, JSON.stringify(data.favorites));
           if (data.userItems !== undefined) localStorage.setItem(userItemsKey, JSON.stringify(data.userItems));
           if (data.deletedDefaults !== undefined) localStorage.setItem(deletedDefaultsKey, JSON.stringify(data.deletedDefaults));
           if (data.history !== undefined) localStorage.setItem(historyKey, JSON.stringify(data.history));
@@ -767,7 +762,6 @@
       defaultCriticalFailures: criticalFailures,
       defaultSkillChecks: skillChecks,
       // User preferences
-      favorites: JSON.parse(localStorage.getItem(favoritesKey) || '[]'),
       darkMode: localStorage.getItem(darkModeKey) === 'true',
       
       // User-added content
@@ -792,7 +786,7 @@
       // Metadata
       version: '1.5',
       timestamp: new Date().toISOString(),
-      exportNote: 'Complete export including character sheet, personality, mood, rating, party, favorites, and history.'
+      exportNote: 'Complete export including character sheet, personality, mood, rating, party, and history.'
     };
   }
   
@@ -836,7 +830,6 @@
       const data = JSON.parse(text);
       
       // Apply loaded data to localStorage
-      if (data.favorites !== undefined) localStorage.setItem(favoritesKey, JSON.stringify(data.favorites));
       if (data.userItems !== undefined) localStorage.setItem(userItemsKey, JSON.stringify(data.userItems));
       if (data.deletedDefaults !== undefined) localStorage.setItem(deletedDefaultsKey, JSON.stringify(data.deletedDefaults));
       if (data.history !== undefined) localStorage.setItem(historyKey, JSON.stringify(data.history));
@@ -918,6 +911,9 @@
   }
 
   window.addEventListener('workflow-catalog-change', () => {
+    scheduleFileSave();
+  });
+  window.addEventListener('blingus-character-change', () => {
     scheduleFileSave();
   });
   
@@ -1466,34 +1462,6 @@
   let currentEditingIndex = null;
   let currentEditingSection = null;
   let currentEditingCategory = null;
-  function makeId(item){ return `${item.s} — ${item.a} — ${item.t}`; }
-  function loadFavorites(){
-    try { const raw = localStorage.getItem(favoritesKey); return new Set(raw ? JSON.parse(raw) : []); }
-    catch(e){ return new Set(); }
-  }
-  function saveFavorites(){
-    try { 
-      localStorage.setItem(favoritesKey, JSON.stringify([...favorites]));
-      scheduleFileSave();
-    } catch(e){}
-  }
-  let favorites = loadFavorites();
-  function isFav(item){ return favorites.has(makeId(item)); }
-  function toggleFav(item, btn){
-    const id = makeId(item);
-    if (favorites.has(id)) {
-      favorites.delete(id);
-      btn.classList.remove('on');
-      btn.textContent = '☆';
-      showToast('Removed from favorites');
-    } else {
-      favorites.add(id);
-      btn.classList.add('on');
-      btn.textContent = '★';
-      showToast('Added to favorites');
-    }
-    saveFavorites();
-  }
 
   function buildCategories() {
     clearElement(categorySelect);
@@ -1716,17 +1684,7 @@
       }
     }
     
-    // Apply favorites filter if enabled
     let filteredResults = allResults;
-    if (favoritesOnly && favoritesOnly.checked) {
-      filteredResults = allResults.filter(result => {
-        if (result.section === 'actions' || result.section === 'criticalHits' || result.section === 'criticalFailures' || result.section === 'skillChecks') {
-          const itemId = getItemId(result.section, result.item);
-          return favorites.has(itemId);
-        }
-        return isFav(result.item);
-      });
-    }
     
     debugLog(`renderGlobalSearch: found ${filteredResults.length} results across all sections`);
     
@@ -1819,12 +1777,6 @@
     card.className = 'card';
     card.tabIndex = 0;
     
-    const favBtn = document.createElement('button');
-    favBtn.className = 'card__fav';
-    const favOn = isFav(item);
-    favBtn.textContent = favOn ? '★' : '☆';
-    if (favOn) favBtn.classList.add('on');
-    favBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleFav(item, favBtn); });
     
     const chip = document.createElement('span');
     chip.className = 'card__chip';
@@ -1891,7 +1843,6 @@
       meta.textContent = `Song: ${item.s} — ${item.a}${item.adult || isAdult ? '  •  Adult' : ''}`;
     }
     
-    card.appendChild(favBtn);
     card.appendChild(copyBtn);
     card.appendChild(chip);
     card.appendChild(p);
@@ -1966,7 +1917,7 @@
 
   function render() {
     const section = sectionSelect.value;
-    const q = (searchInput.value || '').trim().toLowerCase();
+    const q = (searchInput && searchInput.value || '').trim().toLowerCase();
     
     debugLog(`render() called for section: ${section}, search query: "${q}"`);
 
@@ -2080,10 +2031,6 @@
     
     debugLog(`render: after search filter, list length=${list.length}`);
     
-    if (favoritesOnly && favoritesOnly.checked) {
-      list = list.filter(isFav);
-      debugLog(`render: after favorites filter, list length=${list.length}`);
-    }
     
     debugLog(`render: final list length=${list.length} for ${section}`);
     
@@ -2199,12 +2146,6 @@
       const card = document.createElement('article');
       card.className = 'card';
       card.tabIndex = 0; // Make focusable for keyboard navigation
-      const favBtn = document.createElement('button');
-      favBtn.className = 'card__fav';
-      const favOn = isFav(item);
-      favBtn.textContent = favOn ? '★' : '☆';
-      if (favOn) favBtn.classList.add('on');
-      favBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleFav(item, favBtn); });
       const chip = document.createElement('span');
       chip.className = 'card__chip';
       chip.textContent = section === 'spells' ? 'Spell' : (section === 'bardic' ? 'Bardic' : 'Mockery');
@@ -2445,7 +2386,6 @@
         meta.textContent = `Song: ${item.s} — ${item.a}${item.adult ? '  •  Adult' : ''}`;
       }
 
-      card.appendChild(favBtn);
       card.appendChild(copyBtn);
       if (youtubeBtn) {
         card.appendChild(youtubeBtn);
@@ -2467,6 +2407,34 @@
     }
   }
 
+  function mountOutcomesRoller(parent) {
+    const wf = window.ActionWorkflow?.getState?.() || {};
+    const outcome = wf.outcomeMod;
+    const subtype = wf.subtype || '';
+    const isWeapon = (outcome === 'hit' || outcome === 'fail') && subtype;
+    const isSkill = (outcome === 'success' || outcome === 'failure') && subtype;
+    if (!wf.rollBanner && !isWeapon && !isSkill) return false;
+    if (wf.rollBanner) {
+      const banner = document.createElement('div');
+      banner.className = 'd20-banner' + (wf.rollVerdict ? ' d20-banner--' + wf.rollVerdict : '');
+      banner.textContent = wf.rollBanner;
+      parent.appendChild(banner);
+    }
+    if ((isWeapon || isSkill) && window.D20Roll) {
+      const host = document.createElement('div');
+      host.className = 'd20-pad-host';
+      parent.appendChild(host);
+      window.D20Roll.renderPad(host, {
+        kind: isWeapon ? 'weapon' : 'skill',
+        label: subtype,
+        attackType: wf.attackType || '',
+        bonus: window.CharacterSheet?.getRollBonus?.(isWeapon ? 'weapon' : 'skill', subtype) || 0,
+        onResolved: (payload) => window.ActionWorkflow?.beginFromRoll?.(payload),
+      });
+    }
+    return true;
+  }
+
   function renderWorkflowOutcomes() {
     const selection = window.ActionWorkflow?.getGenerateSelection?.()
       || { ready: false, reason: 'Use the steps above to choose a scene and outcome.' };
@@ -2478,6 +2446,9 @@
       emptyCard.className = 'card';
       emptyCard.textContent = selection.reason;
       content.appendChild(emptyCard);
+      const rollCard = document.createElement('article');
+      rollCard.className = 'card random-card';
+      if (mountOutcomesRoller(rollCard)) content.appendChild(rollCard);
       return;
     }
 
@@ -2515,6 +2486,7 @@
     randomCard.style.border = '2px solid var(--accent)';
 
     const generateButtons = [];
+    mountOutcomesRoller(randomCard);
 
     async function runGenerate(forceParody, btn, idleLabel) {
       if (!window.OutcomeGenerate) {
@@ -2663,7 +2635,7 @@
   }
 
   function renderActions() {
-    const q = (searchInput.value || '').trim().toLowerCase();
+    const q = (searchInput && searchInput.value || '').trim().toLowerCase();
     const cat = categorySelect.value;
     
     if (!cat) {
@@ -2693,14 +2665,6 @@
       debugLog(`renderActions: after search filter, filteredActions=${filteredActions.length}`);
     }
     
-    // Apply favorites filter if enabled
-    if (favoritesOnly && favoritesOnly.checked) {
-      filteredActions = filteredActions.filter(action => {
-        const itemId = getItemId('actions', action);
-        return favorites.has(itemId);
-      });
-      debugLog(`renderActions: after favorites filter, filteredActions=${filteredActions.length}`);
-    }
     
     debugLog(`renderActions: final filteredActions=${filteredActions.length}, will render ${filteredActions.length} cards`);
     debugLog(`renderActions: content element exists:`, !!content);
@@ -2839,7 +2803,7 @@
 
   function renderCriticalHits() {
     const cat = categorySelect.value;
-    const q = (searchInput.value || '').trim().toLowerCase();
+    const q = (searchInput && searchInput.value || '').trim().toLowerCase();
     
     if (!cat) {
       console.warn('renderCriticalHits: No category selected');
@@ -2870,14 +2834,6 @@
       debugLog(`renderCriticalHits: after search filter, filteredHits=${filteredHits.length}`);
     }
     
-    // Apply favorites filter if enabled
-    if (favoritesOnly && favoritesOnly.checked) {
-      filteredHits = filteredHits.filter(hit => {
-        const itemId = getItemId('criticalHits', hit);
-        return favorites.has(itemId);
-      });
-      debugLog(`renderCriticalHits: after favorites filter, filteredHits=${filteredHits.length}`);
-    }
     
     debugLog(`renderCriticalHits: final filteredHits=${filteredHits.length}, will render ${filteredHits.length} cards`);
     
@@ -3037,7 +2993,7 @@
 
   function renderCriticalFailures() {
     const cat = categorySelect.value;
-    const q = (searchInput.value || '').trim().toLowerCase();
+    const q = (searchInput && searchInput.value || '').trim().toLowerCase();
     
     if (!cat) {
       console.warn('renderCriticalFailures: No category selected');
@@ -3068,14 +3024,6 @@
       debugLog(`renderCriticalFailures: after search filter, filteredFailures=${filteredFailures.length}`);
     }
     
-    // Apply favorites filter if enabled
-    if (favoritesOnly && favoritesOnly.checked) {
-      filteredFailures = filteredFailures.filter(failure => {
-        const itemId = getItemId('criticalFailures', failure);
-        return favorites.has(itemId);
-      });
-      debugLog(`renderCriticalFailures: after favorites filter, filteredFailures=${filteredFailures.length}`);
-    }
     
     debugLog(`renderCriticalFailures: final filteredFailures=${filteredFailures.length}, will render ${filteredFailures.length} cards`);
     
@@ -3235,7 +3183,7 @@
 
   function renderSkillChecks() {
     const cat = categorySelect.value;
-    const q = (searchInput.value || '').trim().toLowerCase();
+    const q = (searchInput && searchInput.value || '').trim().toLowerCase();
     
     if (!cat) {
       console.warn('renderSkillChecks: No category selected');
@@ -3266,14 +3214,6 @@
       debugLog(`renderSkillChecks: after search filter, filteredChecks=${filteredChecks.length}`);
     }
     
-    // Apply favorites filter if enabled
-    if (favoritesOnly && favoritesOnly.checked) {
-      filteredChecks = filteredChecks.filter(check => {
-        const itemId = getItemId('skillChecks', check);
-        return favorites.has(itemId);
-      });
-      debugLog(`renderSkillChecks: after favorites filter, filteredChecks=${filteredChecks.length}`);
-    }
     
     debugLog(`renderSkillChecks: final filteredChecks=${filteredChecks.length}, will render ${filteredChecks.length} cards`);
     
@@ -4640,12 +4580,9 @@
     const section = sectionSelect.value;
     const isWorkflow = !!window.ActionWorkflow?.isWorkflowSection(section);
     const hideSearch = isWorkflow || section === 'character';
-    // Hide search / favorites on Outcomes and Character
+    // Hide search on Outcomes and Character
     const searchRow = document.getElementById('searchToolbarRow');
     if (searchRow) searchRow.style.display = hideSearch ? 'none' : '';
-    if (favoritesOnly?.parentElement) {
-      favoritesOnly.parentElement.style.display = hideSearch ? 'none' : '';
-    }
     const filtersRow = document.getElementById('filtersToolbarRow');
     if (filtersRow && hideSearch) filtersRow.style.display = 'none';
     // Ensure a category is selected after building categories
@@ -4659,8 +4596,6 @@
     }, RENDER_DELAY_MS);
   });
   categorySelect.addEventListener('change', render);
-  if (favoritesOnly) favoritesOnly.addEventListener('change', render);
-  
   // Dark mode toggle
   const darkModeToggle = $('#darkModeToggle');
   function applyDarkMode(enabled) {
@@ -4689,8 +4624,8 @@
   } else if (savedDarkMode) {
     applyDarkMode(true);
   }
-  searchInput.addEventListener('input', render);
-  clearBtn.addEventListener('click', () => { searchInput.value = ''; render(); });
+  if (searchInput) searchInput.addEventListener('input', render);
+  if (clearBtn) clearBtn.addEventListener('click', () => { searchInput.value = ''; render(); });
   
   // Clear cache button - only show on web server
   const clearCacheBtn = $('#clearCacheBtn');
@@ -5176,11 +5111,6 @@
             // Note: Default items (spells, bardic, etc.) are in the code and don't need importing
             // But we check for them in case someone wants to verify the export is complete
             
-            if (data.favorites !== undefined) {
-              localStorage.setItem(favoritesKey, JSON.stringify(data.favorites));
-              importedCount++;
-              importedCategories.push('favorites');
-            }
             if (data.userItems !== undefined) {
               localStorage.setItem(userItemsKey, JSON.stringify(data.userItems));
               importedCount++;
@@ -5640,7 +5570,6 @@
       userItems = loadUserItems();
       deletedDefaults = loadDeletedDefaults();
       migrateEnlargeReduceUserData();
-      favorites = loadFavorites();
       
       // Trigger a re-render to show loaded data
       setTimeout(() => {
@@ -5660,12 +5589,11 @@
       try {
         const loaded = await loadDataFromFile();
         if (loaded) {
-          // Reload favorites and other data from localStorage (which was updated by loadDataFromFile)
+          // Reload data from localStorage (which was updated by loadDataFromFile)
           userItems = loadUserItems();
           deletedDefaults = loadDeletedDefaults();
           migrateEnlargeReduceUserData();
-          favorites = loadFavorites();
-          // Trigger a re-render to show loaded data
+              // Trigger a re-render to show loaded data
           setTimeout(() => {
             render();
           }, 100);
@@ -5695,7 +5623,12 @@
   }
   debugLog('Initial render...');
   if (window.ActionWorkflow) {
-    window.ActionWorkflow.init({ onChange: () => render() });
+    window.ActionWorkflow.init({
+      onChange: () => {
+        if (sectionSelect.value === 'character') return;
+        render();
+      }
+    });
     if (window.ActionWorkflow.isWorkflowSection(sectionSelect.value)) {
       window.ActionWorkflow.showPanel(true);
       window.ActionWorkflow.applyTabPreset(sectionSelect.value);

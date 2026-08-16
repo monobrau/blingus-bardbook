@@ -77,7 +77,7 @@ PARTY_ROSTER = {
 PARTY_FLAVOR = {
     "blingus": "Self-roast welcome. L5 Lore fairy bard: vanity, name-amnesia, two daggers and a shortbow, fly speed, Cutting Words, Sir Whats-his-face energy.",
     "puck": 'Fellow fairy Wild Magic sorcerer. Sparkles, twin-spell mischief, affectionate "Puke" nickname ok, glitter and bad decisions.',
-    "brawn": "Dwarven monk. Currently wears the Crown of Remembrance. Drinks, thinks, swings.",
+    "brawn": "Dwarven monk. Wears the Crown of Remembrance (Geoe: rare, attunement; holly and amber; +1 AC and saves; 1/day Action name Declan/Owen/Tristan: three allies within 20 ft get Advantage on next CON/DEX/WIS save before start of Brawn's next turn). Drinks, thinks, swings.",
     "vadania": "Elven ranger Vadania Amakiir; the table casually calls them Vandan, Van Damme, or whatever feels right. Paranoid bow-watcher. Checks doors twice, prods chests, got Scorching-Rayed by a helpful ally during a mimic-chair fight. Trust issues are comedy gold. Mix nicknames mid-bit.",
     "bo": "Toad-cauldron era, enlarge heroics, dragon breath at Granny Nightshade. Closest thing Blingus has to family. Zybilna-silent warlock mentor flavor when it fits. Toad jokes never die.",
 }
@@ -92,6 +92,8 @@ OUTCOME_LABELS = {
     "mockery": "Vicious Mockery (the spoken cantrip the player will deliver at the table)",
     "insult": "Insult (witty verbal jab, not the cantrip)",
     "compliment": "Compliment (warm but Blingus-flavored praise)",
+    "toast": "Raised-glass toast the player can speak at the table",
+    "motivation": "Motivational speech the player can deliver at the table (pep talk, rally, Bardic Inspiration energy)",
     "introduction": "Chaucer-style herald introduction (ornate party/NPC presentation)",
 }
 
@@ -192,6 +194,15 @@ def build_generate_prompts(body: dict[str, Any]) -> tuple[str, str, str, int]:
     detail = str(body.get("detail") or "").strip()
     target = str(body.get("target") or "any").strip()
     name = str(body.get("name") or "").strip()[:80]
+    cast_result = str(body.get("castResult") or "").strip().lower()
+    if cast_result not in ("success", "failure", "mixed", "na"):
+        cast_result = ""
+    spell_targets = str(body.get("spellTargets") or "").strip().lower()
+    if spell_targets not in ("multi", "single"):
+        spell_targets = ""
+    spell_kind = str(body.get("spellKind") or "").strip().lower()
+    if spell_kind not in ("attack", "save", "damage", "other"):
+        spell_kind = ""
     personality = str(body.get("personality") or "").strip()
     mood = str(body.get("mood") or "").strip().lower()[:40]
     mood_prompt = str(body.get("moodPrompt") or "").strip()[:400]
@@ -259,13 +270,69 @@ PARTY SUBJECT MODE (active — subject is a table party member):
 - Every line must clearly involve the named party member.
 - Every line must clearly involve {name} by name.
 - Party-member flavor for {name}: {flavor}
-- Lean on table-known gags when they fit: toad-Bo, Crown of Remembrance, mimic chairs, Scorching Ray friendly fire, Stinky Court, mud muffins, Sir Whats-his-face, Sir Talavar, marching-band near-wipe, Granny in the oven.
+- Lean on table-known gags when they fit: toad-Bo, Crown of Remembrance, mimic chairs, Scorching Ray friendly fire, Stinky Court, mud muffins, Sir Whats-his-face, Sir Talavar, marching-band near-wipe, Granny in the oven, Mr. Witch and Mr. Light, Misplacer Beast, swan boat What is Joy dunk, Witch's watch pickpocket, Star the displacer cub, Jamie you beautiful bastard and Chris as well (do not invent who they are).
 """
 
     mood_note = mood or "playful"
     mood_guide = mood_prompt or "Match a playful theatrical Blingus register unless the outcome type requires otherwise."
     env_note = ", ".join(environment) if environment else "(none specified)"
-    target_note = "any / unspecified" if target in ("", "any") else target
+    target_types = [part.strip() for part in target.split(",") if part.strip() and part.strip().lower() != "any"]
+    is_multi_spell = spell_targets == "multi"
+    spell_kind_note = {
+        "attack": "spell attack roll",
+        "save": "saving throw",
+        "damage": "damage with no spell attack roll",
+        "other": "heal / utility (no attack roll)",
+    }.get(spell_kind, "(n/a)")
+    spell_targets_note = (
+        "multi (area / several creatures; no headcounts)"
+        if is_multi_spell
+        else ("single target" if spell_targets == "single" else "(n/a)")
+    )
+    if not target_types:
+        target_note = (
+            "unspecified creatures in the area (do not invent a headcount)"
+            if is_multi_spell
+            else "any / unspecified"
+        )
+    elif len(target_types) > 1:
+        prefix = (
+            "these kinds in the area (include each kind; do not say how many of each): "
+            if is_multi_spell
+            else "include each of these foci in every line (do not invent a headcount): "
+        )
+        target_note = prefix + ", ".join(target_types)
+    elif is_multi_spell:
+        target_note = "this kind in the area (do not invent a headcount): " + target_types[0]
+    else:
+        target_note = target_types[0]
+    if cast_result == "success":
+        cast_result_note = (
+            "They fail the save. Apply THIS spell's failed-save result (full damage, condition lands, etc.). "
+            "Multi-target: do not name how many fail."
+            if is_multi_spell
+            else "They fail the save. Apply THIS spell's failed-save result (full damage, condition lands, etc.)."
+        )
+    elif cast_result == "failure":
+        cast_result_note = (
+            "They make the save. Apply THIS spell's successful-save result (half damage for Fireball/"
+            "Thunderwave/Shatter; no effect for Faerie Fire/Bane; whatever the real spell says). "
+            "Multi-target: do not name how many make it."
+            if is_multi_spell
+            else "They make the save. Apply THIS spell's successful-save result (half damage, no effect, or reduced effect — the real spell, not a generic fizzle)."
+        )
+    elif cast_result == "mixed":
+        cast_result_note = (
+            "Mixed saves: some fail and some make it. Apply THIS spell's fail result to those who fail "
+            "and its success result to those who make it. Show BOTH. Do not name how many."
+        )
+    elif cast_result == "na":
+        cast_result_note = (
+            "N/A: no save result given. If THIS spell has no save (Magic Missile, Cloud of Daggers), "
+            "the effect just happens. If it has a save, do not invent who passed or failed."
+        )
+    else:
+        cast_result_note = "(n/a)"
     name_note = name or "(no specific name)"
     combat_round = bool(body.get("combatRound")) or str(body.get("pace") or "").strip().lower() == "battle"
     pace = str(body.get("pace") or "").strip().lower()
@@ -350,14 +417,27 @@ HOUSE RULES:
 - Roleplay may fold in current HP, fairy flight, an instrument, or a feature when it naturally matters. Do not inventory-dump.
 - If HP current is below max, combat lines may acknowledge being hurt when it fits. If HP is about one-third or less, that fragility can color the beat.
 - Fairy specifics: Small fey, airborne, vain, name-amnesia. Default kit is two daggers and a shortbow. If Detail names a different weapon or spell, use Detail. Do not invent 4th-level spells unless Detail names one, and do not fly in medium/heavy armor.
-- Lean on table-known Prismeer hooks when they fit: Sir Talavar, Stinky Court, mud muffins, mimic chairs, marching-band near-wipe, Skabatha dead in the oven, Bavlorna still owed yarn, Lamorna/Elidon horn, Crown of Remembrance on Brawn. Do not invent unpublished Witchlight spoilers.
+- Lean on table-known Prismeer hooks when they fit: Sir Talavar, Clapperclaw the pincer-clawed scarecrow of Downfall (someone forgot his name), Stinky Court, mud muffins, mimic chairs, marching-band near-wipe, Loomlurch hollow tree and portrait room (Bavlorna Endelyn Tasha), Skabatha dead in the oven, Bavlorna still owed yarn, Lamorna/Elidon alicorn, Jabberwock (dragon-like, be careful), palace may need an invitation, Blood-Slick Token, Crown of Remembrance on Brawn, Mr. Witch and Mr. Light on edge, Star the displacer cub, eight unicorn names (Fortune Bold Fall Pride Stone Moss Stitch Nine). Do not invent unpublished Witchlight spoilers.
 - If Scene names a Feywild or Prismeer place, write to THAT place (Hither mud, Loomlurch timber, Yon peaks, a goblin market, etc.). If Name / subject is a creature, aim the beat at that foe. Do not invent unpublished Witchlight plot.
 - Battle cries: short, shoutable, 1-2 sentences max. Energetic, theatrical, first person or imperative.
 - Vicious Mockery: these lines ARE the cantrip. Write the exact words Blingus speaks as the verbal component, ready for the player to read aloud. First-person spoken roast, psychic sting, WIS-save flavor welcome. Do not narrate "I cast Vicious Mockery"; deliver the mockery itself. In battle: one breath. Out of battle: a longer cantrip delivery (3-5 sentences) is fine. Always aim at the named foe when given. This is not a generic insult.
 - Insults: cutting table jab, not the cantrip. Aimed at the focus when specified. One or two sentences.
 - Compliments: sincere-ish praise with Blingus vanity or backhanded warmth. One or two sentences.
+- Motivational speeches: a pep talk the player can read aloud. Not a toast, not a battle cry, not a compliment of one trait. Name / subject is the audience. If it is a group, address that whole group. If it is one person, aim at them. In battle: one breath. Out of battle: 3-5 sentences.
 - Chaucer introductions: ornate herald-style presentation suitable to read aloud. Longer is fine (2-5 sentences). Use "Behold", "Hark", "Presenting", or similar flourish. Invent flattering or teasing epithets. Do not spoil module plot.
-- When a specific name is provided, clearly address or present that person by name in every line.
+- When a specific name is provided, clearly address or present that person by name in every line. If other target kinds are also listed, keep those kinds in the beat too; the named person is one definite individual, not the only focus. If this is a multi-target spell, they are one creature in the area, not the only one.
+- Saving throw results must follow the official D&D 2024 rules for the Detail spell. Do not treat every made save as "nothing happens."
+- Fireball, Thunderwave, Shatter, and similar: fail = full damage, make = half damage. The spell still happens.
+- Faerie Fire, Bane, Hideous Laughter, and similar: fail = the effect lands, make = no effect on that creature.
+- Magic Missile, Cloud of Daggers, and similar: no save. Do not invent a to-hit or a save unless the player picked fail/make.
+- If the save result is "they fail the save": apply THIS spell's failed-save result.
+- If the save result is "they make the save": apply THIS spell's successful-save result (half, negated, or whatever the real spell says).
+- If the save result is "mixed saves": some fail and some make it. Apply THIS spell to each. Do not write an all-or-nothing result.
+- If the save result is "N/A": do not invent who passed or failed. If the real spell has no save, the effect just happens.
+- Multi-target spells (area / several creatures): NEVER state a definite number of creatures hit, missed, damaged, who fail a save, or who make a save. No "two goblins", "all three", "one of four", "three fail and two make it." Use some / others / those who / the ones in the glow. A named subject may be named as one definite person; do not count anyone else.
+- If Target focus lists more than one kind (enemy and ally, NPC and object, environment, etc.), every line must include those kinds. They are all in play. Do not drop one. Do not assign a headcount to each kind.
+- If Spell kind is "damage with no spell attack roll": the harm just happens (darts, a cube of blades, an area pulse). Do NOT write a to-hit, a spell attack roll, or a crit swing. A crit-hit outcome is the effect landing especially hard; a crit-fail is the effect going wrong (wrong spot, fizzle, friendly fire), not a missed attack roll.
+- If Spell kind is "saving throw": do not write a spell attack roll. The save result above is authoritative.
 - OCCASIONAL SONG PARODY: in a minority of lines (about 0-1 per batch), Blingus may weave a recognizable song-parody snatch into the beat in his karaoke-bard style. Most lines stay unsung. When Force Song Parody is active, ignore this rarity and do every line.
 {sheet_block}{kit_match_block}{rating_block}{party_mode}{force_parody_block}"""
 
@@ -374,6 +454,9 @@ Pace: {pace}
 Outcome type: {OUTCOME_LABELS[outcome]}
 Attack type: {attack_type or '(n/a)'}
 Detail (weapon / bard spell / skill): {detail or '(none)'}
+Saving throw result: {cast_result_note}
+Spell kind: {spell_kind_note}
+Spell area: {spell_targets_note}
 Target focus: {target_note}
 Name / subject: {name_note}
 Party member subject: {party_subject}

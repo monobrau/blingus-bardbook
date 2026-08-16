@@ -6,9 +6,43 @@
 (function() {
   'use strict';
 
-  let currentSection = 'spells';
+  const TAB_KEY = 'activeTab';
+  const DEFAULT_SECTION = 'spells';
+  let currentSection = DEFAULT_SECTION;
   let currentCategory = null;
   const collapsedSpellGroups = new Set();
+
+  function validSections() {
+    return Array.from(document.querySelectorAll('.tab[data-section]'))
+      .map((tab) => tab.getAttribute('data-section'))
+      .filter(Boolean);
+  }
+
+  function loadSavedSection() {
+    let saved = null;
+    if (window.StorageUtils?.loadLocal) {
+      saved = window.StorageUtils.loadLocal(TAB_KEY, null);
+    } else {
+      try { saved = localStorage.getItem('blingus_' + TAB_KEY); } catch (e) { /* ignore */ }
+    }
+    const allowed = validSections();
+    if (saved && allowed.includes(saved)) return saved;
+    return allowed[0] || DEFAULT_SECTION;
+  }
+
+  function saveSection(section) {
+    if (window.StorageUtils?.saveLocal) {
+      window.StorageUtils.saveLocal(TAB_KEY, section);
+      return;
+    }
+    try { localStorage.setItem('blingus_' + TAB_KEY, section); } catch (e) { /* ignore */ }
+  }
+
+  function restoreSectionEarly() {
+    currentSection = loadSavedSection();
+    const sectionSelect = document.getElementById('sectionSelect');
+    if (sectionSelect) sectionSelect.value = currentSection;
+  }
 
   // Wait for DOM to be ready
   function init() {
@@ -20,12 +54,12 @@
   }
 
   function setupNavigation() {
+    restoreSectionEarly();
     setupTabs();
     setupChips();
 
-    // Initialize with first section
     setTimeout(() => {
-      switchToSection('spells', true);
+      switchToSection(currentSection || DEFAULT_SECTION, true);
     }, 100);
   }
 
@@ -52,6 +86,7 @@
 
   function switchToSection(section, isInitial = false) {
     currentSection = section;
+    saveSection(section);
 
     // Update visual tab state
     document.querySelectorAll('.tab').forEach(tab => {
@@ -290,6 +325,6 @@
   // Cleanup on page unload
   window.addEventListener('beforeunload', cleanup);
 
-  // Initialize
+  restoreSectionEarly();
   init();
 })();

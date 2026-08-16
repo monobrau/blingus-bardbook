@@ -8,42 +8,6 @@
 
   // Keyboard shortcut handlers
   const shortcuts = {
-    // Search shortcuts
-    'Ctrl+K': () => {
-      document.getElementById('searchInput')?.focus();
-      return true; // Prevent default
-    },
-    'Meta+K': () => { // Cmd+K for Mac
-      document.getElementById('searchInput')?.focus();
-      return true;
-    },
-    '/': () => {
-      const searchInput = document.getElementById('searchInput');
-      if (document.activeElement !== searchInput) {
-        searchInput?.focus();
-        return true;
-      }
-      return false; // Allow typing '/' in search
-    },
-
-    // Favorites shortcut
-    'Ctrl+F': () => {
-      const favCheckbox = document.getElementById('favoritesOnly');
-      if (favCheckbox) {
-        favCheckbox.checked = !favCheckbox.checked;
-        favCheckbox.dispatchEvent(new Event('change'));
-      }
-      return true;
-    },
-    'Meta+F': () => { // Cmd+F for Mac - but browser will override
-      const favCheckbox = document.getElementById('favoritesOnly');
-      if (favCheckbox) {
-        favCheckbox.checked = !favCheckbox.checked;
-        favCheckbox.dispatchEvent(new Event('change'));
-      }
-      return false; // Let browser handle if needed
-    },
-
     // Dark mode shortcut
     'Ctrl+D': () => {
       const darkModeToggle = document.getElementById('darkModeToggle');
@@ -180,16 +144,6 @@
 
               <kbd>Esc</kbd>
               <span>Close modal / Clear selection</span>
-
-              <strong style="grid-column: 1 / -1; margin-top: 8px; color: var(--accent); border-bottom: 1px solid var(--burnt); padding-bottom: 4px;">Search & Filter</strong>
-              <kbd>Ctrl+K</kbd>
-              <span>Focus search</span>
-
-              <kbd>/</kbd>
-              <span>Focus search (alternative)</span>
-
-              <kbd>Ctrl+F</kbd>
-              <span>Toggle favorites filter</span>
 
               <strong style="grid-column: 1 / -1; margin-top: 8px; color: var(--accent); border-bottom: 1px solid var(--burnt); padding-bottom: 4px;">Sections</strong>
               <kbd>1</kbd>

@@ -132,6 +132,18 @@ if ($pace !== 'battle' && $pace !== 'roleplay') {
     $pace = $combatRound ? 'battle' : 'roleplay';
 }
 $forceParody = !empty($body['forceParody']);
+$castResult = strtolower(trim((string) ($body['castResult'] ?? '')));
+if ($castResult !== 'success' && $castResult !== 'failure' && $castResult !== 'mixed' && $castResult !== 'na') {
+    $castResult = '';
+}
+$spellTargets = strtolower(trim((string) ($body['spellTargets'] ?? '')));
+if ($spellTargets !== 'multi' && $spellTargets !== 'single') {
+    $spellTargets = '';
+}
+$spellKind = strtolower(trim((string) ($body['spellKind'] ?? '')));
+if (!in_array($spellKind, ['attack', 'save', 'damage', 'other'], true)) {
+    $spellKind = '';
+}
 $characterBlock = trim((string) ($body['characterBlock'] ?? ''));
 if (strlen($characterBlock) > 5000) {
     $characterBlock = substr($characterBlock, 0, 5000);
@@ -167,7 +179,7 @@ $partyRoster = [
 $partyFlavorByKey = [
     'blingus' => 'Self-roast welcome. L5 Lore fairy bard: vanity, name-amnesia, two daggers and a shortbow, fly speed, Cutting Words, Sir Whats-his-face energy.',
     'puck' => 'Fellow fairy Wild Magic sorcerer. Sparkles, twin-spell mischief, affectionate "Puke" nickname ok, glitter and bad decisions.',
-    'brawn' => 'Dwarven monk. Currently wears the Crown of Remembrance. Drinks, thinks, swings. Table-known: Valor\'s Call / Elkhorn adjacent if it fits, but do not invent module plot.',
+    'brawn' => 'Dwarven monk. Wears the Crown of Remembrance (Geoe: rare, attunement; holly and amber; +1 AC and saves; 1/day Action name Declan/Owen/Tristan: three allies within 20 ft get Advantage on next CON/DEX/WIS save before start of Brawn\'s next turn). Drinks, thinks, swings. Table-known: Valor\'s Call / Elkhorn adjacent if it fits, but do not invent module plot.',
     'vadania' => 'Elven ranger Vadania Amakiir; the table casually calls them Vandan, Van Damme, or whatever feels right. Paranoid bow-watcher. Checks doors twice, prods chests, got Scorching-Rayed by a "helpful" ally during a mimic-chair fight. Trust issues are comedy gold. Mix nicknames mid-bit.',
     'bo' => 'Toad-cauldron era, enlarge heroics, dragon breath at Granny Nightshade. Closest thing Blingus has to family. Zybilna-silent warlock mentor flavor when it fits. Toad jokes never die.',
 ];
@@ -217,11 +229,11 @@ if ($count > 8) {
 }
 
 $allowedOutcomes = [
-    'roleplay', 'meanwhile', 'hit', 'fail', 'success', 'failure',
-    'battleCry', 'mockery', 'cuttingWords', 'insult', 'compliment', 'toast', 'introduction', 'feyGambit',
+    'roleplay', 'meanwhile', 'spell', 'hit', 'fail', 'success', 'failure',
+    'battleCry', 'mockery', 'cuttingWords', 'insult', 'compliment', 'toast', 'motivation', 'introduction', 'feyGambit',
 ];
-$speechOutcomes = ['battleCry', 'mockery', 'cuttingWords', 'insult', 'compliment', 'toast', 'introduction', 'feyGambit'];
-$detailOutcomes = ['hit', 'fail', 'success', 'failure'];
+$speechOutcomes = ['battleCry', 'mockery', 'cuttingWords', 'insult', 'compliment', 'toast', 'motivation', 'introduction', 'feyGambit'];
+$detailOutcomes = ['hit', 'fail', 'success', 'failure', 'spell'];
 
 if ($scene === '' || !in_array($outcome, $allowedOutcomes, true)) {
     jsonFail('Missing or invalid scene/outcome');
@@ -239,6 +251,7 @@ if ($personality === '') {
 $outcomeLabels = [
     'roleplay' => 'Roleplay action (a directed beat the player chose to do)',
     'meanwhile' => 'Meanwhile / idle beat (the DM asked what Blingus is doing; the player had no plan)',
+    'spell' => 'Spell cast (he is casting the named spell on purpose; not a skill check and not a weapon crit)',
     'hit' => 'Critical hit description',
     'fail' => 'Critical fail description',
     'success' => 'Skill check success',
@@ -248,6 +261,7 @@ $outcomeLabels = [
     'insult' => 'Insult (witty verbal jab, not the cantrip)',
     'compliment' => 'Compliment (warm but Blingus-flavored praise)',
     'toast' => 'Raised-glass toast the player can speak at the table',
+    'motivation' => 'Motivational speech the player can deliver at the table (pep talk, rally, Bardic Inspiration energy)',
     'introduction' => 'Chaucer-style herald introduction (ornate party/NPC presentation)',
     'cuttingWords' => 'Cutting Words (Lore reaction: spoken barb that subtracts a BI die from a seen creature\'s attack, check, or damage)',
     'feyGambit' => 'Fey gambit (a bluff that the mark is bound by fairy custom: rule of three, reciprocity, true-name, octave)',
@@ -259,9 +273,48 @@ $settingNote = $setting !== '' ? $setting : '(unspecified)';
 $weatherNote = $weather !== '' ? $weather : '(unspecified)';
 $lightingNote = $lighting !== '' ? $lighting : '(unspecified)';
 $environmentNote = count($environment) ? implode(', ', $environment) : '(none specified)';
-$targetNote = ($target === '' || $target === 'any') ? 'any / unspecified' : $target;
+$targetTypes = array_values(array_filter(array_map('trim', explode(',', $target)), static function ($part) {
+    return $part !== '' && strtolower($part) !== 'any';
+}));
+$isMultiSpell = $spellTargets === 'multi';
+$spellKindNote = [
+    'attack' => 'spell attack roll',
+    'save' => 'saving throw',
+    'damage' => 'damage with no spell attack roll',
+    'other' => 'heal / utility (no attack roll)',
+][$spellKind] ?? '(n/a)';
+$spellTargetsNote = $isMultiSpell
+    ? 'multi (area / several creatures; no headcounts)'
+    : ($spellTargets === 'single' ? 'single target' : '(n/a)');
+if (!$targetTypes) {
+    $targetNote = $isMultiSpell
+        ? 'unspecified creatures in the area (do not invent a headcount)'
+        : 'any / unspecified';
+} elseif (count($targetTypes) > 1) {
+    $targetNote = ($isMultiSpell
+        ? 'these kinds in the area (include each kind; do not say how many of each): '
+        : 'include each of these foci in every line (do not invent a headcount): ')
+        . implode(', ', $targetTypes);
+} elseif ($isMultiSpell) {
+    $targetNote = 'this kind in the area (do not invent a headcount): ' . $targetTypes[0];
+} else {
+    $targetNote = $targetTypes[0];
+}
 $nameNote = $name !== '' ? $name : '(no specific name)';
 $intentNote = $intent !== '' ? $intent : '(none)';
+$castResultNote = $castResult === 'success'
+    ? ($isMultiSpell
+        ? 'They fail the save. Apply THIS spell\'s failed-save result (full damage, condition lands, etc.). Multi-target: do not name how many fail.'
+        : 'They fail the save. Apply THIS spell\'s failed-save result (full damage, condition lands, etc.).')
+    : ($castResult === 'failure'
+        ? ($isMultiSpell
+            ? 'They make the save. Apply THIS spell\'s successful-save result (half damage for Fireball/Thunderwave/Shatter; no effect for Faerie Fire/Bane; whatever the real spell says). Multi-target: do not name how many make it.'
+            : 'They make the save. Apply THIS spell\'s successful-save result (half damage, no effect, or reduced effect — the real spell, not a generic fizzle).')
+        : ($castResult === 'mixed'
+            ? 'Mixed saves: some fail and some make it. Apply THIS spell\'s fail result to those who fail and its success result to those who make it. Show BOTH. Do not name how many.'
+            : ($castResult === 'na'
+                ? 'N/A: no save result given. If THIS spell has no save (Magic Missile, Cloud of Daggers), the effect just happens. If it has a save, do not invent who passed or failed.'
+                : '(n/a)')));
 
 $ratingGuides = [
     'g' => 'CONTENT RATING G (ACTIVE, overrides mood and party-raunch for adult content): All-ages family table. No sexual content, no innuendo, no crude slang, no graphic gore. Violence stays cartoon slapstick. Keep Blingus theatrical and funny without dirty jokes. A "lewd" mood at G is playful charm only.',
@@ -306,7 +359,7 @@ PARTYMODE;
     $flavor = $partyFlavorByKey[$flavorKey] ?? 'Use established table chemistry and in-jokes for this companion.';
     $partyModeBlock .= "\n- Every line must clearly involve {$name} by name.\n";
     $partyModeBlock .= "- Party-member flavor for {$name}: {$flavor}\n";
-    $partyModeBlock .= "- Lean on table-known gags when they fit: toad-Bo, Crown of Remembrance, mimic chairs, Scorching Ray friendly fire, Stinky Court, mud muffins, Sir Whats-his-face, Sir Talavar, marching-band near-wipe, Granny in the oven.\n";
+    $partyModeBlock .= "- Lean on table-known gags when they fit: toad-Bo, Crown of Remembrance, mimic chairs, Scorching Ray friendly fire, Stinky Court, mud muffins, Sir Whats-his-face, Sir Talavar, marching-band near-wipe, Granny in the oven, Mr. Witch and Mr. Light, Misplacer Beast, swan boat What is Joy dunk, Witch's watch pickpocket, Star the displacer cub, Jamie you beautiful bastard and Chris as well (do not invent who they are).\n";
 }
 
 $moodNote = $mood !== '' ? $mood : 'playful';
@@ -329,6 +382,7 @@ if ($kitMatch !== '') {
 ITEM IN PLAY FOR THIS BATCH (wizard Detail is authoritative):
 {$kitMatch}
 - Every combat line must be recognizably THIS item. Do not replace it with a different weapon or spell, even if the standing sheet lists something else.
+- If this is a spell, honor the official D&D 2024 rules for THAT spell (save-for-half vs save-negates vs no save). Sheet notes are a hint; the published spell wins.
 KIT;
 }
 
@@ -397,8 +451,22 @@ HOUSE RULES:
 - Roleplay lines: a directed table beat the player chose. Prefer gerund/present-participial prompts (e.g. "Scanning the room...") or short present-tense beats. He is doing something on purpose. If a Situation / intent is set (Busking, Haggling, Hovering nearby, Hanging back, Short rest / tune up, Forgetting a name, Watching the chairs, Eavesdropping, Spending Lucky), every line must be that beat.
 - Meanwhile lines: the DM just asked "what is Blingus doing?" and the player froze. Each line is a caught-in-the-act idle habit, already in progress when the camera cuts to him. Hovering, tuning a clarinet/fiddle/pan flute, prestidigitation fidgets, eavesdropping, name-amnesia, watching chairs, looking pretty, snacking, nosing in a bag, humming, fussing with cloth wings. Not a skill check, not an attack, not a speech, not a toast, not a useful job that solves the scene. Mood, place, lighting, and weather color the habit. If a name is given, he may be idle near or about that person. If a Situation / intent is set, every line must be that habit. Present-tense or gerund.
 - Crit hits / skill successes / skill failures / crit fails: prefer first-person "I …" as Blingus.
-- Crit hits must clearly land on a foe/target. Crit fails must clearly go wrong (miss, fumble, backfire, self/environment mishap).
-- For crit hits/fails: honor the attack type (slash, pierce, blunt, or magic) and the specific weapon or D&D 5.5e/2024 bard spell named in Detail. Magic lines should feel like that spell (psychic mockery, thunder boom, radiant wisp, heated armor, etc.), not a generic blast.
+- Skill success or failure with a spell in Detail is a cast, not a weapon swing: the spell works or it fizzles / they make the save. Healing Word heals; Misty Step steps; Identify identifies.
+- Spell cast outcome: he is casting the Detail spell. Not a skill check and not a crit. Healing Word heals; Misty Step steps; Identify identifies. Use that exact spell.
+- Saving throw results must follow the official D&D 2024 rules for the Detail spell. Do not treat every made save as "nothing happens."
+- Fireball, Thunderwave, Shatter, and similar: fail = full damage, make = half damage. The spell still happens.
+- Faerie Fire, Bane, Hideous Laughter, and similar: fail = the effect lands, make = no effect on that creature.
+- Magic Missile, Cloud of Daggers, and similar: no save. Do not invent a to-hit or a save unless the player picked fail/make.
+- If the save result is "they fail the save": apply THIS spell's failed-save result.
+- If the save result is "they make the save": apply THIS spell's successful-save result (half, negated, or whatever the real spell says).
+- If the save result is "mixed saves": some fail and some make it. Apply THIS spell to each. Do not write an all-or-nothing result.
+- If the save result is "N/A": do not invent who passed or failed. If the real spell has no save, the effect just happens.
+- Multi-target spells (area / several creatures): NEVER state a definite number of creatures hit, missed, damaged, who fail a save, or who make a save. No "two goblins", "all three", "one of four", "three fail and two make it." Use some / others / those who / the ones in the glow. A named subject may be named as one definite person; do not count anyone else.
+- If Target focus lists more than one kind (enemy and ally, NPC and object, environment, etc.), every line must include those kinds. They are all in play. Do not drop one. Do not assign a headcount to each kind.
+- If Spell kind is "damage with no spell attack roll": the harm just happens (darts, a cube of blades, an area pulse). Do NOT write a to-hit, a spell attack roll, or a crit swing. A crit-hit outcome is the effect landing especially hard; a crit-fail is the effect going wrong (wrong spot, fizzle, friendly fire), not a missed attack roll.
+- If Spell kind is "saving throw": do not write a spell attack roll. The save result above is authoritative.
+- Crit hits must clearly land on a foe/target. Crit fails must clearly go wrong (miss, fumble, backfire, self/environment mishap). If the Detail spell has no attack roll, do not invent one.
+- For crit hits/fails: honor the attack type (slash, pierce, blunt, or magic) and the specific weapon or D&D 5.5e/2024 bard spell named in Detail. Magic lines should feel like that spell (psychic mockery, thunder boom, radiant wisp, heated armor, etc.), not a generic blast. Healing and utility spells (Healing Word, Mass Healing Word, Misty Step, Identify, Prestidigitation, Druidcraft, Silence, Dispel Magic) are never crit attacks; if Detail is one of those, write a successful or failed cast, not a strike.
 - Detail wins over the standing sheet for THIS batch. If Detail is Longbow, every line is a longbow (arrows, nock, draw, loose), never a spear, dagger, shortbow, or crossbow. If Detail is a spell, use that spell, not a different one and not a weapon.
 - Do not mix weapon families: bows fire arrows; crossbows fire bolts; spears and pikes thrust; swords cut; hammers crush. A pierce attack type is not permission to swap weapons inside that type.
 - Honor the CURRENT CHARACTER SHEET for abilities, HP, AC, and default kit. The sheet is what he usually carries. If Detail names something else, he is using that item for this roll (borrowed, looted, or hypothetical). Do not invent 4th-level spells unless Detail names one.
@@ -407,17 +475,18 @@ HOUSE RULES:
 - Roleplay may fold in current HP, fairy flight, an instrument, or a feature when it naturally matters. Do not inventory-dump.
 - If HP current is below max, combat lines may acknowledge being hurt when it fits. If HP is about one-third or less, that fragility can color the beat.
 - Fairy specifics: Small fey, airborne, vain, name-amnesia. Default kit is two daggers and a shortbow. If Detail names a different weapon or spell, use Detail. Do not invent 4th-level spells unless Detail names one, and do not fly in medium/heavy armor.
-- Lean on table-known Prismeer hooks when they fit: Sir Talavar, Stinky Court, mud muffins, mimic chairs, marching-band near-wipe, Skabatha dead in the oven, Bavlorna still owed yarn, Lamorna/Elidon horn, Crown of Remembrance on Brawn. Do not invent unpublished Witchlight spoilers.
+- Lean on table-known Prismeer hooks when they fit: Sir Talavar, Clapperclaw the pincer-clawed scarecrow of Downfall (someone forgot his name), Stinky Court, mud muffins, mimic chairs, marching-band near-wipe, Loomlurch hollow tree and portrait room (Bavlorna Endelyn Tasha), Skabatha dead in the oven, Bavlorna still owed yarn, Lamorna/Elidon alicorn, Jabberwock (dragon-like, be careful), palace may need an invitation, Blood-Slick Token, Crown of Remembrance on Brawn, Mr. Witch and Mr. Light on edge, Star the displacer cub, eight unicorn names (Fortune Bold Fall Pride Stone Moss Stitch Nine). Do not invent unpublished Witchlight spoilers.
 - If Scene names a Feywild or Prismeer place, write to THAT place (Hither mud, Loomlurch timber, Yon peaks, a goblin market, etc.). If Name / subject is a creature, aim the beat at that foe. Do not invent unpublished Witchlight plot.
 - Battle cries: short, shoutable, 1-2 sentences max. Energetic, theatrical, first person or imperative.
 - Vicious Mockery: these lines ARE the cantrip. Write the exact words Blingus speaks as the verbal component, ready for the player to read aloud. First-person spoken roast, psychic sting, WIS-save flavor welcome. Do not narrate "I cast Vicious Mockery"; deliver the mockery itself. In battle: one breath. Out of battle: a longer cantrip delivery (3-5 sentences) is fine. Always aim at the named foe when given. This is not a generic insult.
 - Insults: cutting table jab, not the cantrip. Aimed at the focus when specified. In battle: one breath. Out of battle: a longer roast (3-5 sentences) is fine.
 - Compliments: sincere-ish praise with Blingus vanity or backhanded warmth. In battle: one breath. Out of battle: a longer toast (3-5 sentences) is fine.
 - Toasts: a raised-glass speech the player can read aloud. Not a UI popup, not a compliment-only line, not a herald intro. Cup, mug, or flask up; honor the named subject (person, party, victory, place, or the dead). Mood and rating color the toast (playful, petty, melancholy, lewd, etc.). In battle: one breath. Out of battle: 3-5 sentences, still speakable.
+- Motivational speeches: a pep talk the player can read aloud. Not a toast (no glass required), not a battle cry (not just Charge), not a compliment of one trait. Theatrical and vain, but the point is to get them moving. Name / subject is the AUDIENCE. If it is a group (the party, the party and NPCs, a crowd, townsfolk, kids, militia, local allies, or a typed group), address that whole group in every line. Do not shrink a group audience to one person. If Name is one person, aim the speech at them; others may overhear. If a Situation chip is set (Before the door, After a knockout, Against the odds, Don't you dare quit, Bardic Inspiration energy), fold that occasion in. In battle: one breath. Out of battle: 3-5 sentences, still shoutable or speakable.
 - Chaucer introductions: ornate herald-style presentation suitable to read aloud. In battle: one tight flourish. Out of battle: 3-5 sentences. Use "Behold", "Hark", "Presenting", or similar flourish. Invent flattering or teasing epithets. Do not spoil module plot.
 - Cutting Words: these lines ARE the Lore reaction the player speaks. Spend a Bardic Inspiration die to subtract from a seen creature's attack roll, ability check, or damage roll within 60 ft. Write the spoken barb, ready to read aloud. Do not narrate "I use Cutting Words." Do not add to an ally's roll (that is Bardic Inspiration). Do not add to AC (that is Valor Combat Inspiration). In battle: one breath. Out of battle: a longer barb (3-5 sentences) is fine. Aim at the named foe when given.
 - Fey gambit: Blingus is bluffing that fairy custom binds the mark. Lean on table-known bits only: rule of three, law of reciprocity, true-name bargains, octave / eight-day cycles. He is theatrical and self-aware; the joke is that he is selling mystique, not that the universe confirmed it. Do not invent unpublished Witchlight law or spoilers. If a Situation chip is set (Rule of three, Reciprocity, True-name bluff, Octave / eight-day cycle), use THAT gambit. Speakable at the table. Out of battle: 3-5 sentences.
-- When a specific name is provided, clearly address or present that person by name in every line.
+- When a specific name is provided, clearly address or present that person by name in every line. If other target kinds are also listed, keep those kinds in the beat too; the named person is one definite individual, not the only focus. If this is a multi-target spell, they are one creature in the area, not the only one.
 - OCCASIONAL SONG PARODY: in a minority of lines (about 0-1 per batch), Blingus may weave a recognizable song-parody snatch into the beat in his karaoke-bard style. Prefer well-known 80s/90s rap/hip-hop or karaoke classics the table would know on sight. Most lines stay unsung. When Force Song Parody is active, ignore this rarity and do every line.
 {$sheetBlock}
 {$kitMatchBlock}
@@ -441,6 +510,9 @@ Pace: {$pace}
 Outcome type: {$outcomeLabels[$outcome]}
 Attack type: {$attackTypeNote}
 Detail (weapon / bard spell / skill): {$detailNote}
+Saving throw result: {$castResultNote}
+Spell kind: {$spellKindNote}
+Spell area: {$spellTargetsNote}
 Target focus: {$targetNote}
 Name / subject: {$nameNote}
 Situation / intent: {$intentNote}

@@ -23,7 +23,6 @@ window.BlingusConstants = (function() {
 
   // Storage keys (without prefix - StorageUtils adds it)
   const STORAGE_KEYS = {
-    FAVORITES: 'favorites',
     USER_ITEMS: 'userItems',
     DARK_MODE: 'darkMode',
     DELETED_DEFAULTS: 'deletedDefaults',
@@ -61,7 +60,6 @@ window.BlingusConstants = (function() {
   // Keyboard shortcuts
   const SHORTCUTS = {
     SEARCH: ['Ctrl+K', 'Meta+K', '/'],
-    FAVORITES: ['Ctrl+F', 'Meta+F'],
     DARK_MODE: ['Ctrl+D', 'Meta+D'],
     HELP: ['?', 'Shift+/'],
     HISTORY: ['h'],
@@ -101,7 +99,6 @@ window.BlingusConstants = (function() {
   const CSS_CLASSES = {
     CARD: 'card',
     CARD_HIGHLIGHTED: 'highlighted',
-    CARD_FAVORITE: 'on',
     TAB_ACTIVE: 'tab--active',
     CHIP_ACTIVE: 'chip--active',
     MODAL_SHOW: 'show',

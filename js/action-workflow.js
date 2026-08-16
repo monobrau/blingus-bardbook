@@ -122,11 +122,22 @@
       if (!out[type].length) out[type] = cloneGroups(fallback[type]);
     });
 
-    const magicGroups = sheet.getMagicOptions?.() || [];
+    const magicGroups = sheet.getMagicOptions?.({ kinds: ['attack', 'save', 'damage'] }) || [];
     if (magicGroups.length) {
       out.magic = magicGroups
         .map((g) => ({ label: g.label, ids: uniqueIds(g.ids || []) }))
         .filter((g) => g.ids.length);
+    }
+    if (!out.magic.length) {
+      out.magic = cloneGroups(fallback.magic).map((g) => ({
+        label: g.label,
+        ids: uniqueIds((g.ids || []).filter((id) => {
+          const kind = sheet.resolveSpellKind
+            ? sheet.resolveSpellKind({ name: id })
+            : 'save';
+          return kind === 'attack' || kind === 'save' || kind === 'damage';
+        })),
+      })).filter((g) => g.ids.length);
     }
     if (!out.magic.length) out.magic = cloneGroups(fallback.magic);
     return out;
@@ -135,6 +146,7 @@
   const OUTCOME_MODS = [
     { id: 'roleplay', label: '🎭 Roleplay', group: 'scene' },
     { id: 'meanwhile', label: '🧚 Meanwhile', group: 'scene' },
+    { id: 'spell', label: '✨ Spell', group: 'scene' },
     { id: 'hit', label: '⚔️ Crit Hit', group: 'scene' },
     { id: 'fail', label: '💥 Crit Fail', group: 'scene' },
     { id: 'success', label: '✅ Success', group: 'scene' },
@@ -145,6 +157,7 @@
     { id: 'insult', label: '💬 Insult', group: 'speech' },
     { id: 'compliment', label: '💬 Compliment', group: 'speech' },
     { id: 'toast', label: '🥂 Toast', group: 'speech' },
+    { id: 'motivation', label: '📣 Motivational Speech', group: 'speech' },
     { id: 'introduction', label: '🎭 Chaucer Intro', group: 'speech' },
     { id: 'feyGambit', label: '🧚 Fey Gambit', group: 'speech' },
   ];
@@ -159,8 +172,8 @@
 
   /** Outcome types available for each pace. Skills + insults appear in both. */
   const MODS_BY_PACE = {
-    battle: ['hit', 'fail', 'success', 'failure', 'mockery', 'cuttingWords', 'battleCry', 'insult', 'toast'],
-    roleplay: ['roleplay', 'meanwhile', 'success', 'failure', 'mockery', 'cuttingWords', 'insult', 'compliment', 'toast', 'introduction', 'feyGambit'],
+    battle: ['spell', 'hit', 'fail', 'success', 'failure', 'mockery', 'cuttingWords', 'battleCry', 'insult', 'toast', 'motivation'],
+    roleplay: ['roleplay', 'meanwhile', 'spell', 'success', 'failure', 'mockery', 'cuttingWords', 'insult', 'compliment', 'toast', 'motivation', 'introduction', 'feyGambit'],
   };
 
   const SPEECH_META = {
@@ -205,6 +218,12 @@
       category: 'toasts',
       metaLabel: 'Toast',
       modalPrefix: '🥂',
+    },
+    motivation: {
+      section: 'outcomes',
+      category: 'motivations',
+      metaLabel: 'Motivational Speech',
+      modalPrefix: '📣',
     },
     introduction: {
       section: 'outcomes',
@@ -543,6 +562,7 @@
   const TARGETS_FOR_OUTCOME = {
     roleplay: ['any', 'enemy', 'ally', 'self', 'environment', 'npc', 'object'],
     meanwhile: ['any', 'self', 'ally', 'npc', 'environment', 'object'],
+    spell: ['any', 'enemy', 'ally', 'self', 'environment', 'npc', 'object'],
     hit: ['any', 'enemy', 'npc'],
     fail: ['any', 'self', 'ally', 'environment', 'object', 'enemy', 'npc'],
     success: ['any', 'self', 'ally', 'enemy', 'environment', 'npc', 'object'],
@@ -553,6 +573,7 @@
     insult: ['any', 'enemy', 'npc', 'ally', 'self'],
     compliment: ['any', 'ally', 'npc', 'self', 'enemy'],
     toast: ['any', 'ally', 'npc', 'self', 'enemy'],
+    motivation: ['any', 'ally', 'self', 'npc', 'group'],
     introduction: ['any', 'ally', 'self', 'npc', 'enemy'],
     feyGambit: ['any', 'npc', 'enemy', 'ally'],
   };
@@ -571,7 +592,21 @@
     feyGambit: [
       'Rule of three', 'Reciprocity', 'True-name bluff', 'Octave / eight-day cycle',
     ],
+    motivation: [
+      'Before the door', 'After a knockout', 'Against the odds',
+      'Don\'t you dare quit', 'Bardic Inspiration energy',
+    ],
   };
+
+  const MOTIVATION_AUDIENCE_CHIPS = [
+    'The party',
+    'The party and NPCs',
+    'A crowd',
+    'Townsfolk',
+    'Local allies',
+    'Kids',
+    'Guards / militia',
+  ];
 
   const ENEMY_PATTERN = /\b(their|them|they|foe|foes|enemy|enemies|opponent|target|adversary|my target)\b/i;
   const SELF_HARM_PATTERN = /\b(myself|my own|my hand|my fingers|my feet|my face|my knees|my palm|cut myself|nearly hitting myself|nearly cuts my own|singed my own|backfires.*my own)\b/i;
@@ -583,6 +618,7 @@
     { id: 'self', label: '🧚 Self', patterns: [/\b(I|my|myself|me)\b/] },
     { id: 'environment', label: '🏔️ Environment', patterns: [/\b(ground|wall|walls|door|terrain|weather|path|tree|rock|floor|ceiling|mountain|forest|dungeon|room|camp|swamp|plain|jungle|desert|trail|obstacle|beam|undergrowth)\b/i] },
     { id: 'npc', label: '👥 NPC', patterns: [/\b(bartender|innkeeper|merchant|vendor|guard|clergy|local|patron|blacksmith|people|crowd|someone|stranger|creature|animal|beast)\b/i] },
+    { id: 'group', label: '📣 Group', patterns: [/\b(party|crowd|townsfolk|militia|guards|kids|allies|group|everyone)\b/i] },
     { id: 'object', label: '📦 Object', patterns: [/\b(equipment|gear|weapon|armor|item|coin|coins|drink|map|chest|bed|furniture|merchandise|bedroll|tent|daggers|arrow|bolt|blade)\b/i] },
   ];
 
@@ -596,9 +632,12 @@
     outcomeMod: null,
     attackType: null,
     subtype: null,
+    castResult: null,
     targets: ['any'],
     focusName: '',
     situation: '',
+    rollBanner: '',
+    rollVerdict: '',
   };
 
   let activeSection = 'outcomes';
@@ -637,6 +676,10 @@
   let detailSelectEl = null;
   let detailChipsEl = null;
   let detailLabelEl = null;
+  let castResultStepEl = null;
+  let castResultSummaryEl = null;
+  let castResultLabelEl = null;
+  let castResultChipsEl = null;
   let roleplayHintEl = null;
   let targetStepEl = null;
   let targetSummaryEl = null;
@@ -645,6 +688,8 @@
   let nameBlockEl = null;
   let situationLabelEl = null;
   let situationChipsEl = null;
+  let audienceLabelEl = null;
+  let audienceChipsEl = null;
   let partyChipsEl = null;
   let enemyGroupsEl = null;
   let nameInputEl = null;
@@ -723,6 +768,67 @@
     return outcomeMod === 'success' || outcomeMod === 'failure';
   }
 
+  function isSpellMod(outcomeMod) {
+    return outcomeMod === 'spell';
+  }
+
+  const CAST_RESULTS = [
+    { id: 'success', label: '✅ They fail the save' },
+    { id: 'failure', label: '❌ They make the save' },
+    { id: 'na', label: '— N/A (no save / skip)' },
+  ];
+
+  function selectedSpell(workflowState = state) {
+    const name = String(workflowState.subtype || '').trim();
+    if (!name) return null;
+    const spells = window.CharacterSheet?.get?.()?.spells || [];
+    return spells.find((s) => String(s.name || '').trim().toLowerCase() === name.toLowerCase()) || { name };
+  }
+
+  function selectedSpellKind(workflowState = state) {
+    const spell = selectedSpell(workflowState);
+    if (!spell || !window.CharacterSheet?.resolveSpellKind) return '';
+    return window.CharacterSheet.resolveSpellKind(spell);
+  }
+
+  function isMagicDetail(workflowState = state) {
+    return isSpellMod(workflowState.outcomeMod)
+      || (isCombatMod(workflowState.outcomeMod) && workflowState.attackType === 'magic');
+  }
+
+  function isMultiAreaSpell(workflowState = state) {
+    if (!isMagicDetail(workflowState)) return false;
+    const spell = selectedSpell(workflowState);
+    if (!spell || !window.CharacterSheet?.resolveSpellTargets) return false;
+    return window.CharacterSheet.resolveSpellTargets(spell) === 'multi';
+  }
+
+  function isSaveOrDamageSpell(workflowState = state) {
+    const kind = selectedSpellKind(workflowState);
+    return kind === 'save' || kind === 'damage';
+  }
+
+  function isMultiSaveSpell(workflowState = state) {
+    return isSaveOrDamageSpell(workflowState) && isMultiAreaSpell(workflowState);
+  }
+
+  function castResultOptions(workflowState = state) {
+    const options = CAST_RESULTS.filter((r) => r.id !== 'na');
+    if (isMultiSaveSpell(workflowState)) {
+      options.push({ id: 'mixed', label: '🔀 Mixed (some fail, some make)' });
+    }
+    options.push(CAST_RESULTS.find((r) => r.id === 'na'));
+    return options;
+  }
+
+  function needsCastResult(workflowState = state) {
+    return isMagicDetail(workflowState) && isSaveOrDamageSpell(workflowState);
+  }
+
+  function spellCastResult(workflowState = state) {
+    return needsCastResult(workflowState) ? (workflowState.castResult || '') : '';
+  }
+
   function isSpeechMod(outcomeMod) {
     return Boolean(SPEECH_META[outcomeMod]);
   }
@@ -732,11 +838,18 @@
   }
 
   function needsDetail(outcomeMod) {
-    return isCombatMod(outcomeMod) || isSkillMod(outcomeMod);
+    return isCombatMod(outcomeMod) || isSkillMod(outcomeMod) || isSpellMod(outcomeMod);
   }
 
   function needsAttackType(outcomeMod) {
     return isCombatMod(outcomeMod);
+  }
+
+  function subtypeIsSpell(name) {
+    const needle = String(name || '').trim().toLowerCase();
+    if (!needle) return false;
+    const spells = window.CharacterSheet?.get?.()?.spells || [];
+    return spells.some((s) => String(s.name || '').trim().toLowerCase() === needle);
   }
 
   function defaultSubtype(outcomeMod) {
@@ -807,7 +920,65 @@
     state.targets = ['any'];
     state.focusName = '';
     state.situation = '';
+    state.rollBanner = '';
+    state.rollVerdict = '';
     expandedStep = 'pace';
+  }
+
+  function beginFromRoll(payload) {
+    if (!payload || payload.verdict === 'miss') {
+      return false;
+    }
+    const alreadyOutcomes = window.TabNavigation?.getCurrentSection?.() === 'outcomes';
+    const saved = alreadyOutcomes ? {
+      pace: state.pace,
+      setting: state.setting,
+      location: state.location,
+      weather: state.weather,
+      lighting: state.lighting,
+      environment: (state.environment || []).slice(),
+      targets: (state.targets || []).slice(),
+      focusName: state.focusName,
+      situation: state.situation,
+    } : null;
+
+    if (window.TabNavigation?.switchToSection) {
+      window.TabNavigation.switchToSection('outcomes');
+    } else {
+      showPanel(true);
+      applyTabPreset('outcomes');
+    }
+
+    if (saved) {
+      state.pace = saved.pace;
+      state.setting = saved.setting;
+      state.location = saved.location;
+      state.weather = saved.weather;
+      state.lighting = saved.lighting;
+      state.environment = saved.environment;
+      state.targets = saved.targets;
+      state.focusName = saved.focusName;
+      state.situation = saved.situation;
+    }
+
+    if (payload.kind === 'weapon') {
+      state.pace = 'battle';
+      state.outcomeMod = payload.outcomeMod || (payload.verdict === 'fumble' ? 'fail' : 'hit');
+      if (payload.attackType) state.attackType = payload.attackType;
+      if (payload.label) state.subtype = payload.label;
+    } else {
+      state.outcomeMod = payload.outcomeMod || (payload.verdict === 'failure' ? 'failure' : 'success');
+      if (payload.label) state.subtype = payload.label;
+    }
+    state.rollBanner = payload.banner
+      || (window.D20Roll?.bannerText?.(payload.kind, payload.natural, payload.verdict) || '');
+    state.rollVerdict = payload.verdict || '';
+    state.outcomeMod = clampOutcomeMod(state.outcomeMod);
+    expandedStep = nextIncompleteStep();
+    renderPanel();
+    notifyChange();
+    scrollContentIntoView();
+    return true;
   }
 
   function environmentOptionsFor(setting = state.setting) {
@@ -850,13 +1021,20 @@
       lighting: state.lighting || '',
       environment: formatEnvironment(),
       outcome: state.outcomeMod,
-      attackType: (state.outcomeMod === 'mockery' || state.outcomeMod === 'cuttingWords') ? 'magic' : (state.attackType || ''),
+      attackType: (state.outcomeMod === 'mockery' || state.outcomeMod === 'cuttingWords' || isSpellMod(state.outcomeMod))
+        ? 'magic'
+        : (isSkillMod(state.outcomeMod) && subtypeIsSpell(state.subtype) ? 'magic' : (state.attackType || '')),
       detail: state.outcomeMod === 'mockery' ? 'Vicious Mockery'
         : state.outcomeMod === 'cuttingWords' ? 'Cutting Words'
         : (state.subtype || ''),
       target,
       name,
       intent: (state.situation || '').trim(),
+      castResult: spellCastResult(),
+      spellKind: isMagicDetail() ? (selectedSpellKind() || '') : '',
+      spellTargets: isMagicDetail()
+        ? (window.CharacterSheet?.resolveSpellTargets?.(selectedSpell()) || 'single')
+        : '',
       partyMember: isPartyFocusName(name),
       mood,
       rating,
@@ -920,6 +1098,24 @@
       };
     }
 
+    if (isSpellMod(outcomeMod)) {
+      if (!subtype) {
+        return { ready: false, reason: 'Which spell? Pick one below.' };
+      }
+      if (needsCastResult(workflowState) && !workflowState.castResult) {
+        return { ready: false, reason: 'Saving throw? Fail, make, mixed, or N/A.' };
+      }
+      return {
+        ready: true,
+        section: 'actions',
+        category: location,
+        location,
+        outcomeMod,
+        metaLabel: 'Spell',
+        modalPrefix: '✨',
+      };
+    }
+
     if (isSpeechMod(outcomeMod)) {
       const meta = SPEECH_META[outcomeMod];
       return {
@@ -942,8 +1138,14 @@
         ready: false,
         reason: isCombatMod(outcomeMod)
           ? 'Which weapon or bard spell? Pick one below.'
-          : 'Which skill? Pick one below.',
+          : isSpellMod(outcomeMod)
+            ? 'Which spell? Pick one below.'
+            : 'Which skill? Pick one below.',
       };
+    }
+
+    if (needsCastResult(workflowState) && !workflowState.castResult) {
+      return { ready: false, reason: 'Saving throw? Fail, make, mixed, or N/A.' };
     }
 
     if (outcomeMod === 'hit') {
@@ -1331,6 +1533,8 @@
       && partial.location !== state.location;
     const changingAttackType = Object.prototype.hasOwnProperty.call(partial, 'attackType')
       && partial.attackType !== state.attackType;
+    const changingSubtype = Object.prototype.hasOwnProperty.call(partial, 'subtype')
+      && partial.subtype !== state.subtype;
 
     // Changing an earlier answer clears everything downstream.
     if (changingPace) {
@@ -1349,6 +1553,7 @@
         partial.environment = [];
         partial.attackType = null;
         partial.subtype = null;
+        partial.castResult = null;
         partial.targets = ['any'];
         partial.focusName = '';
         partial.situation = '';
@@ -1361,6 +1566,7 @@
       partial.environment = [];
       partial.attackType = null;
       partial.subtype = null;
+      partial.castResult = null;
       partial.targets = (partial.outcomeMod === 'mockery' || partial.outcomeMod === 'cuttingWords') ? ['enemy'] : ['any'];
       partial.focusName = '';
       partial.situation = '';
@@ -1371,17 +1577,22 @@
       partial.environment = [];
       partial.attackType = null;
       partial.subtype = null;
+      partial.castResult = null;
       partial.targets = ['any'];
       partial.focusName = '';
     } else if (changingLocation) {
       if (needsDetail(partial.outcomeMod || state.outcomeMod)) {
         partial.attackType = null;
         partial.subtype = null;
+        partial.castResult = null;
       }
       partial.targets = ['any'];
       partial.focusName = '';
     } else if (changingAttackType) {
       partial.subtype = null;
+      partial.castResult = null;
+    } else if (changingSubtype) {
+      partial.castResult = null;
     }
 
     state = { ...state, ...partial };
@@ -1389,9 +1600,11 @@
     if (!needsDetail(state.outcomeMod)) {
       state.subtype = null;
       state.attackType = null;
+      state.castResult = null;
     } else if (!needsAttackType(state.outcomeMod)) {
       state.attackType = null;
     }
+    if (!needsCastResult(state)) state.castResult = null;
     if (state.setting === 'indoors') state.weather = null;
     if (state.setting === 'outdoors') state.lighting = null;
     const allowedEnv = new Set(environmentOptionsFor().map((o) => o.id));
@@ -1407,7 +1620,7 @@
     if (window.OutcomeGenerate?.clearLastResult) {
       window.OutcomeGenerate.clearLastResult();
     }
-    const advanceKeys = ['pace', 'outcomeMod', 'setting', 'location', 'attackType', 'subtype'];
+    const advanceKeys = ['pace', 'outcomeMod', 'setting', 'location', 'attackType', 'subtype', 'castResult'];
     if (advanceKeys.some((key) => Object.prototype.hasOwnProperty.call(partial, key))) {
       advanceExpandedStep();
     }
@@ -1502,6 +1715,7 @@
   function renderEnemyChips() {
     if (!enemyGroupsEl) return;
     enemyGroupsEl.innerHTML = '';
+    if (state.outcomeMod === 'motivation') return;
     const current = (state.focusName || '').trim().toLowerCase();
     const groups = window.WorkflowCatalog?.getEnemyGroups?.(ENEMY_GROUPS) || ENEMY_GROUPS;
     const foes = window.WorkflowCatalog?.getEnemies?.(FEYWILD_ENEMIES) || FEYWILD_ENEMIES;
@@ -1556,16 +1770,40 @@
     });
   }
 
+  function renderAudienceChips() {
+    if (!audienceChipsEl) return;
+    const show = state.outcomeMod === 'motivation';
+    if (audienceLabelEl) audienceLabelEl.hidden = !show;
+    audienceChipsEl.hidden = !show;
+    audienceChipsEl.innerHTML = '';
+    if (!show) return;
+    const current = (state.focusName || '').trim();
+    MOTIVATION_AUDIENCE_CHIPS.forEach((label) => {
+      renderChip(audienceChipsEl, {
+        id: label,
+        label,
+        active: current.toLowerCase() === label.toLowerCase(),
+        onClick: () => setFocusName(current.toLowerCase() === label.toLowerCase() ? '' : label),
+      });
+    });
+  }
+
   function renderNamePicker() {
     if (!nameBlockEl) return;
     const show = detailReady() && showNamePicker();
     nameBlockEl.hidden = !show;
     if (!show) return;
     renderSituationChips();
+    renderAudienceChips();
     renderPartyChips();
     renderEnemyChips();
-    if (nameInputEl && document.activeElement !== nameInputEl) {
-      nameInputEl.value = state.focusName || '';
+    if (nameInputEl) {
+      nameInputEl.placeholder = state.outcomeMod === 'motivation'
+        ? 'Or type a name or group…'
+        : 'Or type a name…';
+      if (document.activeElement !== nameInputEl) {
+        nameInputEl.value = state.focusName || '';
+      }
     }
   }
 
@@ -1787,6 +2025,9 @@
       const attackOptions = getAttackOptions();
       if (!state.attackType || !attackOptions[state.attackType]) return;
       attackOptions[state.attackType].forEach((group) => groups.push(group));
+    } else if (isSpellMod(state.outcomeMod)) {
+      const castGroups = window.CharacterSheet?.getMagicOptions?.() || [];
+      castGroups.forEach((group) => groups.push(group));
     } else if (isSkillMod(state.outcomeMod)) {
       groups.push({ label: 'Skills', ids: SKILL_NAMES });
     }
@@ -1823,7 +2064,9 @@
     if (!state.outcomeMod || !state.setting || !state.location) return false;
     if (!needsDetail(state.outcomeMod)) return true;
     if (needsAttackType(state.outcomeMod) && !state.attackType) return false;
-    return Boolean(state.subtype);
+    if (!state.subtype) return false;
+    if (needsCastResult() && !state.castResult) return false;
+    return true;
   }
 
   function nextIncompleteStep() {
@@ -1832,7 +2075,8 @@
     if (!state.setting || !state.location) return 'scene';
     if (needsAttackType(state.outcomeMod) && !state.attackType) return 'attackType';
     if (needsDetail(state.outcomeMod) && !state.subtype) return 'detail';
-    if (detailReady()) return 'target';
+    if (needsCastResult() && !state.castResult) return 'castResult';
+    if (detailReady() && (!needsCastResult() || state.castResult)) return 'target';
     return 'outcome';
   }
 
@@ -1905,6 +2149,25 @@
     return `${n}. ${state.subtype || 'Detail'}`;
   }
 
+  function castResultSummaryText() {
+    const n = 5;
+    const picked = castResultOptions().find((r) => r.id === state.castResult);
+    return `${n}. ${picked?.label || 'Saving throw'}`;
+  }
+
+  function renderCastResultPills() {
+    if (!castResultChipsEl) return;
+    castResultChipsEl.innerHTML = '';
+    castResultOptions().forEach((result) => {
+      renderChip(castResultChipsEl, {
+        id: result.id,
+        label: result.label,
+        active: state.castResult === result.id,
+        onClick: () => setState({ castResult: result.id }),
+      });
+    });
+  }
+
   function targetSummaryText() {
     const bits = ['Focus'];
     if (state.situation) bits.push(state.situation);
@@ -1922,12 +2185,14 @@
     const showAttackType = showScene && placeReady && needsAttackType(state.outcomeMod);
     const showDetail = showScene && placeReady && needsDetail(state.outcomeMod)
       && (!needsAttackType(state.outcomeMod) || Boolean(state.attackType));
+    const showCastResult = showScene && placeReady && needsCastResult();
     const showTarget = detailReady();
 
     if (expandedStep === 'outcome' && !showOutcome) expandedStep = 'pace';
     if (expandedStep === 'scene' && !showScene) expandedStep = nextIncompleteStep();
     if (expandedStep === 'attackType' && !showAttackType) expandedStep = nextIncompleteStep();
     if (expandedStep === 'detail' && !showDetail) expandedStep = nextIncompleteStep();
+    if (expandedStep === 'castResult' && !showCastResult) expandedStep = nextIncompleteStep();
     if (expandedStep === 'target' && !showTarget) expandedStep = nextIncompleteStep();
 
     applyStepCollapsed(moodStepEl, moodSummaryEl, expandedStep !== 'mood', moodSummaryText());
@@ -1970,6 +2235,18 @@
       detailStepEl?.classList.remove('workflow__step--collapsed');
     }
 
+    if (showCastResult) {
+      applyStepCollapsed(
+        castResultStepEl,
+        castResultSummaryEl,
+        Boolean(state.castResult) && expandedStep !== 'castResult',
+        castResultSummaryText()
+      );
+    } else if (castResultSummaryEl) {
+      castResultSummaryEl.hidden = true;
+      castResultStepEl?.classList.remove('workflow__step--collapsed');
+    }
+
     if (showTarget) {
       applyStepCollapsed(targetStepEl, targetSummaryEl, expandedStep !== 'target', targetSummaryText());
     } else if (targetSummaryEl) {
@@ -1993,6 +2270,7 @@
       [sceneSummaryEl, 'scene'],
       [attackTypeSummaryEl, 'attackType'],
       [detailSummaryEl, 'detail'],
+      [castResultSummaryEl, 'castResult'],
       [targetSummaryEl, 'target'],
     ].forEach(([el, id]) => {
       if (!el) return;
@@ -2004,9 +2282,27 @@
     stepSummaryBound = true;
   }
 
+  function syncWizardRollBanner() {
+    if (!panelEl) return;
+    let el = panelEl.querySelector('.d20-banner--wizard');
+    if (!state.rollBanner) {
+      if (el) el.remove();
+      return;
+    }
+    if (!el) {
+      el = document.createElement('div');
+      el.className = 'd20-banner d20-banner--wizard';
+      panelEl.insertBefore(el, panelEl.firstChild);
+    }
+    el.className = 'd20-banner d20-banner--wizard'
+      + (state.rollVerdict ? ' d20-banner--' + state.rollVerdict : '');
+    el.textContent = state.rollBanner;
+  }
+
   function renderPanel() {
     if (!panelEl || !outcomeEl) return;
 
+    syncWizardRollBanner();
     panelEl.classList.toggle('workflow--skills', isSkillMod(state.outcomeMod));
     if (window.OutcomeGenerate?.initMoodUI) {
       window.OutcomeGenerate.initMoodUI();
@@ -2036,6 +2332,7 @@
       if (sceneStepEl) sceneStepEl.hidden = true;
       if (attackTypeStepEl) attackTypeStepEl.hidden = true;
       if (detailStepEl) detailStepEl.hidden = true;
+      if (castResultStepEl) castResultStepEl.hidden = true;
       if (targetStepEl) targetStepEl.hidden = true;
       applyCollapseUI();
       return;
@@ -2119,8 +2416,10 @@
     if (detailLabelEl) {
       if (isCombatMod(state.outcomeMod)) {
         detailLabelEl.textContent = state.attackType === 'magic'
-          ? '5. Which bard spell?'
+          ? '5. Which attack, save, or damage spell?'
           : '5. Which weapon?';
+      } else if (isSpellMod(state.outcomeMod)) {
+        detailLabelEl.textContent = '4. Which spell?';
       } else if (isSkillMod(state.outcomeMod)) {
         detailLabelEl.textContent = '4. Which skill?';
       } else {
@@ -2130,16 +2429,31 @@
     if (roleplayHintEl) roleplayHintEl.style.display = 'none';
     if (showDetail) renderDetailPills();
 
+    const showCastResult = showScene && placeReady && needsCastResult();
+    if (castResultStepEl) castResultStepEl.hidden = !showCastResult;
+    if (castResultLabelEl) {
+      castResultLabelEl.textContent = isCombatMod(state.outcomeMod)
+        ? '6. Saving throw?'
+        : '5. Saving throw?';
+    }
+    if (showCastResult) renderCastResultPills();
+
     const showTarget = detailReady();
     if (targetStepEl) targetStepEl.hidden = !showTarget;
     if (targetLabelEl) {
       let n = 4;
-      if (isCombatMod(state.outcomeMod)) n = 6;
-      else if (isSkillMod(state.outcomeMod)) n = 5;
-      if (isSpeechMod(state.outcomeMod)) {
-        targetLabelEl.innerHTML = `${n}. Who is this about? <span class="workflow__hint">(optional)</span>`;
+      if (isCombatMod(state.outcomeMod) && needsCastResult()) n = 7;
+      else if (isCombatMod(state.outcomeMod)) n = 6;
+      else if (needsCastResult()) n = 6;
+      else if (isSkillMod(state.outcomeMod) || isSpellMod(state.outcomeMod)) n = 5;
+      if (state.outcomeMod === 'motivation') {
+        targetLabelEl.innerHTML = `${n}. Who is the speech for? <span class="workflow__hint">(optional, pick all that apply)</span>`;
+      } else if (isSpeechMod(state.outcomeMod)) {
+        targetLabelEl.innerHTML = `${n}. Who is this about? <span class="workflow__hint">(optional, pick all that apply)</span>`;
+      } else if (isMultiAreaSpell()) {
+        targetLabelEl.innerHTML = `${n}. Who is in the area? <span class="workflow__hint">(optional, pick all that apply)</span>`;
       } else {
-        targetLabelEl.innerHTML = `${n}. Who or what is the focus? <span class="workflow__hint">(optional)</span>`;
+        targetLabelEl.innerHTML = `${n}. Who or what is the focus? <span class="workflow__hint">(optional, pick all that apply)</span>`;
       }
     }
     if (targetEl) {
@@ -2212,6 +2526,10 @@
     detailSelectEl = document.getElementById('workflowDetailSelect');
     detailChipsEl = document.getElementById('workflowDetailChips');
     detailLabelEl = document.getElementById('workflowDetailLabel');
+    castResultStepEl = document.getElementById('workflowCastResultStep');
+    castResultSummaryEl = document.getElementById('workflowCastResultSummary');
+    castResultLabelEl = document.getElementById('workflowCastResultLabel');
+    castResultChipsEl = document.getElementById('workflowCastResultChips');
     roleplayHintEl = document.getElementById('workflowRoleplayHint');
     targetStepEl = document.getElementById('workflowTargetStep');
     targetSummaryEl = document.getElementById('workflowTargetSummary');
@@ -2220,6 +2538,8 @@
     nameBlockEl = document.getElementById('workflowNameBlock');
     situationLabelEl = document.getElementById('workflowSituationLabel');
     situationChipsEl = document.getElementById('workflowSituationChips');
+    audienceLabelEl = document.getElementById('workflowAudienceLabel');
+    audienceChipsEl = document.getElementById('workflowAudienceChips');
     partyChipsEl = document.getElementById('workflowPartyChips');
     enemyGroupsEl = document.getElementById('workflowEnemyGroups');
     nameInputEl = document.getElementById('workflowNameInput');
@@ -2312,6 +2632,7 @@
     getCatalogDefaults,
     refreshCatalog: renderPanel,
     getState: () => ({ ...state, targets: [...sanitizeTargets(state.outcomeMod, state.targets)] }),
+    beginFromRoll,
     showPanel,
     WORKFLOW_SECTIONS: [...WORKFLOW_SECTIONS],
   };

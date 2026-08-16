@@ -15,12 +15,11 @@ $moduleFiles = [
   'storage-utils.js',
   'ui-utils.js',
   'tab-navigation.js',
-  'search-utils.js',
-  'search-enhancements.js',
   'keyboard-shortcuts.js',
   'action-workflow.js',
   'outcome-generate.js',
   'character-sheet.js',
+  'd20-roll.js',
   'workflow-catalog.js',
   'karaoke-manager.js',
   'data/spells-data.js',
@@ -54,6 +53,9 @@ foreach ($moduleFiles as $file) {
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Blingus's Bardbook</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="favicon.ico" sizes="48x48">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="stylesheet" href="styles.css?v=<?php echo $versions['styles.css']; ?>" />
 </head>
 <body>
@@ -89,6 +91,7 @@ foreach ($moduleFiles as $file) {
           </button>
         </div>
         <div class="toolbar__utilities">
+          <button type="button" id="d20SoundBtn" class="btn btn--secondary btn--compact" data-tooltip="Play a cue on crit or fumble" aria-pressed="false">Sound off</button>
           <button type="button" id="historyBtn" class="btn btn--secondary btn--compact" data-tooltip="Recently used items (Press H)">History</button>
           <button type="button" id="settingsBtn" class="btn btn--secondary btn--compact" data-tooltip="Edit, data, dark mode, personality" aria-haspopup="dialog">Settings</button>
         </div>
@@ -172,6 +175,13 @@ foreach ($moduleFiles as $file) {
               <div class="workflow__hint" id="workflowRoleplayHint" style="display: none;">Roleplay does not need a skill or weapon.</div>
             </div>
           </div>
+          <div class="workflow__step" id="workflowCastResultStep" hidden>
+            <button type="button" class="workflow__step-summary" id="workflowCastResultSummary" hidden aria-expanded="false"></button>
+            <div class="workflow__step-body" id="workflowCastResultBody">
+              <div class="workflow__question" id="workflowCastResultLabel">5. Saving throw?</div>
+              <div class="chips chips--pills" id="workflowCastResultChips" role="group" aria-label="Saving throw result"></div>
+            </div>
+          </div>
           <div class="workflow__step" id="workflowTargetStep" hidden>
             <button type="button" class="workflow__step-summary" id="workflowTargetSummary" hidden aria-expanded="false"></button>
             <div class="workflow__step-body" id="workflowTargetBody">
@@ -180,6 +190,8 @@ foreach ($moduleFiles as $file) {
               <div class="workflow__name-block" id="workflowNameBlock" hidden>
                 <div class="workflow__scene-group-label" id="workflowSituationLabel" hidden>Situation <span class="workflow__hint">(optional)</span></div>
                 <div class="chips chips--pills" id="workflowSituationChips" role="group" aria-label="Situation" hidden></div>
+                <div class="workflow__scene-group-label" id="workflowAudienceLabel" hidden>Audience</div>
+                <div class="chips chips--pills" id="workflowAudienceChips" role="group" aria-label="Speech audience" hidden></div>
                 <div class="workflow__scene-group-label">Party / name <button type="button" class="btn btn--ghost btn--compact catalog-manage-btn" data-catalog="party">Manage</button></div>
                 <div class="chips chips--pills" id="workflowPartyChips" role="group" aria-label="Party members"></div>
                 <div id="workflowEnemyGroups" class="workflow__scene-groups"></div>
@@ -208,21 +220,6 @@ foreach ($moduleFiles as $file) {
       </select>
       <select id="categorySelect" style="display: none;" aria-hidden="true"></select>
 
-      <!-- Search (parody tabs only; hidden on Outcomes) -->
-      <div class="toolbar__row toolbar__row--search" id="searchToolbarRow">
-        <label class="search" style="flex: 1; min-width: 200px;">
-          <input id="searchInput" type="search" placeholder="Search lyrics, songs, artists…" />
-        </label>
-        <button id="clearBtn" class="btn btn--secondary" data-tooltip="Clear search (Esc)">Clear</button>
-        <label class="toggle" data-tooltip="Show only starred items (Ctrl+F)">
-          <input type="checkbox" id="favoritesOnly" />
-          <span>Favorites</span>
-        </label>
-      </div>
-
-      <!-- Fuzzy Search Toggle (hidden by default, dynamically added by search-enhancements.js) -->
-      <div class="toolbar__row toolbar__row--filters" id="filtersToolbarRow" style="display: none;">
-      </div>
     </div>
   </nav>
 
@@ -442,10 +439,6 @@ foreach ($moduleFiles as $file) {
   <!-- Tab navigation -->
   <script src="js/tab-navigation.js?v=<?php echo $versions['tab-navigation.js']; ?>"></script>
 
-  <!-- Search enhancements -->
-  <script src="js/search-utils.js?v=<?php echo $versions['search-utils.js']; ?>"></script>
-  <script src="js/search-enhancements.js?v=<?php echo $versions['search-enhancements.js']; ?>"></script>
-
   <!-- Keyboard shortcuts -->
   <script src="js/keyboard-shortcuts.js?v=<?php echo $versions['keyboard-shortcuts.js']; ?>"></script>
 
@@ -464,6 +457,7 @@ foreach ($moduleFiles as $file) {
 
   <!-- Action workflow + Claude outcome generation (after data modules) -->
   <script src="js/character-sheet.js?v=<?php echo $versions['character-sheet.js']; ?>"></script>
+  <script src="js/d20-roll.js?v=<?php echo $versions['d20-roll.js']; ?>"></script>
   <script>window.WorkflowCatalogConfig = { app: 'blingus', storageKey: 'blingusWorkflowCatalogV1', partyKey: 'blingusPartyMembersV1', defaultParty: ['Blingus', "Brawn O'Neil", 'Puck Pinewhistle', 'Vadania Amakiir', 'Bo'] };</script>
   <script src="js/workflow-catalog.js?v=<?php echo $versions['workflow-catalog.js']; ?>"></script>
   <script src="js/action-workflow.js?v=<?php echo $versions['action-workflow.js']; ?>"></script>

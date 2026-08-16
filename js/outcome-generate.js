@@ -462,6 +462,9 @@
       pace: selection.pace || '',
       combatRound: Boolean(selection.combatRound),
       forceParody: Boolean(selection.forceParody),
+      castResult: selection.castResult || '',
+      spellKind: selection.spellKind || '',
+      spellTargets: selection.spellTargets || '',
     };
 
     const response = await fetch(ENDPOINT, {
