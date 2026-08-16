@@ -20,6 +20,8 @@ $moduleFiles = [
   'keyboard-shortcuts.js',
   'action-workflow.js',
   'outcome-generate.js',
+  'character-sheet.js',
+  'workflow-catalog.js',
   'karaoke-manager.js',
   'data/spells-data.js',
   'data/bardic-data.js',
@@ -61,7 +63,7 @@ foreach ($moduleFiles as $file) {
       <h1>Blingus's Bardbook</h1>
       <div class="crest" aria-hidden="true">🛡️</div>
     </div>
-    <p class="subtitle">Song parodies, mockery, and Claude-backed lines for the table</p>
+    <p class="subtitle">Song parodies, bardic lines, and Claude-backed table lines</p>
   </header>
 
   <nav class="toolbar" aria-label="Controls">
@@ -77,13 +79,13 @@ foreach ($moduleFiles as $file) {
             <span class="tab__icon">✨</span>
             <span class="tab__label">Bardic</span>
           </button>
-          <button class="tab" role="tab" data-section="mockery" aria-selected="false" data-tooltip="Vicious mockery insults (Press 3)">
-            <span class="tab__icon">🗡️</span>
-            <span class="tab__label">Mockery</span>
-          </button>
-          <button class="tab" role="tab" data-section="outcomes" aria-selected="false" data-tooltip="Scene outcomes via Claude (Press 4)">
+          <button class="tab" role="tab" data-section="outcomes" aria-selected="false" data-tooltip="Scene outcomes and Vicious Mockery (Press 3)">
             <span class="tab__icon">🎲</span>
             <span class="tab__label">Outcomes</span>
+          </button>
+          <button class="tab" role="tab" data-section="character" aria-selected="false" data-tooltip="Live character sheet for Claude">
+            <span class="tab__icon">🧚</span>
+            <span class="tab__label">Character</span>
           </button>
         </div>
         <div class="toolbar__utilities">
@@ -92,7 +94,7 @@ foreach ($moduleFiles as $file) {
         </div>
       </div>
 
-      <!-- Category Chips Row (spells, bardic, mockery) -->
+      <!-- Category Chips Row (spells, bardic) -->
       <div class="toolbar__row toolbar__row--chips" id="categoryChipsRow">
         <div class="chips" role="group" aria-label="Categories" id="categoryChips">
           <!-- Category chips will be dynamically populated -->
@@ -103,54 +105,86 @@ foreach ($moduleFiles as $file) {
       <div id="workflowPanel" class="workflow workflow--wizard toolbar__row" style="display: none;" aria-label="Blingus outcome wizard">
         <div class="workflow__wizard">
           <div class="workflow__step workflow__step--mood" id="workflowMoodStep">
-            <div class="workflow__mood-head">
-              <div class="workflow__question">Blingus's mood <span class="workflow__hint">(colors every Claude line)</span></div>
-              <button type="button" id="personalityBtn" class="btn btn--ghost btn--compact" data-tooltip="Edit standing personality for Claude">Personality</button>
+            <button type="button" class="workflow__step-summary" id="workflowMoodSummary" hidden aria-expanded="false"></button>
+            <div class="workflow__step-body" id="workflowMoodBody">
+              <div class="workflow__mood-head">
+                <div class="workflow__question">Blingus's mood <span class="workflow__hint">(colors every Claude line)</span> <button type="button" class="btn btn--ghost btn--compact catalog-manage-btn" data-catalog="moods">Manage</button></div>
+                <button type="button" id="personalityBtn" class="btn btn--ghost btn--compact" data-tooltip="Edit standing personality for Claude">Personality</button>
+              </div>
+              <div class="chips chips--pills" id="workflowMoodChips" role="group" aria-label="Blingus mood"></div>
+              <input type="text" id="workflowMoodInput" class="workflow__name-input" placeholder="Or type a mood…" maxlength="80" autocomplete="off" />
+              <div class="workflow__question workflow__rating-label">How adult? <span class="workflow__hint">(optional — click again to clear)</span></div>
+              <div class="chips chips--pills" id="workflowRatingChips" role="group" aria-label="Content rating"></div>
             </div>
-            <div class="chips chips--pills" id="workflowMoodChips" role="group" aria-label="Blingus mood"></div>
           </div>
-          <div class="workflow__step" id="workflowOutcomeStep">
-            <div class="workflow__question" id="workflowOutcomeLabel">1. What do you need?</div>
-            <div id="workflowOutcomeChips" class="workflow__outcome-groups" role="group" aria-label="Outcome type"></div>
+          <div class="workflow__step" id="workflowPaceStep">
+            <button type="button" class="workflow__step-summary" id="workflowPaceSummary" hidden aria-expanded="false"></button>
+            <div class="workflow__step-body" id="workflowPaceBody">
+              <div class="workflow__question" id="workflowPaceLabel">1. In battle or out?</div>
+              <div class="workflow__hint">In battle: five one-breath options (~6 seconds each). Out of battle: longer roleplay beats (5 lines).</div>
+              <div class="chips chips--pills" id="workflowPaceChips" role="group" aria-label="Battle or roleplay"></div>
+            </div>
+          </div>
+          <div class="workflow__step" id="workflowOutcomeStep" hidden>
+            <button type="button" class="workflow__step-summary" id="workflowOutcomeSummary" hidden aria-expanded="false"></button>
+            <div class="workflow__step-body" id="workflowOutcomeBody">
+              <div class="workflow__question" id="workflowOutcomeLabel">2. What do you need?</div>
+              <div id="workflowOutcomeChips" class="workflow__outcome-groups" role="group" aria-label="Outcome type"></div>
+            </div>
           </div>
           <div class="workflow__step" id="workflowSceneStep" hidden>
-            <div class="workflow__question" id="workflowSceneLabel">2. Where are you?</div>
-            <div class="workflow__scene-group-label">Indoors or outdoors?</div>
-            <div class="chips chips--pills" id="workflowSettingChips" role="group" aria-label="Indoors or outdoors"></div>
-            <div id="workflowPlaceBlock" hidden>
-              <div class="workflow__scene-group-label">Place</div>
-              <div id="workflowSceneGroups" class="workflow__scene-groups"></div>
-              <input type="text" id="workflowSceneInput" class="workflow__name-input" placeholder="Or type a place…" maxlength="80" autocomplete="off" />
-            </div>
-            <div id="workflowConditionBlock" hidden>
-              <div id="workflowWeatherBlock" hidden>
-                <div class="workflow__scene-group-label">Weather <span class="workflow__hint">(optional)</span></div>
-                <div class="chips chips--pills" id="workflowWeatherChips" role="group" aria-label="Weather"></div>
+            <button type="button" class="workflow__step-summary" id="workflowSceneSummary" hidden aria-expanded="false"></button>
+            <div class="workflow__step-body" id="workflowSceneBody">
+              <div class="workflow__question" id="workflowSceneLabel">3. Where are you?</div>
+              <div class="workflow__scene-group-label">Indoors or outdoors?</div>
+              <div class="chips chips--pills" id="workflowSettingChips" role="group" aria-label="Indoors or outdoors"></div>
+              <div id="workflowPlaceBlock" hidden>
+                <div class="workflow__scene-group-label">Place <button type="button" class="btn btn--ghost btn--compact catalog-manage-btn" data-catalog="places">Manage</button></div>
+                <div id="workflowSceneGroups" class="workflow__scene-groups"></div>
+                <input type="text" id="workflowSceneInput" class="workflow__name-input" placeholder="Or type a place…" maxlength="80" autocomplete="off" />
               </div>
-              <div id="workflowLightingBlock" hidden>
-                <div class="workflow__scene-group-label">Lighting <span class="workflow__hint">(optional)</span></div>
-                <div class="chips chips--pills" id="workflowLightingChips" role="group" aria-label="Lighting"></div>
+              <div id="workflowConditionBlock" hidden>
+                <div id="workflowWeatherBlock" hidden>
+                  <div class="workflow__scene-group-label">Weather <span class="workflow__hint">(optional)</span></div>
+                  <div class="chips chips--pills" id="workflowWeatherChips" role="group" aria-label="Weather"></div>
+                </div>
+                <div id="workflowLightingBlock" hidden>
+                  <div class="workflow__scene-group-label">Lighting <span class="workflow__hint">(optional)</span> <button type="button" class="btn btn--ghost btn--compact catalog-manage-btn" data-catalog="lighting">Manage</button></div>
+                  <div class="chips chips--pills" id="workflowLightingChips" role="group" aria-label="Lighting"></div>
+                </div>
+                <div class="workflow__scene-group-label">Environment <span class="workflow__hint">(optional, multi)</span> <button type="button" class="btn btn--ghost btn--compact catalog-manage-btn" data-catalog="environment">Manage</button></div>
+                <div class="chips chips--pills" id="workflowEnvironmentChips" role="group" aria-label="Environment"></div>
               </div>
-              <div class="workflow__scene-group-label">Environment <span class="workflow__hint">(optional, multi)</span></div>
-              <div class="chips chips--pills" id="workflowEnvironmentChips" role="group" aria-label="Environment"></div>
             </div>
           </div>
           <div class="workflow__step" id="workflowAttackTypeStep" hidden>
-            <div class="workflow__question" id="workflowAttackTypeLabel">3. Attack type?</div>
-            <div class="chips chips--pills" id="workflowAttackTypeChips" role="group" aria-label="Attack type"></div>
+            <button type="button" class="workflow__step-summary" id="workflowAttackTypeSummary" hidden aria-expanded="false"></button>
+            <div class="workflow__step-body" id="workflowAttackTypeBody">
+              <div class="workflow__question" id="workflowAttackTypeLabel">3. Attack type?</div>
+              <div class="chips chips--pills" id="workflowAttackTypeChips" role="group" aria-label="Attack type"></div>
+            </div>
           </div>
           <div class="workflow__step" id="workflowDetailStep" hidden>
-            <div class="workflow__question" id="workflowDetailLabel">3. Which skill or weapon?</div>
-            <div class="chips chips--pills" id="workflowDetailChips" role="group" aria-label="Weapon, spell, or skill"></div>
-            <div class="workflow__hint" id="workflowRoleplayHint" style="display: none;">Roleplay does not need a skill or weapon.</div>
+            <button type="button" class="workflow__step-summary" id="workflowDetailSummary" hidden aria-expanded="false"></button>
+            <div class="workflow__step-body" id="workflowDetailBody">
+              <div class="workflow__question" id="workflowDetailLabel">3. Which skill or weapon?</div>
+              <div class="chips chips--pills" id="workflowDetailChips" role="group" aria-label="Weapon, spell, or skill"></div>
+              <div class="workflow__hint" id="workflowRoleplayHint" style="display: none;">Roleplay does not need a skill or weapon.</div>
+            </div>
           </div>
           <div class="workflow__step" id="workflowTargetStep" hidden>
-            <div class="workflow__question" id="workflowTargetLabel">3. Who or what is the focus? <span class="workflow__hint">(optional)</span></div>
-            <div class="chips chips--pills workflow__targets" id="workflowTargetChips" role="group" aria-label="Targets"></div>
-            <div class="workflow__name-block" id="workflowNameBlock" hidden>
-              <div class="workflow__scene-group-label">Party / name</div>
-              <div class="chips chips--pills" id="workflowPartyChips" role="group" aria-label="Party members"></div>
-              <input type="text" id="workflowNameInput" class="workflow__name-input" placeholder="Or type a name…" maxlength="80" autocomplete="off" />
+            <button type="button" class="workflow__step-summary" id="workflowTargetSummary" hidden aria-expanded="false"></button>
+            <div class="workflow__step-body" id="workflowTargetBody">
+              <div class="workflow__question" id="workflowTargetLabel">3. Who or what is the focus? <span class="workflow__hint">(optional)</span></div>
+              <div class="chips chips--pills workflow__targets" id="workflowTargetChips" role="group" aria-label="Targets"></div>
+              <div class="workflow__name-block" id="workflowNameBlock" hidden>
+                <div class="workflow__scene-group-label" id="workflowSituationLabel" hidden>Situation <span class="workflow__hint">(optional)</span></div>
+                <div class="chips chips--pills" id="workflowSituationChips" role="group" aria-label="Situation" hidden></div>
+                <div class="workflow__scene-group-label">Party / name <button type="button" class="btn btn--ghost btn--compact catalog-manage-btn" data-catalog="party">Manage</button></div>
+                <div class="chips chips--pills" id="workflowPartyChips" role="group" aria-label="Party members"></div>
+                <div id="workflowEnemyGroups" class="workflow__scene-groups"></div>
+                <input type="text" id="workflowNameInput" class="workflow__name-input" placeholder="Or type a name…" maxlength="80" autocomplete="off" />
+              </div>
             </div>
           </div>
         </div>
@@ -166,6 +200,7 @@ foreach ($moduleFiles as $file) {
         <option value="bardic">Bardic Inspiration</option>
         <option value="mockery">Vicious Mockery</option>
         <option value="outcomes">Scene Outcomes</option>
+        <option value="character">Character</option>
         <option value="actions">What's Your Character Doing?</option>
         <option value="criticalHits">Critical Hit Description</option>
         <option value="criticalFailures">Critical Failure Description</option>
@@ -210,6 +245,7 @@ foreach ($moduleFiles as $file) {
           <h3 class="settings-section__label">Content</h3>
           <div class="settings-actions">
             <button type="button" id="addEditBtn" class="btn">Edit items</button>
+            <button type="button" id="manageListsBtn" class="btn">Manage lists</button>
           </div>
         </section>
         <section class="settings-section">
@@ -325,14 +361,30 @@ foreach ($moduleFiles as $file) {
           Text
           <textarea id="editText" rows="3" style="width: 100%; padding: 8px; border: 1px solid var(--burnt); border-radius: 6px; font-family: inherit;"></textarea>
         </label>
-        <label id="songLabel" style="display: none;">
-          Song
+        <label id="songLabel" class="credit-field" style="display: none;">
+          <button type="button" id="correctSongBtn" class="credit-correct" title="Click to correct the title">Song <span class="workflow__hint">click to correct</span></button>
           <input type="text" id="editSong" style="width: 100%; padding: 8px; border: 1px solid var(--burnt); border-radius: 6px; font-family: inherit;" />
         </label>
-        <label id="artistLabel" style="display: none;">
-          Artist
+        <label id="artistLabel" class="credit-field" style="display: none;">
+          <button type="button" id="correctArtistBtn" class="credit-correct" title="Click to correct the artist">Artist <span class="workflow__hint">click to correct</span></button>
           <input type="text" id="editArtist" style="width: 100%; padding: 8px; border: 1px solid var(--burnt); border-radius: 6px; font-family: inherit;" />
         </label>
+        <p id="creditCorrectStatus" class="credit-correct__status" hidden></p>
+        <div id="parodyAiFields" class="parody-ai" hidden>
+          <label>
+            Guidance for AI <span class="workflow__hint">(optional)</span>
+            <textarea id="editParodyGuidance" rows="2" maxlength="400" placeholder="e.g. make it about rust monsters, keep it shoutable, lean 90s rap…" style="width: 100%; padding: 8px; border: 1px solid var(--burnt); border-radius: 6px; font-family: inherit;"></textarea>
+          </label>
+          <div class="parody-ai__actions">
+            <button type="button" id="generateParodyBtn" class="btn">✨ Generate lyrics</button>
+            <button type="button" id="refreshParodyBtn" class="btn btn--secondary" hidden>🔄 Try again</button>
+          </div>
+          <p id="parodyAiStatus" class="parody-ai__status" hidden></p>
+          <div id="parodyAiReview" class="parody-ai__review" hidden>
+            <button type="button" id="keepParodyBtn" class="btn">✅ Keep</button>
+            <button type="button" id="editParodyBtn" class="btn btn--secondary">✏️ Edit</button>
+          </div>
+        </div>
         <div id="youtubeFields" style="display: none;">
           <label>
             YouTube URL or Video ID
@@ -411,6 +463,9 @@ foreach ($moduleFiles as $file) {
   <script>window.BlingusSceneVersion = "<?php echo $versions['data/scene-outcomes.js']; ?>";</script>
 
   <!-- Action workflow + Claude outcome generation (after data modules) -->
+  <script src="js/character-sheet.js?v=<?php echo $versions['character-sheet.js']; ?>"></script>
+  <script>window.WorkflowCatalogConfig = { app: 'blingus', storageKey: 'blingusWorkflowCatalogV1', partyKey: 'blingusPartyMembersV1', defaultParty: ['Blingus', "Brawn O'Neil", 'Puck Pinewhistle', 'Vadania Amakiir', 'Bo'] };</script>
+  <script src="js/workflow-catalog.js?v=<?php echo $versions['workflow-catalog.js']; ?>"></script>
   <script src="js/action-workflow.js?v=<?php echo $versions['action-workflow.js']; ?>"></script>
   <script src="js/outcome-generate.js?v=<?php echo $versions['outcome-generate.js']; ?>"></script>
 

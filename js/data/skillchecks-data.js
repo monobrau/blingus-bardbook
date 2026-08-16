@@ -705,5 +705,25 @@ const skillChecks = {
     "I lose the path in here and panic sets in among the party",
     "The conditions in the area beat my survival instincts today, humbling and damp",
   ],
+  "Thieves' Tools - Success": [
+    "I tickle the pins in the area and the lock sighs open",
+    "I pick the latch in here before anyone counts to three",
+    "I shim a cheap lock on a chest or door and look innocent",
+    "I pop the mechanism with a hairpin and a tiny bow",
+    "I feel the tumblers line up and I do not gloat, much",
+    "I open it quietly enough that only my wings hear the click",
+    "I bypass the lock in the area like it owed me a favor",
+    "I leave the lock looking unpicked, which is the real trick",
+  ],
+  "Thieves' Tools - Failure": [
+    "I snap a pick in the area and the lock laughs at me",
+    "I rattle the latch in here loud enough to hire an audience",
+    "I jam the mechanism and now nobody is getting in the nice way",
+    "I drop a pick, curse, and look like a tourist with hobbies",
+    "I pick the wrong pin and the lock sulks shut harder",
+    "I announce my attempt with a metallic clatter",
+    "I leave scratches that say a fairy was here and failed",
+    "I spend too long on the lock and the moment walks away",
+  ],
 };
 window.BlingusData.skillChecks = skillChecks;

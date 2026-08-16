@@ -8,6 +8,7 @@
 
   let currentSection = 'spells';
   let currentCategory = null;
+  const collapsedSpellGroups = new Set();
 
   // Wait for DOM to be ready
   function init() {
@@ -75,7 +76,15 @@
       window.ActionWorkflow.applyTabPreset(section);
     } else if (window.ActionWorkflow) {
       window.ActionWorkflow.showPanel(false);
-      updateCategoryChips(section);
+      if (section === 'character') {
+        const chipsRow = document.getElementById('categoryChipsRow');
+        if (chipsRow) chipsRow.style.display = 'none';
+      } else {
+        updateCategoryChips(section);
+      }
+    } else if (section === 'character') {
+      const chipsRow = document.getElementById('categoryChipsRow');
+      if (chipsRow) chipsRow.style.display = 'none';
     } else {
       updateCategoryChips(section);
     }
@@ -99,6 +108,9 @@
     // Wait a bit for the category select to be populated
     setTimeout(() => {
       const options = Array.from(categorySelect.options);
+      if (currentCategory && !options.some((o) => o.value === currentCategory)) {
+        currentCategory = null;
+      }
 
       // Hide chips row if no categories (for actions, criticalHits, etc.)
       if (options.length === 0) {
@@ -107,12 +119,13 @@
       }
 
       categoryChipsRow.style.display = 'flex';
+      categoryChipsRow.classList.toggle('toolbar__row--chips-tree', section === 'spells');
 
       // Clear existing chips
       categoryChipsContainer.innerHTML = '';
+      categoryChipsContainer.className = section === 'spells' ? 'spell-tree' : 'chips';
 
-      // Create chips for each category
-      options.forEach((option, index) => {
+      function addChip(parent, option, index) {
         const chip = document.createElement('button');
         chip.className = 'chip';
         chip.textContent = option.text;
@@ -120,11 +133,13 @@
         chip.setAttribute('role', 'button');
         chip.setAttribute('aria-pressed', 'false');
 
-        // Set first chip as active
-        if (index === 0) {
+        if (index === 0 && !currentCategory) {
           chip.classList.add('chip--active');
           chip.setAttribute('aria-pressed', 'true');
           currentCategory = option.value;
+        } else if (currentCategory === option.value) {
+          chip.classList.add('chip--active');
+          chip.setAttribute('aria-pressed', 'true');
         }
 
         chip.addEventListener('click', (e) => {
@@ -132,7 +147,6 @@
           switchToCategory(option.value);
         });
 
-        // Keyboard support
         chip.addEventListener('keydown', (e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
@@ -140,8 +154,57 @@
           }
         });
 
-        categoryChipsContainer.appendChild(chip);
-      });
+        parent.appendChild(chip);
+      }
+
+      if (section === 'spells' && window.BlingusData?.getSpellTree) {
+        const tree = window.BlingusData.getSpellTree();
+        const optionByValue = new Map(options.map((o) => [o.value, o]));
+        let chipIndex = 0;
+        tree.forEach((group) => {
+          const ids = (group.ids || []).filter((id) => optionByValue.has(id));
+          if (!ids.length) return;
+          const block = document.createElement('div');
+          block.className = 'spell-tree__group';
+          const toggle = document.createElement('button');
+          toggle.type = 'button';
+          toggle.className = 'spell-tree__toggle';
+          const collapsed = collapsedSpellGroups.has(group.id || group.label);
+          toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+          toggle.textContent = group.label;
+          const chips = document.createElement('div');
+          chips.className = 'chips spell-tree__chips';
+          chips.setAttribute('role', 'group');
+          chips.setAttribute('aria-label', group.label);
+          if (collapsed) {
+            block.classList.add('spell-tree__group--collapsed');
+            chips.hidden = true;
+          }
+          toggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const open = toggle.getAttribute('aria-expanded') !== 'true';
+            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            block.classList.toggle('spell-tree__group--collapsed', !open);
+            chips.hidden = !open;
+            const key = group.id || group.label;
+            if (open) collapsedSpellGroups.delete(key);
+            else collapsedSpellGroups.add(key);
+          });
+          ids.forEach((id) => {
+            addChip(chips, optionByValue.get(id), chipIndex);
+            chipIndex += 1;
+          });
+          block.appendChild(toggle);
+          block.appendChild(chips);
+          categoryChipsContainer.appendChild(block);
+        });
+        if (!currentCategory && options[0]) currentCategory = options[0].value;
+      } else {
+        options.forEach((option, index) => {
+          addChip(categoryChipsContainer, option, index);
+        });
+      }
 
       // Sync initial category with select
       if (currentCategory && categorySelect.value !== currentCategory) {
@@ -155,8 +218,12 @@
   function switchToCategory(category) {
     currentCategory = category;
 
-    // Update visual chip state
-    document.querySelectorAll('.chip').forEach(chip => {
+    // Update visual chip state (only category chips, not workflow pills)
+    const categoryChipsContainer = document.getElementById('categoryChips');
+    const chips = categoryChipsContainer
+      ? categoryChipsContainer.querySelectorAll('[data-category]')
+      : [];
+    chips.forEach((chip) => {
       const isActive = chip.getAttribute('data-category') === category;
       chip.classList.toggle('chip--active', isActive);
       chip.setAttribute('aria-pressed', isActive);
@@ -173,7 +240,9 @@
     }
 
     // Scroll active chip into view
-    const activeChip = document.querySelector('.chip--active');
+    const activeChip = categoryChipsContainer
+      ? categoryChipsContainer.querySelector('.chip--active')
+      : null;
     if (activeChip) {
       activeChip.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
     }

@@ -62,14 +62,11 @@
       return true;
     },
 
-    // Section shortcuts (1-4: Spells, Bardic, Mockery, Outcomes)
-    '1': () => selectSection(0),
-    '2': () => selectSection(1),
-    '3': () => selectSection(2),
-    '4': () => selectSection(3),
-    '5': () => selectSection(3),
-    '6': () => selectSection(3),
-    '7': () => selectSection(3),
+    // Section shortcuts (1-4: Spells, Bardic, Outcomes, Character)
+    '1': () => selectSectionId('spells'),
+    '2': () => selectSectionId('bardic'),
+    '3': () => selectSectionId('outcomes'),
+    '4': () => selectSectionId('character'),
 
     // Help modal
     '?': () => {
@@ -101,10 +98,15 @@
     }
   };
 
-  function selectSection(index) {
+  function selectSectionId(section) {
+    if (isInputFocused()) return false;
+    if (window.TabNavigation?.switchToSection) {
+      window.TabNavigation.switchToSection(section);
+      return true;
+    }
     const sectionSelect = document.getElementById('sectionSelect');
-    if (sectionSelect && sectionSelect.options[index] && !isInputFocused()) {
-      sectionSelect.selectedIndex = index;
+    if (sectionSelect) {
+      sectionSelect.value = section;
       sectionSelect.dispatchEvent(new Event('change'));
       return true;
     }
@@ -190,8 +192,14 @@
               <span>Toggle favorites filter</span>
 
               <strong style="grid-column: 1 / -1; margin-top: 8px; color: var(--accent); border-bottom: 1px solid var(--burnt); padding-bottom: 4px;">Sections</strong>
-              <kbd>1-7</kbd>
-              <span>Jump to section</span>
+              <kbd>1</kbd>
+              <span>Spells</span>
+              <kbd>2</kbd>
+              <span>Bardic</span>
+              <kbd>3</kbd>
+              <span>Outcomes (incl. Vicious Mockery)</span>
+              <kbd>4</kbd>
+              <span>Character</span>
 
               <strong style="grid-column: 1 / -1; margin-top: 8px; color: var(--accent); border-bottom: 1px solid var(--burnt); padding-bottom: 4px;">Other</strong>
               <kbd>Ctrl+D</kbd>

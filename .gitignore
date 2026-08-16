@@ -32,4 +32,5 @@ api/.anthropic_key
 # Local/private campaign notes (never commit)
 /private/
 *.docx
+*.pdf
 

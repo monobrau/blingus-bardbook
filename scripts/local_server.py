@@ -75,11 +75,11 @@ PARTY_ROSTER = {
 }
 
 PARTY_FLAVOR = {
-    "blingus": "Self-roast welcome. Fairy bard vanity, name-amnesia, economy-sized blade jokes, Sir Whats-his-face energy.",
-    "puck": 'Fellow fairy sorcerer chaos. Sparkles, twin-spell mischief, affectionate "Puke" nickname ok, glitter and bad decisions.',
-    "brawn": "Dwarven monk. Fists named Reason and Consequences. Currently wears the Crown of Remembrance. Drinks, thinks, swings.",
-    "vadania": "Real name Vadania Amakiir; the table casually calls them Vandan, Van Damme, or whatever feels right. Paranoid bow-watcher. Checks doors twice, prods chests, got Scorching-Rayed by a helpful ally during a mimic-chair fight. Trust issues are comedy gold. Feel free to mix nicknames mid-bit.",
-    "bo": "Dwarf who was briefly a toad (cauldron food era). Dragon breath stories, enlarge heroics, Milwaukee energy. Toad jokes never die.",
+    "blingus": "Self-roast welcome. L5 Lore fairy bard: vanity, name-amnesia, two daggers and a shortbow, fly speed, Cutting Words, Sir Whats-his-face energy.",
+    "puck": 'Fellow fairy Wild Magic sorcerer. Sparkles, twin-spell mischief, affectionate "Puke" nickname ok, glitter and bad decisions.',
+    "brawn": "Dwarven monk. Currently wears the Crown of Remembrance. Drinks, thinks, swings.",
+    "vadania": "Elven ranger Vadania Amakiir; the table casually calls them Vandan, Van Damme, or whatever feels right. Paranoid bow-watcher. Checks doors twice, prods chests, got Scorching-Rayed by a helpful ally during a mimic-chair fight. Trust issues are comedy gold. Mix nicknames mid-bit.",
+    "bo": "Toad-cauldron era, enlarge heroics, dragon breath at Granny Nightshade. Closest thing Blingus has to family. Zybilna-silent warlock mentor flavor when it fits. Toad jokes never die.",
 }
 
 OUTCOME_LABELS = {
@@ -89,7 +89,8 @@ OUTCOME_LABELS = {
     "success": "Skill check success",
     "failure": "Skill check failure",
     "battleCry": "Battle cry (short shouted line before or during a fight)",
-    "insult": "Insult (witty verbal jab)",
+    "mockery": "Vicious Mockery (the spoken cantrip the player will deliver at the table)",
+    "insult": "Insult (witty verbal jab, not the cantrip)",
     "compliment": "Compliment (warm but Blingus-flavored praise)",
     "introduction": "Chaucer-style herald introduction (ornate party/NPC presentation)",
 }
@@ -209,24 +210,56 @@ def build_generate_prompts(body: dict[str, Any]) -> tuple[str, str, str, int]:
     if not personality:
         raise ValueError("Personality text is required")
 
+    rating = str(body.get("rating") or "").strip().lower()
+    if rating not in ("g", "pg", "pg-13", "r", "x"):
+        rating = ""
+    rating_guides = {
+        "g": 'CONTENT RATING G (ACTIVE, overrides mood and party-raunch for adult content): All-ages family table. No sexual content, no innuendo, no crude slang, no graphic gore. Violence stays cartoon slapstick. Keep Blingus theatrical and funny without dirty jokes. A "lewd" mood at G is playful charm only.',
+        "pg": "CONTENT RATING PG (ACTIVE, overrides mood and party-raunch for adult content): Mild adventure table. Light language (darn, heck, occasional damn). The faintest wink of innuendo is the ceiling. No explicit sex, no graphic anatomy, no bedroom jokes. Violence stays PG action.",
+        "pg-13": "CONTENT RATING PG-13 (ACTIVE, overrides mood and party-raunch for adult content): Typical teen D&D table. Suggestive innuendo, damn/hell/ass, implied adult situations are fine. No explicit sex acts, no graphic anatomy, no porn-narration. Do not escalate to R.",
+        "r": "CONTENT RATING R (ACTIVE): Explicit sexual jokes, strong language, and crude body humor are welcome. Still a funny in-world table line, not a sex scene. Rated R table banter. Do not sanitize to PG-13.",
+        "x": "CONTENT RATING X (ACTIVE): No ceiling. Graphic sexual content, filthy language, explicit acts, NC-17. Still characterful Blingus, not a medical manual. Do not sanitize or fade to black.",
+    }
+    rating_block = ""
+    rating_note = "unset (use table default: party members get raunch; others follow mood)"
+    if rating:
+        rating_note = rating.upper()
+        rating_block = f"""
+CONTENT RATING (mandatory for every line in this batch):
+Rating: {rating_note}
+{rating_guides[rating]}
+- Honor this rating even if mood is lewd, flirty, or petty, and even if the subject is a party member.
+- Do not exceed this rating. Do not ignore it.
+"""
+
     is_party = party_flag or is_party_member(name)
     party_mode = ""
     party_subject = "no"
     if is_party and name:
-        party_subject = "yes — use party raunch mode"
+        party_subject = (
+            "yes — party member; honor the content rating for adultness"
+            if rating
+            else "yes — use party raunch mode"
+        )
         flavor = PARTY_FLAVOR.get(party_flavor_key(name), "Use established table chemistry and in-jokes for this companion.")
+        party_adult = (
+            "- Adultness comes from the CONTENT RATING above, not from this party block. Do not escalate past that rating just because the subject is a PC.\n"
+            if rating
+            else (
+                "- This table wants exceptionally raunchy, adult, filthy humor aimed at fellow PCs.\n"
+                "- Lean hard into crude sexual innuendo, explicit jokes, bedroom/body humor, and shameless double entendres in Blingus's theatrical voice.\n"
+                "- Do not sanitize, soften, or keep it PG-13. Rated R to NC-17 table banter is expected and welcome.\n"
+            )
+        )
         party_mode = f"""
 
 PARTY SUBJECT MODE (active — subject is a table party member):
-- This table wants exceptionally raunchy, adult, filthy humor aimed at fellow PCs.
-- Lean hard into crude sexual innuendo, explicit jokes, bedroom/body humor, and shameless double entendres in Blingus's theatrical voice.
-- Do not sanitize, soften, or keep it PG-13. Rated R to NC-17 table banter is expected and welcome.
-- Still funny and characterful, not just shock for shock's sake. Stay in-world as Blingus.
+{party_adult}- Still funny and characterful, not just shock for shock's sake. Stay in-world as Blingus.
 - Still obey no-em-dash / no-en-dash and JSON-array-only rules.
 - Every line must clearly involve the named party member.
 - Every line must clearly involve {name} by name.
 - Party-member flavor for {name}: {flavor}
-- Lean on table-known gags when they fit: toad-Bo, Crown of Remembrance, mimic chairs, Scorching Ray friendly fire, Stinky Court, mud muffins, Sir Whats-his-face name amnesia, fairy dragons.
+- Lean on table-known gags when they fit: toad-Bo, Crown of Remembrance, mimic chairs, Scorching Ray friendly fire, Stinky Court, mud muffins, Sir Whats-his-face, Sir Talavar, marching-band near-wipe, Granny in the oven.
 """
 
     mood_note = mood or "playful"
@@ -234,6 +267,57 @@ PARTY SUBJECT MODE (active — subject is a table party member):
     env_note = ", ".join(environment) if environment else "(none specified)"
     target_note = "any / unspecified" if target in ("", "any") else target
     name_note = name or "(no specific name)"
+    combat_round = bool(body.get("combatRound")) or str(body.get("pace") or "").strip().lower() == "battle"
+    pace = str(body.get("pace") or "").strip().lower()
+    if pace not in ("battle", "roleplay"):
+        pace = "battle" if combat_round else "roleplay"
+    character_block = str(body.get("characterBlock") or "").strip()[:5000]
+    kit_match = str(body.get("kitMatch") or "").strip()[:800]
+    sheet_block = ""
+    if character_block:
+        sheet_block = f"""
+CURRENT CHARACTER SHEET (authoritative mechanical state):
+{character_block}
+"""
+    kit_match_block = ""
+    if kit_match:
+        kit_match_block = f"""
+ITEM IN PLAY FOR THIS BATCH (wizard Detail is authoritative):
+{kit_match}
+- Every combat line must be recognizably THIS item. Do not replace it with a different weapon or spell, even if the standing sheet lists something else.
+"""
+
+    force_parody = bool(body.get("forceParody"))
+    force_parody_block = ""
+    if force_parody:
+        force_parody_block = """
+FORCE SONG PARODY MODE (ACTIVE, overrides the occasional parody rule):
+- EVERY line in this batch MUST weave a recognizable song parody into the beat.
+- Rewrite a real, well-known song so the lyrics fit this outcome, scene, and mood. Keep the original hook recognizable (same cadence, famous phrases twisted).
+- Do NOT quote the original lyrics verbatim. Do NOT name the song or artist in the line. The table should hear the tune without a citation.
+- This is Blingus's karaoke-bard style (Vicious Mockery / spell parodies), not a cheesy lovesong smash and not a sung verse for its own sake.
+- Still match the requested outcome type exactly. The parody serves the hit, fail, roast, toast, or roleplay beat; it does not replace it.
+- Vary the source songs across the batch (pop, rock, karaoke classics, 80s, 90s, 2000s). Do not reuse the same hook in every line.
+- The joke is the collision: a familiar chorus twisted into this exact table moment, delivered in Blingus's theatrical voice.
+"""
+
+    if combat_round or pace == "battle":
+        pace_length = """
+IN BATTLE LENGTH (ACTIVE):
+- Fit a D&D combat turn: any spoken dialogue Blingus would say aloud must take about 6 seconds or less of real spoken time (roughly 12-18 words of dialogue, one breath / one shout).
+- Prefer punchy one-liners. Do not write long speeches, multi-clause lectures, or multi-sentence heralds.
+- If a line mixes narration and speech, keep the spoken part inside that ~6s budget; keep the whole string short enough to use mid-round.
+- This overrides longer defaults (including Chaucer introductions). Keep theatrical voice; keep length tight.
+- Song Parody (if also active) must still fit the same ~6s spoken budget: a short lyric snatch, not a verse.
+"""
+    else:
+        pace_length = f"""
+OUT OF BATTLE / ROLEPLAY LENGTH (ACTIVE):
+- These are not combat-turn lines. Each of the {count} strings may be a richer beat: about 3-5 sentences or a short paragraph when speech or narration needs room.
+- Still self-contained and usable at the table. Do not write essays.
+- Prefer vivid table beats over one-liner quips unless the outcome type is inherently short.
+- Song Parody (if also active) may use a fuller parody couplet, still inside that 3-5 sentence beat.
+"""
 
     system = f"""You write short tabletop RPG lines in character as Blingus for a D&D helper app.
 
@@ -245,10 +329,10 @@ Mood id: {mood_note}
 {mood_guide}
 - Every line must fit this mood. Do not drift into a conflicting emotional register.
 - Mood colors delivery and attitude; it does not change the requested outcome type.
-
+{pace_length}
 HOUSE RULES:
 - Return ONLY a JSON array of exactly {count} strings. No markdown fences, no commentary.
-- Each string is one complete, self-contained line (or one complete herald speech for introductions).
+- Each string is one complete, self-contained option. In battle: keep it to one short spoken beat. Out of battle: a 3-5 sentence beat is welcome.
 - Capitalize the pronoun I. Never use em dashes or en dashes; use commas or hyphens.
 - Match the outcome type exactly.
 - Stay scene-appropriate. Do not force wilderness framing into taverns/shops, or tavern framing into caves.
@@ -258,12 +342,24 @@ HOUSE RULES:
 - Crit hits / skill successes / skill failures / crit fails: prefer first-person "I …" as Blingus.
 - Crit hits must clearly land on a foe/target. Crit fails must clearly go wrong (miss, fumble, backfire, self/environment mishap).
 - For crit hits/fails: honor the attack type (slash, pierce, blunt, or magic) and the specific weapon or D&D 5.5e/2024 bard spell named in Detail. Magic lines should feel like that spell (psychic mockery, thunder boom, radiant wisp, heated armor, etc.), not a generic blast.
+- Detail wins over the standing sheet for THIS batch. If Detail is Longbow, every line is a longbow (arrows, nock, draw, loose), never a spear, dagger, shortbow, or crossbow. If Detail is a spell, use that spell, not a different one and not a weapon.
+- Do not mix weapon families: bows fire arrows; crossbows fire bolts; spears and pikes thrust; swords cut; hammers crush. A pierce attack type is not permission to swap weapons inside that type.
+- Honor the CURRENT CHARACTER SHEET for abilities, HP, AC, and default kit. The sheet is what he usually carries. If Detail names something else, he is using that item for this roll (borrowed, looted, or hypothetical). Do not invent 4th-level spells unless Detail names one.
+- If Detail names a weapon, spell, feature, or skill on the sheet, use THAT item's notes and properties. Do not swap in a generic version.
+- Battle cries and in-battle lines should name the Detail weapon or spell when it fits, not a different kit item.
+- Roleplay may fold in current HP, fairy flight, an instrument, or a feature when it naturally matters. Do not inventory-dump.
+- If HP current is below max, combat lines may acknowledge being hurt when it fits. If HP is about one-third or less, that fragility can color the beat.
+- Fairy specifics: Small fey, airborne, vain, name-amnesia. Default kit is two daggers and a shortbow. If Detail names a different weapon or spell, use Detail. Do not invent 4th-level spells unless Detail names one, and do not fly in medium/heavy armor.
+- Lean on table-known Prismeer hooks when they fit: Sir Talavar, Stinky Court, mud muffins, mimic chairs, marching-band near-wipe, Skabatha dead in the oven, Bavlorna still owed yarn, Lamorna/Elidon horn, Crown of Remembrance on Brawn. Do not invent unpublished Witchlight spoilers.
+- If Scene names a Feywild or Prismeer place, write to THAT place (Hither mud, Loomlurch timber, Yon peaks, a goblin market, etc.). If Name / subject is a creature, aim the beat at that foe. Do not invent unpublished Witchlight plot.
 - Battle cries: short, shoutable, 1-2 sentences max. Energetic, theatrical, first person or imperative.
-- Insults: cutting and funny, aimed at the focus when specified. One or two sentences.
+- Vicious Mockery: these lines ARE the cantrip. Write the exact words Blingus speaks as the verbal component, ready for the player to read aloud. First-person spoken roast, psychic sting, WIS-save flavor welcome. Do not narrate "I cast Vicious Mockery"; deliver the mockery itself. In battle: one breath. Out of battle: a longer cantrip delivery (3-5 sentences) is fine. Always aim at the named foe when given. This is not a generic insult.
+- Insults: cutting table jab, not the cantrip. Aimed at the focus when specified. One or two sentences.
 - Compliments: sincere-ish praise with Blingus vanity or backhanded warmth. One or two sentences.
 - Chaucer introductions: ornate herald-style presentation suitable to read aloud. Longer is fine (2-5 sentences). Use "Behold", "Hark", "Presenting", or similar flourish. Invent flattering or teasing epithets. Do not spoil module plot.
 - When a specific name is provided, clearly address or present that person by name in every line.
-{party_mode}"""
+- OCCASIONAL SONG PARODY: in a minority of lines (about 0-1 per batch), Blingus may weave a recognizable song-parody snatch into the beat in his karaoke-bard style. Most lines stay unsung. When Force Song Parody is active, ignore this rarity and do every line.
+{sheet_block}{kit_match_block}{rating_block}{party_mode}{force_parody_block}"""
 
     user = f"""Write {count} lines for this selection:
 
@@ -273,6 +369,8 @@ Weather: {weather or '(unspecified)'}
 Lighting: {lighting or '(unspecified)'}
 Environment tags: {env_note}
 Current mood: {mood_note}
+Content rating: {rating_note}
+Pace: {pace}
 Outcome type: {OUTCOME_LABELS[outcome]}
 Attack type: {attack_type or '(n/a)'}
 Detail (weapon / bard spell / skill): {detail or '(none)'}
@@ -491,7 +589,7 @@ class BardbookHandler(BaseHTTPRequestHandler):
         if path == "/api/generate-outcome.php":
             try:
                 system, user, model, count = build_generate_prompts(body)
-                max_tokens = 2500 if body.get("outcome") == "introduction" else 1200
+                max_tokens = 3200 if (body.get("pace") == "roleplay" or body.get("outcome") == "introduction") else 900
                 lines = call_anthropic(system, user, model, max_tokens)[:count]
                 if not lines:
                     raise RuntimeError("Could not parse lines from Claude response")
