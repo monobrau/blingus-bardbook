@@ -231,6 +231,7 @@
       languages: ['Common', 'Goblin'],
       notes: [
         '2024 rules. D&D Beyond sheet (id 142037960). Initiative +3. Passive Insight 13, Investigation 16. 106 gp. Light armor, simple weapons.',
+        'Phobias: genuinely afraid and paranoid of the Tarrasque and rust monsters. Treats both as real threats that could be anywhere. The party thinks it is a bit; he does not. Do not invent that either is present unless the scene says so.',
         'Slots: 4 first, 3 second, 2 third.',
         '',
         'TABLE-KNOWN WITCHLIGHT (do not invent unpublished spoilers):',
@@ -504,6 +505,18 @@
       .replace(/\s*Do not invent 4th-level spells or medium\/heavy armor flight\./g, '');
   }
 
+  const PHOBIA_NOTE = 'Phobias: genuinely afraid and paranoid of the Tarrasque and rust monsters. Treats both as real threats that could be anywhere. The party thinks it is a bit; he does not. Do not invent that either is present unless the scene says so.';
+
+  function ensurePhobiaNote(text) {
+    const next = String(text || '');
+    if (/\btarrasque\b/i.test(next) && /\brust monsters?\b/i.test(next)) return next;
+    if (!next.trim()) return PHOBIA_NOTE;
+    if (/^2024 rules\./m.test(next)) {
+      return next.replace(/^(2024 rules\.[^\n]*)/m, '$1\n' + PHOBIA_NOTE);
+    }
+    return PHOBIA_NOTE + '\n' + next;
+  }
+
   function normalize(raw) {
     const base = defaultCharacter();
     if (!raw || typeof raw !== 'object') return base;
@@ -546,7 +559,7 @@
       languages: Array.isArray(raw.languages)
         ? raw.languages.map((l) => String(l || '').trim()).filter(Boolean)
         : base.languages.slice(),
-      notes: stripRetiredNotes(raw.notes),
+      notes: ensurePhobiaNote(stripRetiredNotes(raw.notes)),
     };
   }
 
