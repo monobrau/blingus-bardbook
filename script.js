@@ -2464,20 +2464,6 @@
       ? Number(selection.count)
       : (combatRoundOn ? 2 : 5);
 
-    const intro = document.createElement('div');
-    intro.className = 'card workflow-outcomes-intro';
-    intro.style.fontSize = '14px';
-    intro.style.opacity = '0.85';
-    intro.style.padding = '12px 16px';
-    intro.textContent = selection.outcome === 'mockery'
-      ? (combatRoundOn
-        ? `${selection.summary} — ${lineCount} one-breath Vicious Mockery lines for this turn.`
-        : `${selection.summary} — five Vicious Mockery lines you can deliver at the table.`)
-      : (combatRoundOn
-        ? `${selection.summary} — ${lineCount} one-breath options for a 6-second turn.`
-        : `${selection.summary} — Claude will write ${lineCount} lines for this selection.`);
-    content.appendChild(intro);
-
     const randomCard = document.createElement('article');
     randomCard.className = 'card random-card';
     randomCard.style.background = isDark
