@@ -179,6 +179,33 @@ try {
             }
             
             $data['serverTimestamp'] = date('c');
+
+            $existing = [];
+            if (file_exists($absoluteDataFile)) {
+              $prevJson = file_get_contents($absoluteDataFile);
+              $prevData = json_decode($prevJson, true);
+              if (is_array($prevData)) $existing = $prevData;
+            }
+            if (!array_key_exists('character', $data) && isset($existing['character'])) {
+              $data['character'] = $existing['character'];
+            }
+            $incomingRoster = (isset($data['characters']) && is_array($data['characters'])) ? $data['characters'] : null;
+            $prevRoster = (isset($existing['characters']) && is_array($existing['characters'])) ? $existing['characters'] : [];
+            if ($incomingRoster) {
+              $data['characters'] = array_merge($prevRoster, $incomingRoster);
+            } elseif ($prevRoster) {
+              $data['characters'] = $prevRoster;
+            }
+            if (!array_key_exists('personality', $data) && isset($existing['personality'])) {
+              $data['personality'] = $existing['personality'];
+            }
+            $incomingVoices = (isset($data['personalities']) && is_array($data['personalities'])) ? $data['personalities'] : null;
+            $prevVoices = (isset($existing['personalities']) && is_array($existing['personalities'])) ? $existing['personalities'] : [];
+            if ($incomingVoices) {
+              $data['personalities'] = array_merge($prevVoices, $incomingVoices);
+            } elseif ($prevVoices) {
+              $data['personalities'] = $prevVoices;
+            }
             
             // Write to file
             $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);

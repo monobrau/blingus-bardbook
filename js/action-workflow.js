@@ -11,8 +11,10 @@
 
   // Unified "outcomes" tab plus legacy section ids for old bookmarks/shortcuts.
   const WORKFLOW_SECTIONS = new Set([
-    'outcomes', 'actions', 'criticalHits', 'criticalFailures', 'skillChecks',
+    'outcomes', 'kit', 'cast', 'actions', 'criticalHits', 'criticalFailures', 'skillChecks',
   ]);
+  const KIT_MOD_IDS = ['hit', 'fail', 'success', 'failure', 'battleCry', 'spell'];
+  const CAST_MOD_IDS = ['spell'];
 
   const SKILL_NAMES = [
     'Acrobatics', 'Animal Handling', 'Arcana', 'Athletics', 'Deception',
@@ -90,11 +92,29 @@
     return (groups || []).map((g) => ({ label: g.label, ids: (g.ids || []).slice() }));
   }
 
+  function kitOnlyMode() {
+    if (window.BlingusSite?.lockedCharacterId?.() || window.CharacterSheet?.lockedCharacterId?.()) {
+      return true;
+    }
+    if (window.CharacterSheet?.namedNonBard?.()) return true;
+    const id = window.CharacterSheet?.getActiveId?.();
+    return Boolean(id && id !== 'blingus');
+  }
+
+  function getSkillNames() {
+    if (window.CharacterSheet?.getSkillNames) {
+      const names = window.CharacterSheet.getSkillNames();
+      if (names && names.length) return names;
+    }
+    return SKILL_NAMES.slice();
+  }
+
   function getAttackOptions() {
     const fallback = FALLBACK_ATTACK_OPTIONS;
     const sheet = window.CharacterSheet;
+    const kitOnly = kitOnlyMode();
     if (!sheet?.getWeaponsForAttackType && !sheet?.getMagicOptions) {
-      return fallback;
+      return kitOnly ? { slash: [], pierce: [], blunt: [], magic: [] } : fallback;
     }
 
     const out = {
@@ -112,14 +132,19 @@
       const otherFiltered = uniqueIds(
         otherIds.filter((id) => !kitIds.some((k) => k.toLowerCase() === String(id).toLowerCase()))
       );
-      if (kitIds.length) out[type].push({ label: "Blingus's kit", ids: kitIds });
-      if (otherFiltered.length) {
+      if (kitIds.length) {
+        const who = window.CharacterSheet?.get?.()?.identity?.aka
+          || window.CharacterSheet?.get?.()?.identity?.name
+          || 'Kit';
+        out[type].push({ label: who + "'s kit", ids: kitIds });
+      }
+      if (!kitOnly && otherFiltered.length) {
         out[type].push({
           label: type === 'blunt' && !kitIds.length ? 'Weapons' : 'Other weapons',
           ids: otherFiltered,
         });
       }
-      if (!out[type].length) out[type] = cloneGroups(fallback[type]);
+      if (!kitOnly && !out[type].length) out[type] = cloneGroups(fallback[type]);
     });
 
     const magicGroups = sheet.getMagicOptions?.({ kinds: ['attack', 'save', 'damage'] }) || [];
@@ -128,7 +153,17 @@
         .map((g) => ({ label: g.label, ids: uniqueIds(g.ids || []) }))
         .filter((g) => g.ids.length);
     }
-    if (!out.magic.length) {
+    const classExtras = sheet.getClassCombatOptions?.();
+    if (classExtras) {
+      ['slash', 'pierce', 'blunt', 'magic'].forEach((type) => {
+        (classExtras[type] || []).forEach((g) => {
+          const ids = uniqueIds(g.ids || []);
+          if (ids.length) out[type].push({ label: g.label, ids });
+        });
+      });
+    }
+
+    if (!out.magic.length && !kitOnly && window.CharacterSheet?.hasKaraoke?.()) {
       out.magic = cloneGroups(fallback.magic).map((g) => ({
         label: g.label,
         ids: uniqueIds((g.ids || []).filter((id) => {
@@ -138,8 +173,8 @@
           return kind === 'attack' || kind === 'save' || kind === 'damage';
         })),
       })).filter((g) => g.ids.length);
+      if (!out.magic.length) out.magic = cloneGroups(fallback.magic);
     }
-    if (!out.magic.length) out.magic = cloneGroups(fallback.magic);
     return out;
   }
 
@@ -154,12 +189,39 @@
     { id: 'battleCry', label: '📢 Battle Cry', group: 'speech' },
     { id: 'mockery', label: '🗡️ Vicious Mockery', group: 'speech' },
     { id: 'cuttingWords', label: '✂️ Cutting Words', group: 'speech' },
+    { id: 'trailCall', label: '🏹 Trail Call', group: 'speech' },
+    { id: 'focus', label: '👊 Focus', group: 'speech' },
+    { id: 'surge', label: '🌀 Wild Surge', group: 'speech' },
     { id: 'insult', label: '💬 Insult', group: 'speech' },
     { id: 'compliment', label: '💬 Compliment', group: 'speech' },
     { id: 'toast', label: '🥂 Toast', group: 'speech' },
     { id: 'motivation', label: '📣 Motivational Speech', group: 'speech' },
     { id: 'introduction', label: '🎭 Chaucer Intro', group: 'speech' },
     { id: 'feyGambit', label: '🧚 Fey Gambit', group: 'speech' },
+    { id: 'paulHarvey', label: '📻 Paul Harvey', group: 'speech' },
+    { id: 'productPlacement', label: '📺 Product Placement', group: 'speech' },
+    { id: 'infomercial', label: '📣 Infomercial', group: 'speech' },
+    { id: 'wrongSoundtrack', label: '🎵 Wrong Soundtrack', group: 'speech' },
+    { id: 'pharmaAd', label: '💊 Pharma Ad', group: 'speech' },
+    { id: 'confessional', label: '🎥 Confessional', group: 'speech' },
+    { id: 'cliffhanger', label: '🤠 Cliffhanger', group: 'speech' },
+    { id: 'standup', label: '🎤 Standup', group: 'speech' },
+    { id: 'roast', label: '🔥 Roast', group: 'speech' },
+    { id: 'troyMcClure', label: '🌟 Troy McClure', group: 'speech' },
+    { id: 'showtime', label: '🎪 Showtime', group: 'speech' },
+    { id: 'closer', label: '🌙 Closer', group: 'speech' },
+    { id: 'inspiration', label: '🎲 Inspiration', group: 'speech' },
+    { id: 'songOfRest', label: '🎵 Song of Rest', group: 'speech' },
+    { id: 'healBuff', label: '💚 Heal / Buff', group: 'speech' },
+    { id: 'flirt', label: '💋 Flirt', group: 'speech' },
+    { id: 'graffiti', label: '🖌️ Graffiti', group: 'speech' },
+    { id: 'travelBanter', label: '🧭 Travel Banter', group: 'speech' },
+    { id: 'rally', label: '📯 Rally', group: 'speech' },
+    { id: 'downed', label: '😵 Last Breath', group: 'speech' },
+    { id: 'eulogy', label: '⚱️ Eulogy', group: 'speech' },
+    { id: 'yelpReview', label: '⭐ Yelp Review', group: 'speech' },
+    { id: 'previouslyOn', label: '📺 Previously On', group: 'speech' },
+    { id: 'natureDoc', label: '🌿 Nature Doc', group: 'speech' },
   ];
 
   const BATTLE_LINE_COUNT = 5;
@@ -172,8 +234,8 @@
 
   /** Outcome types available for each pace. Skills + insults appear in both. */
   const MODS_BY_PACE = {
-    battle: ['spell', 'hit', 'fail', 'success', 'failure', 'mockery', 'cuttingWords', 'battleCry', 'insult', 'toast', 'motivation'],
-    roleplay: ['roleplay', 'meanwhile', 'spell', 'success', 'failure', 'mockery', 'cuttingWords', 'insult', 'compliment', 'toast', 'motivation', 'introduction', 'feyGambit'],
+    battle: ['spell', 'hit', 'fail', 'success', 'failure', 'mockery', 'cuttingWords', 'trailCall', 'focus', 'surge', 'battleCry', 'insult', 'toast', 'motivation', 'paulHarvey', 'productPlacement', 'infomercial', 'wrongSoundtrack', 'pharmaAd', 'confessional', 'cliffhanger', 'standup', 'roast', 'troyMcClure', 'showtime', 'closer', 'inspiration', 'healBuff', 'flirt', 'graffiti', 'rally', 'downed', 'yelpReview', 'natureDoc'],
+    roleplay: ['roleplay', 'meanwhile', 'spell', 'success', 'failure', 'mockery', 'cuttingWords', 'trailCall', 'focus', 'surge', 'insult', 'compliment', 'toast', 'motivation', 'introduction', 'feyGambit', 'paulHarvey', 'productPlacement', 'infomercial', 'wrongSoundtrack', 'pharmaAd', 'confessional', 'cliffhanger', 'standup', 'roast', 'troyMcClure', 'showtime', 'closer', 'inspiration', 'songOfRest', 'healBuff', 'flirt', 'graffiti', 'travelBanter', 'rally', 'downed', 'eulogy', 'yelpReview', 'previouslyOn', 'natureDoc'],
   };
 
   const SPEECH_META = {
@@ -194,6 +256,24 @@
       category: 'cuttingWords',
       metaLabel: 'Cutting Words',
       modalPrefix: '✂️',
+    },
+    trailCall: {
+      section: 'outcomes',
+      category: 'trailCalls',
+      metaLabel: 'Trail Call',
+      modalPrefix: '🏹',
+    },
+    focus: {
+      section: 'outcomes',
+      category: 'focus',
+      metaLabel: 'Focus',
+      modalPrefix: '👊',
+    },
+    surge: {
+      section: 'outcomes',
+      category: 'surges',
+      metaLabel: 'Wild Surge',
+      modalPrefix: '🌀',
     },
     feyGambit: {
       section: 'outcomes',
@@ -230,6 +310,150 @@
       category: 'introductions',
       metaLabel: 'Chaucer Introduction',
       modalPrefix: '🎭',
+    },
+    paulHarvey: {
+      section: 'outcomes',
+      category: 'paulHarvey',
+      metaLabel: 'Paul Harvey',
+      modalPrefix: '📻',
+    },
+    productPlacement: {
+      section: 'outcomes',
+      category: 'productPlacement',
+      metaLabel: 'Product Placement',
+      modalPrefix: '📺',
+    },
+    infomercial: {
+      section: 'outcomes',
+      category: 'infomercials',
+      metaLabel: 'Infomercial',
+      modalPrefix: '📣',
+    },
+    wrongSoundtrack: {
+      section: 'outcomes',
+      category: 'wrongSoundtrack',
+      metaLabel: 'Wrong Soundtrack',
+      modalPrefix: '🎵',
+    },
+    eulogy: {
+      section: 'outcomes',
+      category: 'eulogies',
+      metaLabel: 'Eulogy',
+      modalPrefix: '⚱️',
+    },
+    yelpReview: {
+      section: 'outcomes',
+      category: 'yelpReviews',
+      metaLabel: 'Yelp Review',
+      modalPrefix: '⭐',
+    },
+    previouslyOn: {
+      section: 'outcomes',
+      category: 'previouslyOn',
+      metaLabel: 'Previously On',
+      modalPrefix: '📺',
+    },
+    natureDoc: {
+      section: 'outcomes',
+      category: 'natureDoc',
+      metaLabel: 'Nature Doc',
+      modalPrefix: '🌿',
+    },
+    pharmaAd: {
+      section: 'outcomes',
+      category: 'pharmaAds',
+      metaLabel: 'Pharma Ad',
+      modalPrefix: '💊',
+    },
+    confessional: {
+      section: 'outcomes',
+      category: 'confessionals',
+      metaLabel: 'Confessional',
+      modalPrefix: '🎥',
+    },
+    cliffhanger: {
+      section: 'outcomes',
+      category: 'cliffhangers',
+      metaLabel: 'Cliffhanger',
+      modalPrefix: '🤠',
+    },
+    standup: {
+      section: 'outcomes',
+      category: 'standup',
+      metaLabel: 'Standup',
+      modalPrefix: '🎤',
+    },
+    roast: {
+      section: 'outcomes',
+      category: 'roasts',
+      metaLabel: 'Roast',
+      modalPrefix: '🔥',
+    },
+    troyMcClure: {
+      section: 'outcomes',
+      category: 'troyMcClure',
+      metaLabel: 'Troy McClure',
+      modalPrefix: '🌟',
+    },
+    showtime: {
+      section: 'outcomes',
+      category: 'showtimes',
+      metaLabel: 'Showtime',
+      modalPrefix: '🎪',
+    },
+    closer: {
+      section: 'outcomes',
+      category: 'closers',
+      metaLabel: 'Closer',
+      modalPrefix: '🌙',
+    },
+    inspiration: {
+      section: 'outcomes',
+      category: 'inspiration',
+      metaLabel: 'Inspiration',
+      modalPrefix: '🎲',
+    },
+    songOfRest: {
+      section: 'outcomes',
+      category: 'songOfRest',
+      metaLabel: 'Song of Rest',
+      modalPrefix: '🎵',
+    },
+    healBuff: {
+      section: 'outcomes',
+      category: 'healBuffs',
+      metaLabel: 'Heal / Buff',
+      modalPrefix: '💚',
+    },
+    flirt: {
+      section: 'outcomes',
+      category: 'flirts',
+      metaLabel: 'Flirt',
+      modalPrefix: '💋',
+    },
+    graffiti: {
+      section: 'outcomes',
+      category: 'graffiti',
+      metaLabel: 'Graffiti',
+      modalPrefix: '🖌️',
+    },
+    travelBanter: {
+      section: 'outcomes',
+      category: 'travelBanter',
+      metaLabel: 'Travel Banter',
+      modalPrefix: '🧭',
+    },
+    rally: {
+      section: 'outcomes',
+      category: 'rallies',
+      metaLabel: 'Rally',
+      modalPrefix: '📯',
+    },
+    downed: {
+      section: 'outcomes',
+      category: 'lastBreaths',
+      metaLabel: 'Last Breath',
+      modalPrefix: '😵',
     },
   };
 
@@ -570,33 +794,165 @@
     battleCry: ['any', 'enemy', 'ally', 'self', 'npc'],
     mockery: ['any', 'enemy', 'npc'],
     cuttingWords: ['any', 'enemy', 'npc'],
+    trailCall: ['any', 'enemy', 'ally', 'npc', 'self'],
+    focus: ['any', 'enemy', 'self', 'ally'],
+    surge: ['any', 'self', 'enemy', 'ally', 'environment', 'npc'],
     insult: ['any', 'enemy', 'npc', 'ally', 'self'],
     compliment: ['any', 'ally', 'npc', 'self', 'enemy'],
     toast: ['any', 'ally', 'npc', 'self', 'enemy'],
     motivation: ['any', 'ally', 'self', 'npc', 'group'],
     introduction: ['any', 'ally', 'self', 'npc', 'enemy'],
     feyGambit: ['any', 'npc', 'enemy', 'ally'],
+    paulHarvey: ['any', 'npc', 'ally', 'enemy', 'self', 'environment'],
+    productPlacement: ['any', 'object', 'npc', 'environment', 'self'],
+    infomercial: ['any', 'npc', 'object', 'group'],
+    wrongSoundtrack: ['any', 'self', 'enemy', 'ally'],
+    eulogy: ['any', 'ally', 'npc', 'enemy', 'self'],
+    yelpReview: ['any', 'environment', 'object', 'npc'],
+    previouslyOn: ['any', 'ally', 'npc', 'self', 'group'],
+    natureDoc: ['any', 'enemy', 'npc', 'environment', 'self'],
+    pharmaAd: ['any', 'object', 'ally', 'self', 'npc'],
+    confessional: ['any', 'self', 'ally', 'enemy', 'npc'],
+    cliffhanger: ['any', 'ally', 'enemy', 'group', 'self'],
+    standup: ['any', 'npc', 'ally', 'environment', 'self'],
+    roast: ['any', 'ally', 'npc', 'enemy', 'group', 'self'],
+    troyMcClure: ['any', 'self', 'npc', 'group'],
+    showtime: ['any', 'self', 'npc', 'group'],
+    closer: ['any', 'self', 'npc', 'group'],
+    inspiration: ['any', 'ally'],
+    songOfRest: ['any', 'ally', 'group', 'self'],
+    healBuff: ['any', 'ally', 'self'],
+    flirt: ['any', 'npc', 'ally', 'enemy'],
+    graffiti: ['any', 'environment', 'object'],
+    travelBanter: ['any', 'ally', 'self', 'environment'],
+    rally: ['any', 'ally', 'group', 'self'],
+    downed: ['any', 'self', 'ally'],
   };
 
-  const SITUATION_CHIPS = {
-    roleplay: [
-      'Busking', 'Haggling', 'Hovering nearby', 'Hanging back',
-      'Short rest / tune up', 'Forgetting a name', 'Watching the chairs',
-      'Eavesdropping', 'Spending Lucky',
-    ],
-    meanwhile: [
-      'Busking', 'Haggling', 'Hovering nearby', 'Hanging back',
-      'Short rest / tune up', 'Forgetting a name', 'Watching the chairs',
-      'Eavesdropping', 'Spending Lucky',
-    ],
+  const SITUATION_SHARED = {
     feyGambit: [
       'Rule of three', 'Reciprocity', 'True-name bluff', 'Octave / eight-day cycle',
     ],
-    motivation: [
+    motivationCore: [
       'Before the door', 'After a knockout', 'Against the odds',
-      'Don\'t you dare quit', 'Bardic Inspiration energy',
+      'Don\'t you dare quit',
     ],
+    paulHarvey: ['Rest of the story', 'After the fight', 'The reveal', 'Good day'],
+    productPlacement: ['Mundane plug', 'World-changing plug', 'Mid-fight ad', 'Local inn'],
+    infomercial: ['But wait', 'Free with purchase', 'Operators standing by', 'As seen here'],
+    wrongSoundtrack: ['Wrong genre', 'Keeps going', 'Battle hymn', 'Love song'],
+    eulogy: ['Fallen ally', 'Fallen foe', 'The empty chair', 'Too soon'],
+    yelpReview: ['Inn', 'Tavern', 'Dungeon', 'Kitchen', 'Shop'],
+    previouslyOn: ['After a rest', 'Camp', 'Morning after', 'Catching someone up'],
+    natureDoc: ['Sneaking', 'Hovering', 'Hiding', 'Eavesdropping', 'The wildlife'],
+    pharmaAd: ['Healing Word', 'Potion', 'Bardic die', 'Ask your cleric', 'Side effects', 'As directed'],
+    confessional: ['What really happened', 'I was the hero', 'They started it', 'Unseen camera', 'Confession'],
+    cliffhanger: ['Heap of trouble', 'Don\'t go away', 'Freeze-frame', 'Just when they thought', 'We\'ll be right back'],
+    standup: ['This place', 'The locals', 'I hovered', 'Don\'t drink that', 'Pretty view', 'Take my...'],
+    roast: ['After-dinner roast', 'With love', 'They asked for this', 'Open on the target', 'The whole room', 'I kid I kid'],
+    troyMcClure: ['You might remember me', 'Such ballads as', 'Such taverns as', 'Such near-wipes as', 'Currently appearing in', 'And tonight'],
+    showtime: ['Tavern set', 'Street corner', 'Battlefield', 'After dinner', 'Encore', 'Captive audience'],
+    closer: ['Good night', 'Walk-off', 'Last song', 'Tip the jar', 'That\'s the set'],
+    inspiration: ['Spend the die', 'You got this', 'Before they roll', 'After they miss', 'Name the recipient'],
+    songOfRest: ['Short rest', 'After the fight', 'Soft verse', 'Stay down and listen'],
+    healBuff: ['Healing Word', 'While I cast', 'You stay up', 'Detail the buff', 'One breath'],
+    flirt: ['Pickup line', 'Dedication', 'Across the room', 'After the save', 'Too on the nose'],
+    graffiti: ['Was here', 'Dirty rhyme', 'Cryptic', 'For a good time', 'Tag', 'Arrow'],
+    travelBanter: ['A thought', 'Did you know', 'Gold Box', 'Baldur\'s Gate', 'We should rest', 'Are we there yet'],
+    rally: ['They may take our lives', 'Ride now', 'This day', 'I see the same fear', 'Hold the line', 'For this place'],
+    downed: ['0 HP', 'Death save', 'Not a eulogy', 'Stay with me', 'Last joke'],
   };
+
+  const SITUATION_BY_CLASS = {
+    bard: {
+      scene: [
+        'Busking', 'Haggling', 'Hovering nearby', 'Hanging back',
+        'Short rest / tune up', 'Forgetting a name', 'Watching the chairs',
+        'Eavesdropping', 'Spending Lucky',
+      ],
+      motivation: [...SITUATION_SHARED.motivationCore, 'Bardic Inspiration energy'],
+    },
+    ranger: {
+      scene: [
+        'Scout ahead', 'Watch the back trail', 'Count arrows', 'Check the latch twice',
+        'Nock the longbow', 'Hunter\'s Mark', 'Hanging back', 'Eavesdropping',
+        'Camouflage', 'Haggling',
+      ],
+      motivation: [...SITUATION_SHARED.motivationCore, 'Steady the line'],
+      trailCall: ['Mark the target', 'Hold', 'Loose', 'Back trail', 'Hunter\'s Mark'],
+    },
+    monk: {
+      scene: [
+        'Wrap knuckles', 'Count breaths', 'Watch the door', 'Plant feet',
+        'Sip from a flask', 'Crown of Remembrance', 'Short rest',
+        'Hanging back', 'Eavesdropping',
+      ],
+      motivation: [...SITUATION_SHARED.motivationCore, 'Focus up'],
+      focus: ['Flurry of Blows', 'Stunning Strike', 'Patient Defense', 'Step of the Wind', 'Crown of Remembrance'],
+    },
+    sorcerer: {
+      scene: [
+        'Watch a spark', 'Listen for a surge', 'Fuss the wings',
+        'Hum something unstable', 'Crystal in hand', 'Hanging back',
+        'Eavesdropping', 'Haggling',
+      ],
+      motivation: [...SITUATION_SHARED.motivationCore, 'Ride the surge'],
+      surge: ['Tides of Chaos', 'The spark jumps', 'Ride it', 'Don\'t ride it', 'Chaos Bolt'],
+    },
+    generic: {
+      scene: ['Haggling', 'Hanging back', 'Eavesdropping', 'Watch the door', 'Short rest'],
+      motivation: [...SITUATION_SHARED.motivationCore],
+    },
+  };
+
+  function speakerClassKey() {
+    const keys = window.CharacterSheet?.classKeys?.() || [];
+    if (keys.includes('bard')) return 'bard';
+    if (keys.includes('ranger')) return 'ranger';
+    if (keys.includes('monk')) return 'monk';
+    if (keys.includes('sorcerer')) return 'sorcerer';
+    return keys[0] || 'generic';
+  }
+
+  function speakerIsFairy() {
+    const race = String(window.CharacterSheet?.get?.()?.identity?.race || '').toLowerCase();
+    return /\bfairy\b|\bfey\b/.test(race);
+  }
+
+  function meanwhileLabel() {
+    return ({
+      bard: '🧚 Meanwhile',
+      ranger: '🌲 Meanwhile',
+      monk: '👊 Meanwhile',
+      sorcerer: '🌀 Meanwhile',
+    }[speakerClassKey()] || '👀 Meanwhile');
+  }
+
+  function decorateMods(mods) {
+    return mods.map((mod) => (
+      mod.id === 'meanwhile' ? { ...mod, label: meanwhileLabel() } : mod
+    ));
+  }
+
+  function getSituationChips(outcomeMod) {
+    const pack = SITUATION_BY_CLASS[speakerClassKey()] || SITUATION_BY_CLASS.generic;
+    if (outcomeMod === 'roleplay' || outcomeMod === 'meanwhile') return pack.scene || [];
+    if (outcomeMod === 'motivation') return pack.motivation || SITUATION_SHARED.motivationCore;
+    if (outcomeMod === 'feyGambit') return SITUATION_SHARED.feyGambit;
+    if (SITUATION_SHARED[outcomeMod]) return SITUATION_SHARED[outcomeMod];
+    return pack[outcomeMod] || [];
+  }
+
+  function getTargetList() {
+    const selfLabel = speakerIsFairy() ? '🧚 Self' : '👤 Self';
+    return TARGETS.map((target) => (
+      target.id === 'self' ? { ...target, label: selfLabel } : target
+    ));
+  }
+
+  function outcomeModLabel(id) {
+    return decorateMods(OUTCOME_MODS).find((mod) => mod.id === id)?.label || id;
+  }
 
   const MOTIVATION_AUDIENCE_CHIPS = [
     'The party',
@@ -853,7 +1209,7 @@
   }
 
   function defaultSubtype(outcomeMod) {
-    if (isSkillMod(outcomeMod)) return SKILL_NAMES[0];
+    if (isSkillMod(outcomeMod)) return getSkillNames()[0] || SKILL_NAMES[0];
     return null;
   }
 
@@ -876,14 +1232,23 @@
     else if (section === 'criticalHits') mods = OUTCOME_MODS.filter((m) => m.id === 'hit');
     else if (section === 'criticalFailures') mods = OUTCOME_MODS.filter((m) => m.id === 'fail');
     else if (section === 'skillChecks') mods = OUTCOME_MODS.filter((m) => m.id === 'success' || m.id === 'failure');
-    else if (section !== 'outcomes') mods = OUTCOME_MODS;
+    else if (section === 'kit') {
+      const kit = new Set(KIT_MOD_IDS);
+      mods = OUTCOME_MODS.filter((m) => kit.has(m.id));
+    } else if (section === 'cast') {
+      const cast = new Set(CAST_MOD_IDS);
+      mods = OUTCOME_MODS.filter((m) => cast.has(m.id));
+    } else if (section !== 'outcomes') mods = OUTCOME_MODS;
 
     const allowedIds = MODS_BY_PACE[state.pace];
     if (allowedIds) {
       const allow = new Set(allowedIds);
       mods = mods.filter((m) => allow.has(m.id));
     }
-    return mods;
+    if (window.CharacterSheet?.allowsOutcomeMod) {
+      mods = mods.filter((m) => window.CharacterSheet.allowsOutcomeMod(m.id));
+    }
+    return decorateMods(mods);
   }
 
   function clampOutcomeMod(outcomeMod = state.outcomeMod, section = activeSection) {
@@ -895,6 +1260,9 @@
   function applyTabPreset(section) {
     if (section === 'actions' || section === 'criticalHits'
       || section === 'criticalFailures' || section === 'skillChecks') {
+      section = 'outcomes';
+    }
+    if (section !== 'kit' && section !== 'cast' && section !== 'outcomes') {
       section = 'outcomes';
     }
     activeSection = section;
@@ -1094,7 +1462,7 @@
         location,
         outcomeMod,
         metaLabel: outcomeMod === 'meanwhile' ? 'Meanwhile' : 'Action',
-        modalPrefix: outcomeMod === 'meanwhile' ? '🧚' : '🎭',
+        modalPrefix: outcomeMod === 'meanwhile' ? meanwhileLabel().split(' ')[0] : '🎭',
       };
     }
 
@@ -1239,11 +1607,38 @@
     return patterns.some((pattern) => pattern.test(haystack));
   }
 
+  function speakerWantsBardVoice() {
+    return Boolean(window.CharacterSheet?.hasBardic?.());
+  }
+
+  function speakerHasWings() {
+    const id = window.CharacterSheet?.getActiveId?.();
+    if (id === 'blingus' || id === 'puck') return true;
+    const race = String(window.CharacterSheet?.get?.()?.identity?.race || '').toLowerCase();
+    return /\bfairy\b|\bfey\b/.test(race);
+  }
+
+  const BARD_VOICE_RE = /bardic|\blike a bard\b|scout bard|detective bard|skipped rehearsal|second verse|between verses|dropped lute|\bencore\b|clarinet|karaoke|planned the applause|my own stunt show|sold tickets|years of bardic|\bbard who\b|bard mistake|classic bard|the stumble was the bit|like I planned the applause/i;
+  const WING_SHOW_RE = /wings flutter/i;
+
+  function lineFitsSpeaker(text) {
+    const line = String(text || '');
+    if (speakerWantsBardVoice()) return true;
+    if (BARD_VOICE_RE.test(line)) return false;
+    if (WING_SHOW_RE.test(line) && !speakerHasWings()) return false;
+    return true;
+  }
+
+  function filterSpeakerLines(lines) {
+    if (!Array.isArray(lines)) return [];
+    return lines.filter(lineFitsSpeaker);
+  }
+
   function getSceneOutcomeLines(locationId, category) {
     const normalized = normalizeLocationId(locationId);
     const scenes = window.BlingusData?.sceneOutcomes || {};
     const lines = scenes[normalized]?.[category] || scenes[locationId]?.[category];
-    if (lines) return lines;
+    if (lines) return filterSpeakerLines(lines);
     ensureSceneLoaded(locationId);
     return [];
   }
@@ -1315,14 +1710,14 @@
     if (ctx?.section === 'skillChecks') {
       const sceneLines = getSceneOutcomeLines(workflowState.location, ctx.category);
       if (sceneLines.length) return sceneLines;
-      return items.filter((text) => !isGenericIncompatibleWithScene(text, workflowState.location));
+      return items.filter((text) => lineFitsSpeaker(text) && !isGenericIncompatibleWithScene(text, workflowState.location));
     }
 
     if (ctx?.section === 'criticalHits' || ctx?.section === 'criticalFailures') {
       const sceneKey = getSceneCritCategory(ctx);
       const sceneLines = getSceneOutcomeLines(workflowState.location, sceneKey);
       if (sceneLines.length) return sceneLines;
-      return items.filter((text) => !isGenericIncompatibleWithScene(text, workflowState.location));
+      return items.filter((text) => lineFitsSpeaker(text) && !isGenericIncompatibleWithScene(text, workflowState.location));
     }
 
     return items;
@@ -1338,6 +1733,7 @@
   function isOutcomeValid(text, workflowState = state, context = null, skipTargets = false) {
     const { outcomeMod } = workflowState;
     const haystack = String(text);
+    if (!lineFitsSpeaker(haystack)) return false;
     const ctx = context || resolveOutcomeContext(workflowState);
 
     if (outcomeMod === 'hit') {
@@ -1416,7 +1812,7 @@
 
   function getEmptyOutcomeHint(workflowState, context, baseCount, validCount) {
     const sceneLabel = getSceneLabel(workflowState.location);
-    const modLabel = OUTCOME_MODS.find((m) => m.id === workflowState.outcomeMod)?.label || workflowState.outcomeMod;
+    const modLabel = outcomeModLabel(workflowState.outcomeMod);
     const activeTargets = getActiveTargets(workflowState);
 
     if (!baseCount) {
@@ -1425,7 +1821,7 @@
     if (validCount) return '';
 
     if (activeTargets.length) {
-      const targetLabels = activeTargets.map((id) => TARGETS.find((t) => t.id === id)?.label || id).join(', ');
+      const targetLabels = activeTargets.map((id) => getTargetList().find((t) => t.id === id)?.label || id).join(', ');
       return `Nothing in this set fits ${sceneLabel} + ${modLabel}${workflowState.subtype ? ' (' + workflowState.subtype + ')' : ''} + ${targetLabels}. Try "Any" target or a different outcome.`;
     }
 
@@ -1463,9 +1859,9 @@
     const sceneLabel = getSceneLabel(state.location);
     const targetLabels = state.targets.includes('any')
       ? 'any focus'
-      : state.targets.map((id) => TARGETS.find((t) => t.id === id)?.label || id).join(', ');
+      : state.targets.map((id) => getTargetList().find((t) => t.id === id)?.label || id).join(', ');
 
-    const modLabel = OUTCOME_MODS.find((m) => m.id === state.outcomeMod)?.label || state.outcomeMod;
+    const modLabel = outcomeModLabel(state.outcomeMod);
     let detail = '';
     if (isSceneBeatMod(state.outcomeMod) || isSpeechMod(state.outcomeMod)) {
       detail = null;
@@ -1749,7 +2145,7 @@
 
   function renderSituationChips() {
     if (!situationChipsEl) return;
-    const chips = SITUATION_CHIPS[state.outcomeMod] || [];
+    const chips = getSituationChips(state.outcomeMod);
     const show = chips.length > 0;
     if (situationLabelEl) situationLabelEl.hidden = !show;
     situationChipsEl.hidden = !show;
@@ -2005,7 +2401,10 @@
   function renderAttackTypePills() {
     if (!attackTypeChipsEl) return;
     attackTypeChipsEl.innerHTML = '';
+    const options = getAttackOptions();
     ATTACK_TYPES.forEach((type) => {
+      const groups = options[type.id] || [];
+      if (!groups.some((group) => (group.ids || []).length)) return;
       renderChip(attackTypeChipsEl, {
         id: type.id,
         label: type.label,
@@ -2029,7 +2428,7 @@
       const castGroups = window.CharacterSheet?.getMagicOptions?.() || [];
       castGroups.forEach((group) => groups.push(group));
     } else if (isSkillMod(state.outcomeMod)) {
-      groups.push({ label: 'Skills', ids: SKILL_NAMES });
+      groups.push({ label: 'Skills', ids: getSkillNames() });
     }
 
     groups.forEach((group) => {
@@ -2123,8 +2522,7 @@
   }
 
   function outcomeSummaryText() {
-    const mod = OUTCOME_MODS.find((m) => m.id === state.outcomeMod);
-    return `2. ${mod?.label || state.outcomeMod || 'Outcome'}`;
+    return `2. ${outcomeModLabel(state.outcomeMod) || state.outcomeMod || 'Outcome'}`;
   }
 
   function sceneSummaryText() {
@@ -2173,7 +2571,7 @@
     if (state.situation) bits.push(state.situation);
     if ((state.focusName || '').trim()) bits.push(state.focusName.trim());
     else if (!state.targets.includes('any')) {
-      bits.push(state.targets.map((id) => TARGETS.find((t) => t.id === id)?.label || id).join(', '));
+      bits.push(state.targets.map((id) => getTargetList().find((t) => t.id === id)?.label || id).join(', '));
     }
     return bits.join(' · ');
   }
@@ -2460,7 +2858,7 @@
       targetEl.innerHTML = '';
       if (showTarget) {
         const allowedTargets = new Set(getAllowedTargetIds());
-        TARGETS.forEach((target) => {
+        getTargetList().forEach((target) => {
           const disabled = !allowedTargets.has(target.id);
           renderChip(targetEl, {
             id: target.id,
@@ -2468,7 +2866,7 @@
             active: state.targets.includes(target.id),
             disabled,
             title: disabled
-              ? `Doesn't apply to ${OUTCOME_MODS.find((m) => m.id === state.outcomeMod)?.label || 'this outcome'}`
+              ? `Doesn't apply to ${outcomeModLabel(state.outcomeMod) || 'this outcome'}`
               : '',
             onClick: () => toggleTarget(target.id),
           });
@@ -2603,6 +3001,7 @@
         if (window.OutcomeGenerate?.clearLastResult) {
           window.OutcomeGenerate.clearLastResult();
         }
+        window.OutcomeGenerate?.renderMoodChips?.();
         renderPanel();
         notifyChange();
       });
@@ -2623,6 +3022,7 @@
     filterByTargets,
     filterByScene,
     filterValidOutcomes,
+    lineFitsSpeaker,
     buildWorkflowOutcomePool,
     isOutcomeValid,
     getEmptyOutcomeHint,

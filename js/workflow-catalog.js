@@ -100,7 +100,8 @@
   }
 
   function defaultMoods() {
-    return (window.OutcomeGenerate?.MOODS || []).slice();
+    const list = window.OutcomeGenerate?.moodsFor?.() || window.OutcomeGenerate?.MOODS || [];
+    return list.slice();
   }
 
   function intentBucket(cat, outcomeId) {

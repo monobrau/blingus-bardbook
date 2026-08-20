@@ -17,11 +17,21 @@ $allowedOrigins = [
     'http://blingus.knospe.org',
     'https://bardbook.knospe.org',
     'http://bardbook.knospe.org',
+    'https://puck.knospe.org',
+    'http://puck.knospe.org',
+    'https://vadania.knospe.org',
+    'http://vadania.knospe.org',
+    'https://brawn.knospe.org',
+    'http://brawn.knospe.org',
+    'https://bruck.knospe.org',
+    'http://bruck.knospe.org',
 ];
 
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+$host = $_SERVER['HTTP_HOST'] ?? '';
 $localOrigin = (bool) preg_match('#^https?://(localhost|127\.0\.0\.1)(:\d+)?$#', $origin);
-if (in_array($origin, $allowedOrigins, true) || $localOrigin) {
+$sameHost = $origin !== '' && $host !== '' && preg_match('#^https?://' . preg_quote($host, '#') . '$#', $origin);
+if (in_array($origin, $allowedOrigins, true) || $localOrigin || $sameHost) {
     header('Access-Control-Allow-Origin: ' . ($origin !== '' ? $origin : 'http://127.0.0.1'));
 } else {
     header('Access-Control-Allow-Origin: ' . ($allowedOrigins[0] ?? '*'));
@@ -71,6 +81,15 @@ function getKaraokeDir() {
     return $dir;
 }
 
+function getYtdlpCacheDir() {
+    $baseDir = realpath(__DIR__ . '/..') ?: dirname(__DIR__);
+    $dir = $baseDir . '/data/.yt-dlp-cache';
+    if (!is_dir($dir)) {
+        mkdir($dir, 0755, true);
+    }
+    return $dir;
+}
+
 function findLocalVideoPath($videoId) {
     $dir = getKaraokeDir();
     foreach (['mp4', 'webm', 'mkv', 'm4a'] as $ext) {
@@ -112,6 +131,62 @@ function ytdlpAvailable($YTDLP) {
     $code = 1;
     runCommand([$YTDLP, '--version'], $out, $code);
     return $code === 0;
+}
+
+function commandOnPath($name) {
+    $out = '';
+    $code = 1;
+    runCommand(['/bin/sh', '-c', 'command -v ' . escapeshellarg($name)], $out, $code);
+    $path = trim($out);
+    return ($code === 0 && $path !== '') ? $path : null;
+}
+
+function ytdlpJsRuntimeArgs() {
+    $env = getenv('YTDLP_JS_RUNTIME');
+    if (is_string($env) && $env !== '') {
+        return ['--js-runtimes', $env];
+    }
+    $deno = commandOnPath('deno');
+    if ($deno) {
+        return ['--js-runtimes', 'deno:' . $deno];
+    }
+    $node = commandOnPath('node') ?: commandOnPath('nodejs');
+    if ($node) {
+        return ['--no-js-runtimes', '--js-runtimes', 'node:' . $node];
+    }
+    return [];
+}
+
+function ytdlpJsRuntimeName() {
+    $args = ytdlpJsRuntimeArgs();
+    foreach ($args as $i => $arg) {
+        if ($arg === '--js-runtimes' && isset($args[$i + 1])) {
+            return explode(':', $args[$i + 1], 2)[0];
+        }
+    }
+    return null;
+}
+
+function ytdlpBaseArgs($YTDLP) {
+    return array_merge(
+        [$YTDLP],
+        ytdlpJsRuntimeArgs(),
+        ['--cache-dir', getYtdlpCacheDir()]
+    );
+}
+
+function ytdlpErrorHint($output) {
+    if (stripos($output, 'HTTP Error 403') !== false || stripos($output, '403: Forbidden') !== false) {
+        return 'YouTube blocked the download (403). The server needs a JS runtime such as deno for yt-dlp.';
+    }
+    if (preg_match('/^ERROR:\s*(.+)$/m', $output, $m)) {
+        $msg = trim($m[1]);
+        if (strlen($msg) > 180) {
+            $msg = substr($msg, 0, 177) . '...';
+        }
+        return 'Download failed: ' . $msg;
+    }
+    return 'Download failed. Video may be restricted or unavailable.';
 }
 
 function parseSearchResults($output) {
@@ -190,15 +265,16 @@ function streamVideoFile($filePath) {
     exit;
 }
 
-// Parse action
-$action = $_GET['action'] ?? $_POST['action'] ?? '';
-if ($action === '' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = file_get_contents('php://input');
-    $request = json_decode($input, true);
-    if (is_array($request) && isset($request['action'])) {
-        $action = $request['action'];
+// Parse JSON body once. php://input cannot be read twice.
+$request = [];
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+    $raw = file_get_contents('php://input');
+    $decoded = json_decode($raw, true);
+    if (is_array($decoded)) {
+        $request = $decoded;
     }
 }
+$action = $request['action'] ?? ($_GET['action'] ?? ($_POST['action'] ?? ''));
 
 // Stream does not use JSON content-type
 if ($action !== 'stream') {
@@ -212,6 +288,7 @@ try {
             jsonResponse([
                 'success' => true,
                 'ytdlp' => $available,
+                'jsRuntime' => ytdlpJsRuntimeName(),
                 'karaokeDir' => getKaraokeDir(),
             ]);
 
@@ -229,7 +306,10 @@ try {
                 throw new Exception('yt-dlp is not installed or not in PATH');
             }
             $searchTerm = 'ytsearch10:' . $query;
-            $cmd = [$YTDLP, '--flat-playlist', '--dump-json', $searchTerm];
+            $cmd = array_merge(
+                ytdlpBaseArgs($YTDLP),
+                ['--flat-playlist', '--dump-json', $searchTerm]
+            );
             $output = '';
             $code = 1;
             if (!runCommand($cmd, $output, $code)) {
@@ -245,8 +325,7 @@ try {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
                 throw new Exception('POST required for download');
             }
-            $body = json_decode(file_get_contents('php://input'), true) ?: [];
-            $videoId = $body['videoId'] ?? $_POST['videoId'] ?? '';
+            $videoId = $request['videoId'] ?? ($_POST['videoId'] ?? '');
             if (!validateVideoId($videoId)) {
                 throw new Exception('Invalid video ID');
             }
@@ -266,19 +345,21 @@ try {
             $dir = getKaraokeDir();
             $outTemplate = $dir . $videoId . '.%(ext)s';
             $url = 'https://www.youtube.com/watch?v=' . $videoId;
-            $cmd = [
-                $YTDLP,
-                '-f', 'best[height<=720][ext=mp4]/best[ext=mp4]/best',
-                '--no-playlist',
-                '-o', $outTemplate,
-                $url,
-            ];
+            $cmd = array_merge(
+                ytdlpBaseArgs($YTDLP),
+                [
+                    '-f', 'bv*[height<=720]+ba/b[height<=720]/best[height<=720][ext=mp4]/best[ext=mp4]/best',
+                    '--no-playlist',
+                    '-o', $outTemplate,
+                    $url,
+                ]
+            );
             set_time_limit(900);
             $output = '';
             $code = 1;
             if (!runCommand($cmd, $output, $code)) {
-                error_log('Karaoke download failed: ' . substr($output, 0, 500));
-                throw new Exception('Download failed — video may be restricted or unavailable');
+                error_log('Karaoke download failed: ' . substr($output, 0, 800));
+                throw new Exception(ytdlpErrorHint($output));
             }
             $path = findLocalVideoPath($videoId);
             if (!$path) {

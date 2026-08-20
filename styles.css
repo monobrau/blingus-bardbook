@@ -5,6 +5,10 @@
   --accent-2: #556b2f;
   --burnt: #5b371f;
   --shadow: rgba(0,0,0,.2);
+  --banner-top: #e9d7a8;
+  --banner-mid: #ddc794;
+  --banner-bot: #cfb77f;
+  --theme-glow: rgba(139, 74, 43, 0.18);
 }
 
 body.dark-mode {
@@ -14,6 +18,9 @@ body.dark-mode {
   --accent-2: #6b8e5a;
   --burnt: #8b6f47;
   --shadow: rgba(0,0,0,.5);
+  --banner-top: #2d2d44;
+  --banner-mid: #252538;
+  --banner-bot: #1e1e2e;
 }
 * { box-sizing: border-box; }
 html, body { height: 100%; }
@@ -35,14 +42,14 @@ body.dark-mode {
     var(--paper);
 }
 .banner {
-  background: linear-gradient(180deg, #e9d7a8, #ddc794 60%, #cfb77f);
+  background: linear-gradient(180deg, var(--banner-top), var(--banner-mid) 60%, var(--banner-bot));
   border-bottom: 2px solid var(--burnt);
-  box-shadow: 0 2px 8px var(--shadow);
-  transition: background 0.3s ease, border-color 0.3s ease;
+  box-shadow: 0 2px 8px var(--shadow), 0 0 28px var(--theme-glow);
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 body.dark-mode .banner {
-  background: linear-gradient(180deg, #2d2d44, #252538 60%, #1e1e2e);
+  background: linear-gradient(180deg, var(--banner-top), var(--banner-mid) 60%, var(--banner-bot));
   color: var(--ink);
 }
 .banner__wrap { display: flex; gap: 12px; align-items: center; justify-content: center; padding: 16px 12px 6px; }
@@ -338,6 +345,10 @@ body.dark-mode .button-group:has(.btn--group) {
   flex-wrap: wrap;
   min-width: 0;
   flex: 1 1 auto;
+}
+
+.tab[hidden] {
+  display: none !important;
 }
 
 .tab {
@@ -2149,6 +2160,54 @@ body.dark-mode .parody-ai {
   }
 }
 
+.toolbar__row--cast[hidden] {
+  display: none !important;
+}
+
+.toolbar__row--cast {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  width: 100%;
+  padding: 2px 0 4px;
+}
+
+.character-switcher__label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--burnt);
+  opacity: 0.75;
+  flex: 0 0 auto;
+}
+
+body.dark-mode .character-switcher__label {
+  color: var(--parchment);
+}
+
+.character-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.toolbar__row--cast .character-switcher,
+.character-sheet__cast .character-switcher {
+  flex: 1 1 auto;
+}
+
+.character-sheet__cast {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  width: 100%;
+}
+
 .character-sheet__toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -2176,8 +2235,10 @@ body.dark-mode .character-sheet__heading {
 
 .character-sheet__actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-left: auto;
+  justify-content: flex-end;
 }
 
 .sheet-card {
@@ -2653,4 +2714,159 @@ body.dark-mode .d20-banner--failure {
   background: #b42318;
   color: #fff;
   border-color: #b42318;
+}
+
+.puck-fx-layer,
+.puck-fx-veil,
+.party-fx-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 40;
+}
+
+.puck-fx-veil {
+  z-index: 39;
+  opacity: 0;
+  background:
+    radial-gradient(circle at var(--puck-x, 50%) var(--puck-y, 28%), rgba(179, 136, 255, 0.2), transparent 42%),
+    radial-gradient(circle at 80% 16%, rgba(255, 77, 204, 0.1), transparent 36%);
+  transition: opacity 0.45s ease;
+}
+
+body.puck-fx--weave .puck-fx-veil {
+  opacity: 1;
+}
+
+body.book-blingus {
+  --accent: #8b3d4a;
+  --accent-2: #b8862b;
+  --theme-glow: rgba(184, 134, 43, 0.22);
+}
+
+body.dark-mode.book-blingus {
+  --accent: #d4a05a;
+  --accent-2: #c77d8a;
+  --theme-glow: rgba(212, 160, 90, 0.22);
+}
+
+body.book-vadania {
+  --paper: #e4ebd0;
+  --ink: #1e2a14;
+  --accent: #3f5c28;
+  --accent-2: #6b8a3a;
+  --burnt: #3d2c16;
+  --banner-top: #d7ddb4;
+  --banner-mid: #c5d094;
+  --banner-bot: #a8b86a;
+  --theme-glow: rgba(63, 92, 40, 0.24);
+}
+
+body.dark-mode.book-vadania {
+  --paper: #141a12;
+  --ink: #e4edd4;
+  --accent: #8fbc5a;
+  --accent-2: #6b8a3a;
+  --burnt: #8a9a5a;
+  --banner-top: #1c2418;
+  --banner-mid: #161c14;
+  --banner-bot: #121610;
+  --theme-glow: rgba(143, 188, 90, 0.18);
+}
+
+body.book-bruck {
+  --paper: #e4d8c4;
+  --ink: #2a2218;
+  --accent: #7a4a28;
+  --accent-2: #c9a227;
+  --burnt: #3f3830;
+  --banner-top: #d4c4a8;
+  --banner-mid: #c4b494;
+  --banner-bot: #a89878;
+  --theme-glow: rgba(201, 162, 39, 0.26);
+}
+
+body.dark-mode.book-bruck {
+  --paper: #1c1914;
+  --ink: #efe4d0;
+  --accent: #d4a24a;
+  --accent-2: #c9a227;
+  --burnt: #8a7a4a;
+  --banner-top: #2a241c;
+  --banner-mid: #221e18;
+  --banner-bot: #181410;
+  --theme-glow: rgba(232, 195, 106, 0.2);
+}
+
+body.book-puck {
+  --paper: #efe4ef;
+  --ink: #2a1630;
+  --accent: #9b3d8a;
+  --accent-2: #2a9aaa;
+  --burnt: #5a2a58;
+  --banner-top: #e8d0e8;
+  --banner-mid: #d8b8d8;
+  --banner-bot: #c090c8;
+  --theme-glow: rgba(179, 136, 255, 0.22);
+}
+
+body.dark-mode.book-puck {
+  --paper: #1a1224;
+  --ink: #f0e6f4;
+  --accent: #ff4dcc;
+  --accent-2: #7af5ff;
+  --burnt: #b388ff;
+  --banner-top: #2d2244;
+  --banner-mid: #241c38;
+  --banner-bot: #1a1428;
+  --theme-glow: rgba(255, 77, 204, 0.2);
+}
+
+body.puck-book .crest,
+body.book-puck .crest {
+  filter: drop-shadow(0 1px 0 #fff) drop-shadow(0 0 8px rgba(255, 77, 204, 0.45));
+}
+
+body.vadania-book .crest,
+body.book-vadania .crest {
+  filter: drop-shadow(0 1px 0 #fff) drop-shadow(0 0 8px rgba(85, 107, 47, 0.4));
+}
+
+body.brawn-book .crest,
+body.book-bruck .crest {
+  filter: drop-shadow(0 1px 0 #fff) drop-shadow(0 0 8px rgba(232, 195, 106, 0.45));
+}
+
+body.book-blingus .crest {
+  filter: drop-shadow(0 1px 0 #fff) drop-shadow(0 0 8px rgba(184, 134, 43, 0.4));
+}
+
+body.book-bruck .banner::after {
+  content: "ᛒ ᚱ ᚨ ᚹ ᚾ";
+  display: block;
+  text-align: center;
+  letter-spacing: 0.7em;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--accent-2);
+  opacity: 0.72;
+  padding: 0 12px 7px;
+  text-shadow: 0 0 8px rgba(201, 162, 39, 0.45);
+}
+
+body.party-fx-off .puck-fx-layer,
+body.party-fx-off .puck-fx-veil,
+body.party-fx-off .party-fx-layer {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .puck-fx-layer,
+  .puck-fx-veil,
+  .party-fx-layer {
+    display: none;
+  }
+  body.puck-fx--weave .puck-fx-veil {
+    opacity: 0;
+  }
 }

@@ -17,7 +17,7 @@
   // Data loaded from js/data/*.js files into window.BlingusData
   const {
     spells, adultSpells, bardic, mockery, characterActions,
-    criticalHits, criticalFailures, skillChecks,
+    criticalHits, criticalFailures, skillChecks, songs,
   } = window.BlingusData;
   // Curated generator pools retired — Claude Outcomes owns battle cries / insults / etc.
   const battleCries = [];
@@ -619,6 +619,39 @@
     }
   }
   
+  function applyLoadedCharacter(data) {
+    const api = window.CharacterSheet;
+    if (!api?.setFromData) return false;
+    const who = api.getActiveId?.() || api.lockedCharacterId?.() || 'blingus';
+    const pack = data && data.characters;
+    if (pack && pack[who] && (!api.acceptsRemoteSheet || api.acceptsRemoteSheet(pack[who]))) {
+      api.setFromData(pack[who]);
+      return true;
+    }
+    if (data && data.character && (!api.acceptsRemoteSheet || api.acceptsRemoteSheet(data.character))) {
+      api.setFromData(data.character);
+      return true;
+    }
+    return false;
+  }
+
+  function applyLoadedPersonality(data) {
+    if (!data || !window.OutcomeGenerate?.setPersonality) return false;
+    const who = window.OutcomeGenerate.personalityId?.()
+      || window.CharacterSheet?.getActiveId?.()
+      || window.CharacterSheet?.lockedCharacterId?.()
+      || 'blingus';
+    const map = data.personalities && typeof data.personalities === 'object' ? data.personalities : null;
+    const fromMap = map && typeof map[who] === 'string' ? map[who] : '';
+    const shared = typeof data.personality === 'string' ? data.personality : '';
+    const incoming = fromMap || (who === 'blingus' ? shared : '');
+    if (!incoming.trim()) return false;
+    const owner = window.OutcomeGenerate.personalityOwner?.(incoming);
+    if (owner && owner !== who) return false;
+    window.OutcomeGenerate.setPersonality(incoming);
+    return true;
+  }
+
   async function loadDataFromServer() {
     // Use server storage if PHP API is available OR if we're on a remote server
     if (!phpApiAvailable && !isOnServer) return false;
@@ -655,12 +688,8 @@
           if (data.workflowCatalog && window.WorkflowCatalog?.importState) {
             window.WorkflowCatalog.importState(data.workflowCatalog);
           }
-          if (data.character !== undefined && window.CharacterSheet?.setFromData) {
-            window.CharacterSheet.setFromData(data.character);
-          }
-          if (data.personality !== undefined && window.OutcomeGenerate?.setPersonality) {
-            window.OutcomeGenerate.setPersonality(data.personality);
-          }
+          applyLoadedCharacter(data);
+          applyLoadedPersonality(data);
           if (window.OutcomeGenerate?.importMood && (data.mood !== undefined || data.moodCustom !== undefined)) {
             window.OutcomeGenerate.importMood(data.mood, data.moodCustom);
           } else if (data.mood !== undefined && window.OutcomeGenerate?.setMood) {
@@ -776,8 +805,24 @@
       // Party roster for Outcomes targeting
       partyMembers: loadPartyMembers(),
 
-      character: window.CharacterSheet?.get?.() || null,
-      personality: window.OutcomeGenerate?.getPersonality?.() || null,
+      character: (window.CharacterSheet?.getActiveId?.() || 'blingus') === 'blingus'
+        ? (window.CharacterSheet?.get?.() || null)
+        : undefined,
+      characters: (function () {
+        const who = window.CharacterSheet?.getActiveId?.() || 'blingus';
+        const sheet = window.CharacterSheet?.get?.();
+        return sheet ? { [who]: sheet } : null;
+      })(),
+      personality: (window.CharacterSheet?.getActiveId?.() || 'blingus') === 'blingus'
+        ? (window.OutcomeGenerate?.getPersonality?.() || null)
+        : undefined,
+      personalities: (function () {
+        const who = window.OutcomeGenerate?.personalityId?.()
+          || window.CharacterSheet?.getActiveId?.()
+          || 'blingus';
+        const text = window.OutcomeGenerate?.getPersonality?.();
+        return text ? { [who]: text } : null;
+      })(),
       mood: window.OutcomeGenerate?.getMood?.() || null,
       moodCustom: window.OutcomeGenerate?.getCustomMoodText?.() || '',
       rating: window.OutcomeGenerate?.getRating?.() || null,
@@ -856,12 +901,8 @@
       if (data.workflowCatalog && window.WorkflowCatalog?.importState) {
         window.WorkflowCatalog.importState(data.workflowCatalog);
       }
-      if (data.character !== undefined && window.CharacterSheet?.setFromData) {
-        window.CharacterSheet.setFromData(data.character);
-      }
-      if (data.personality !== undefined && window.OutcomeGenerate?.setPersonality) {
-        window.OutcomeGenerate.setPersonality(data.personality);
-      }
+      applyLoadedCharacter(data);
+      applyLoadedPersonality(data);
       if (window.OutcomeGenerate?.importMood && (data.mood !== undefined || data.moodCustom !== undefined)) {
         window.OutcomeGenerate.importMood(data.mood, data.moodCustom);
       } else if (data.mood !== undefined && window.OutcomeGenerate?.setMood) {
@@ -921,7 +962,7 @@
   function loadUserItems() {
     try {
       const raw = localStorage.getItem(userItemsKey);
-      const defaultStructure = { spells: {}, adultSpells: {}, bardic: {}, mockery: {}, actions: {}, criticalHits: {}, criticalFailures: {}, skillChecks: {} };
+      const defaultStructure = { spells: {}, adultSpells: {}, bardic: {}, classLines: {}, mockery: {}, actions: {}, criticalHits: {}, criticalFailures: {}, skillChecks: {}, songs: {} };
       if (!raw) {
         return defaultStructure;
       }
@@ -931,15 +972,17 @@
         spells: parsed.spells || {},
         adultSpells: parsed.adultSpells || {},
         bardic: parsed.bardic || {},
+        classLines: parsed.classLines || {},
         mockery: parsed.mockery || {},
         actions: parsed.actions || {},
         criticalHits: parsed.criticalHits || {},
         criticalFailures: parsed.criticalFailures || {},
-        skillChecks: parsed.skillChecks || {}
+        skillChecks: parsed.skillChecks || {},
+        songs: parsed.songs || {}
       };
     } catch(e) {
       console.error('Error loading user items:', e);
-      return { spells: {}, adultSpells: {}, bardic: {}, mockery: {}, actions: {}, criticalHits: {}, criticalFailures: {}, skillChecks: {} };
+      return { spells: {}, adultSpells: {}, bardic: {}, classLines: {}, mockery: {}, actions: {}, criticalHits: {}, criticalFailures: {}, skillChecks: {}, songs: {} };
     }
   }
   
@@ -948,7 +991,7 @@
     try {
       const raw = localStorage.getItem(deletedDefaultsKey);
       if (!raw) {
-        return { spells: {}, adultSpells: {}, bardic: {}, mockery: {}, actions: {}, criticalHits: {}, criticalFailures: {}, skillChecks: {} };
+        return { spells: {}, adultSpells: {}, bardic: {}, classLines: {}, mockery: {}, actions: {}, criticalHits: {}, criticalFailures: {}, skillChecks: {}, songs: {} };
       }
       const parsed = JSON.parse(raw);
       // Ensure structure is correct
@@ -956,10 +999,12 @@
         spells: parsed.spells || {},
         adultSpells: parsed.adultSpells || {},
         bardic: parsed.bardic || {},
+        classLines: parsed.classLines || {},
         mockery: parsed.mockery || {},
         actions: parsed.actions || {},
         criticalHits: parsed.criticalHits || {},
-        criticalFailures: parsed.criticalFailures || {}
+        criticalFailures: parsed.criticalFailures || {},
+        songs: parsed.songs || {}
       };
     } catch(e) {
       console.error('Error loading deleted defaults:', e);
@@ -1375,7 +1420,9 @@
   // Merge user items with default items, filtering out deleted defaults
   function getMergedData(section, category) {
     const defaults = section === 'spells' ? spells
+      : section === 'songs' ? songCatalog()
       : section === 'bardic' ? bardic
+      : section === 'classLines' ? classLinesCatalog()
       : section === 'actions' ? characterActions
       : section === 'criticalHits' ? criticalHits
       : section === 'criticalFailures' ? criticalFailures
@@ -1425,6 +1472,12 @@
     );
     
     debugLog(`getMergedData result: ${section}/${category} - Returning ${merged.length} items`);
+    const stringCatalog = section === 'actions' || section === 'criticalHits'
+      || section === 'criticalFailures' || section === 'skillChecks';
+    if (stringCatalog && window.ActionWorkflow?.lineFitsSpeaker) {
+      const kept = merged.filter((row) => typeof row !== 'string' || window.ActionWorkflow.lineFitsSpeaker(row));
+      return kept.length ? kept : merged;
+    }
     return merged;
   }
   
@@ -1444,7 +1497,9 @@
   // Check if item is user-added
   function isUserItem(section, category, item, index) {
     const defaults = section === 'spells' ? spells
+      : section === 'songs' ? songCatalog()
       : section === 'bardic' ? bardic
+      : section === 'classLines' ? classLinesCatalog()
       : section === 'actions' ? characterActions
       : mockery;
     
@@ -1463,9 +1518,53 @@
   let currentEditingSection = null;
   let currentEditingCategory = null;
 
+  function songCatalog() {
+    return (typeof window.BlingusData?.songsForActive === 'function')
+      ? window.BlingusData.songsForActive()
+      : (songs || {});
+  }
+
+  function classLinesCatalog() {
+    const key = window.CharacterSheet?.classLinesKey?.() || '';
+    return (window.BlingusData?.classLines || {})[key] || {};
+  }
+
+  function defaultsForSection(section) {
+    if (section === 'spells') return spells;
+    if (section === 'songs') return songCatalog();
+    if (section === 'bardic') return bardic;
+    if (section === 'classLines') return classLinesCatalog();
+    return mockery;
+  }
+
+  function catalogChipLabel(section) {
+    if (section === 'spells') return 'Spell';
+    if (section === 'songs') return 'Song';
+    if (section === 'bardic') return 'Bardic';
+    if (section === 'classLines') return window.CharacterSheet?.classLinesLabel?.() || 'Class';
+    return 'Mockery';
+  }
+
+  function allowedCatalogSection(section) {
+    const sheet = window.CharacterSheet;
+    if (!sheet) return section;
+    if ((section === 'spells' || section === 'mockery') && sheet.hasKaraoke && !sheet.hasKaraoke()) {
+      if (sheet.hasClassLines?.()) return 'classLines';
+      if (sheet.hasSongbook?.()) return 'songs';
+      return sheet.defaultSection?.() || 'outcomes';
+    }
+    if (section === 'bardic' && sheet.hasBardic && !sheet.hasBardic()) {
+      if (sheet.hasClassLines?.()) return 'classLines';
+      if (sheet.hasSongbook?.()) return 'songs';
+      return sheet.defaultSection?.() || 'outcomes';
+    }
+    return section;
+  }
+
   function buildCategories() {
     clearElement(categorySelect);
-    const section = sectionSelect.value;
+    const section = allowedCatalogSection(sectionSelect.value);
+    if (section !== sectionSelect.value) sectionSelect.value = section;
     
     // Safety check - ensure section is valid
     if (!section) {
@@ -1490,9 +1589,15 @@
           ? tree.flatMap((g) => g.ids || [])
           : (typeof spells !== 'undefined' && spells ? Object.keys(spells) : []);
         debugLog('buildCategories: spells keys =', cats);
+      } else if (section === 'songs') {
+        cats = Object.keys(songCatalog());
+        debugLog('buildCategories: songs keys =', cats);
       } else if (section === 'bardic') {
         cats = typeof bardic !== 'undefined' && bardic ? Object.keys(bardic) : [];
         debugLog('buildCategories: bardic keys =', cats);
+      } else if (section === 'classLines') {
+        cats = Object.keys(classLinesCatalog());
+        debugLog('buildCategories: classLines keys =', cats);
       } else if (section === 'actions') {
         cats = typeof characterActions !== 'undefined' && characterActions ? Object.keys(characterActions) : [];
         debugLog('buildCategories: characterActions keys =', cats);
@@ -1543,9 +1648,17 @@
       const result = [...base, ...add];
       debugLog(`getActiveList spells: base=${base.length}, add=${add.length}, result=${result.length}`);
       return result;
+    } else if (section === 'songs') {
+      const result = getMergedData('songs', cat);
+      debugLog(`getActiveList songs: result=${result.length}`);
+      return result;
     } else if (section === 'bardic') {
       const result = getMergedData('bardic', cat);
       debugLog(`getActiveList bardic: result=${result.length}`);
+      return result;
+    } else if (section === 'classLines') {
+      const result = getMergedData('classLines', cat);
+      debugLog(`getActiveList classLines: result=${result.length}`);
       return result;
     } else if (section === 'actions') {
       const result = getMergedData('actions', cat);
@@ -1577,7 +1690,7 @@
     const allResults = [];
     
     // Search spells (all categories)
-    const spellCategories = Object.keys(spells || {});
+    const spellCategories = (window.CharacterSheet?.hasKaraoke?.() === false) ? [] : Object.keys(spells || {});
     for (const cat of spellCategories) {
       const spellList = getMergedData('spells', cat);
       const filtered = spellList.filter(item => {
@@ -1587,6 +1700,19 @@
       });
       for (const item of filtered) {
         allResults.push({ section: 'spells', category: cat, item, isAdult: false });
+      }
+    }
+
+    const songCategories = Object.keys(songs || {});
+    for (const cat of songCategories) {
+      const songList = getMergedData('songs', cat);
+      const filtered = songList.filter(item => {
+        return (item.t && item.t.toLowerCase().includes(q)) ||
+               (item.s && item.s.toLowerCase().includes(q)) ||
+               (item.a && item.a.toLowerCase().includes(q));
+      });
+      for (const item of filtered) {
+        allResults.push({ section: 'songs', category: cat, item, isAdult: false });
       }
     }
     
@@ -1604,8 +1730,21 @@
       }
     }
     
+    const classLineCats = Object.keys(classLinesCatalog());
+    for (const cat of classLineCats) {
+      const lineList = getMergedData('classLines', cat);
+      const filtered = lineList.filter(item => {
+        return item.t.toLowerCase().includes(q) ||
+               (item.s && item.s.toLowerCase().includes(q)) ||
+               (item.a && item.a.toLowerCase().includes(q));
+      });
+      for (const item of filtered) {
+        allResults.push({ section: 'classLines', category: cat, item, isAdult: false });
+      }
+    }
+
     // Search bardic (all categories)
-    const bardicCategories = Object.keys(bardic || {});
+    const bardicCategories = (window.CharacterSheet?.hasBardic?.() === false) ? [] : Object.keys(bardic || {});
     for (const cat of bardicCategories) {
       const bardicList = getMergedData('bardic', cat);
       const filtered = bardicList.filter(item => {
@@ -1702,10 +1841,12 @@
     }
     
     // Render grouped results
-    const sectionOrder = ['spells', 'bardic', 'mockery', 'actions', 'criticalHits', 'criticalFailures', 'skillChecks'];
+    const sectionOrder = ['spells', 'songs', 'bardic', 'classLines', 'mockery', 'actions', 'criticalHits', 'criticalFailures', 'skillChecks'];
     const sectionLabels = {
-      spells: '🔮 Spell Parodies',
+      spells: '🎤 Karaoke',
+      songs: '🎤 Karaoke',
       bardic: '✨ Bardic Inspiration',
+      classLines: '✨ ' + (window.CharacterSheet?.classLinesLabel?.() || 'Class'),
       mockery: '🗡️ Vicious Mockery',
       actions: '🎭 Character Actions',
       criticalHits: '⚔️ Critical Hit Descriptions',
@@ -1714,6 +1855,10 @@
     };
     
     for (const section of sectionOrder) {
+      if (section === 'spells' && window.CharacterSheet && !window.CharacterSheet.hasKaraoke()) continue;
+      if (section === 'songs' && window.CharacterSheet && !window.CharacterSheet.hasSongbook()) continue;
+      if (section === 'bardic' && window.CharacterSheet && !window.CharacterSheet.hasBardic()) continue;
+      if (section === 'classLines' && window.CharacterSheet && !window.CharacterSheet.hasClassLines()) continue;
       const sectionKeys = Object.keys(grouped).filter(k => k.startsWith(section + '/'));
       if (sectionKeys.length === 0) continue;
       
@@ -1780,7 +1925,7 @@
     
     const chip = document.createElement('span');
     chip.className = 'card__chip';
-    chip.textContent = section === 'spells' ? 'Spell' : (section === 'bardic' ? 'Bardic' : 'Mockery');
+    chip.textContent = catalogChipLabel(section);
     
     const copyBtn = document.createElement('button');
     copyBtn.className = 'card__copy';
@@ -1788,7 +1933,7 @@
     copyBtn.addEventListener('click', (e) => { e.stopPropagation(); copyLine(item); });
     
     // Determine if item is user-added or default
-    const defaults = section === 'spells' ? spells : (section === 'bardic' ? bardic : mockery);
+    const defaults = defaultsForSection(section);
     const defaultList = defaults[category] || [];
     const itemId = getItemId(section, item);
     const isDefaultItem = defaultList.some(x => {
@@ -1916,6 +2061,11 @@
   }
 
   function render() {
+    const clamped = allowedCatalogSection(sectionSelect.value);
+    if (clamped !== sectionSelect.value) {
+      sectionSelect.value = clamped;
+      buildCategories();
+    }
     const section = sectionSelect.value;
     const q = (searchInput && searchInput.value || '').trim().toLowerCase();
     
@@ -1985,6 +2135,13 @@
         return !deletedIds.includes(itemId) && !legacyDeleted.includes(itemId);
       });
       baseList = [...spellList, ...adultList];
+    } else if (section === 'songs') {
+      const songList = (songCatalog()[cat] || []).filter(item => {
+        const itemId = getItemId('songs', item);
+        const deletedIds = deletedDefaults.songs?.[cat] || [];
+        return !deletedIds.includes(itemId);
+      });
+      baseList = songList;
     } else if (section === 'bardic') {
       const bardicList = (bardic[cat] || []).filter(item => {
         const itemId = getItemId('bardic', item);
@@ -1992,6 +2149,13 @@
         return !deletedIds.includes(itemId);
       });
       baseList = bardicList;
+    } else if (section === 'classLines') {
+      const lines = (classLinesCatalog()[cat] || []).filter(item => {
+        const itemId = getItemId('classLines', item);
+        const deletedIds = deletedDefaults.classLines?.[cat] || [];
+        return !deletedIds.includes(itemId);
+      });
+      baseList = lines;
     } else {
       const mockeryList = (mockery[cat] || []).filter(item => {
         const itemId = getItemId('mockery', item);
@@ -2148,29 +2312,36 @@
       card.tabIndex = 0; // Make focusable for keyboard navigation
       const chip = document.createElement('span');
       chip.className = 'card__chip';
-      chip.textContent = section === 'spells' ? 'Spell' : (section === 'bardic' ? 'Bardic' : 'Mockery');
+      chip.textContent = catalogChipLabel(section);
       const copyBtn = document.createElement('button');
       copyBtn.className = 'card__copy';
       copyBtn.textContent = 'Copy';
       copyBtn.addEventListener('click', (e) => { e.stopPropagation(); copyLine(item); });
       
-      // Add karaoke play button if YouTube or local karaoke exists
+      // Add karaoke play / find button
       let youtubeBtn = null;
-      if (item.youtube || item.localKaraoke) {
+      if (item.youtube || item.localKaraoke || section === 'songs') {
         const startTime = item.startTime || 0;
         const videoId = item.localKaraoke || item.youtube;
         const hasLocal = !!item.localKaraoke;
+        const hasTrack = !!(item.youtube || item.localKaraoke);
         
         youtubeBtn = document.createElement('button');
         youtubeBtn.type = 'button';
         youtubeBtn.className = 'card__youtube';
-        youtubeBtn.textContent = hasLocal ? '🎤' : '▶️';
-        youtubeBtn.title = hasLocal ? 'Play local karaoke' : 'Play karaoke track';
+        youtubeBtn.textContent = hasLocal ? '🎤' : (hasTrack ? '▶️' : '🔍');
+        youtubeBtn.title = hasLocal ? 'Play local karaoke' : (hasTrack ? 'Play karaoke track' : 'Find karaoke for this song');
         youtubeBtn.addEventListener('click', (e) => {
           e.stopPropagation();
           if (window.BlingusKaraoke) {
-            window.BlingusKaraoke.playItem(item, item.s || 'Karaoke Track');
-          } else {
+            if (hasTrack) {
+              window.BlingusKaraoke.playItem(item, item.s || 'Karaoke Track');
+            } else {
+              window.BlingusKaraoke.openSearch(item.s || item.t, item.a || '', (pending) => {
+                window.BlingusKaraoke.playItem(Object.assign({}, item, pending), item.s || item.t || 'Karaoke Track');
+              });
+            }
+          } else if (hasTrack) {
             const startSeconds = Math.floor(startTime || 0);
             const watchParams = new URLSearchParams();
             watchParams.set('v', videoId);
@@ -2287,7 +2458,7 @@
         }).length;
         defaultCount = spellCount + adultCount;
       } else {
-        const defaults = section === 'bardic' ? bardic : mockery;
+        const defaults = defaultsForSection(section);
         defaultCount = (defaults[cat] || []).filter(item => {
           const itemId = getItemId(section, item);
           return !(deletedDefaults[section]?.[cat] || []).includes(itemId);
@@ -2295,9 +2466,7 @@
       }
       
       // Check if this is a default item (before filtering deleted ones)
-      const defaults = section === 'spells' ? spells
-        : section === 'bardic' ? bardic
-        : mockery;
+      const defaults = defaultsForSection(section);
       const defaultList = defaults[cat] || [];
       const itemId = getItemId(section, item);
       let isDefaultItem = defaultList.some(x => {
@@ -2520,18 +2689,21 @@
     generateButtons.push(randomBtn);
     randomCard.appendChild(randomBtn);
 
-    const parodyBtn = document.createElement('button');
-    parodyBtn.className = 'btn btn--secondary';
-    parodyBtn.style.width = '100%';
-    parodyBtn.style.padding = '14px';
-    parodyBtn.style.fontSize = '16px';
-    parodyBtn.style.fontWeight = 'bold';
-    parodyBtn.style.marginTop = '10px';
-    parodyBtn.textContent = '🎤 Force Song Parody';
-    parodyBtn.title = 'Every line weaves a recognizable song parody into the beat';
-    parodyBtn.addEventListener('click', () => runGenerate(true, parodyBtn, '🎤 Force Song Parody'));
-    generateButtons.push(parodyBtn);
-    randomCard.appendChild(parodyBtn);
+    const canKaraoke = Boolean(window.CharacterSheet?.hasKaraoke?.());
+    if (canKaraoke) {
+      const parodyBtn = document.createElement('button');
+      parodyBtn.className = 'btn btn--secondary';
+      parodyBtn.style.width = '100%';
+      parodyBtn.style.padding = '14px';
+      parodyBtn.style.fontSize = '16px';
+      parodyBtn.style.fontWeight = 'bold';
+      parodyBtn.style.marginTop = '10px';
+      parodyBtn.textContent = '🎤 Force Song Parody';
+      parodyBtn.title = 'Every line weaves a recognizable song parody into the beat';
+      parodyBtn.addEventListener('click', () => runGenerate(true, parodyBtn, '🎤 Force Song Parody'));
+      generateButtons.push(parodyBtn);
+      randomCard.appendChild(parodyBtn);
+    }
 
     const randomHint = document.createElement('div');
     randomHint.style.marginTop = '8px';
@@ -2539,8 +2711,12 @@
     randomHint.style.opacity = '0.7';
     randomHint.style.textAlign = 'center';
     randomHint.textContent = combatRoundOn
-      ? 'In battle: five one-breath options (~6 seconds each). Pick one. Song Parody still forces a lyric snatch into every line.'
-      : 'Out of battle: longer roleplay beats (5 lines). Song Parody weaves a fuller parody into every line.';
+      ? (canKaraoke
+        ? 'In battle: five one-breath options (~6 seconds each). Pick one. Song Parody still forces a lyric snatch into every line.'
+        : 'In battle: five one-breath options (~6 seconds each). Pick one.')
+      : (canKaraoke
+        ? 'Out of battle: longer roleplay beats (5 lines). Song Parody weaves a fuller parody into every line.'
+        : 'Out of battle: longer roleplay beats (5 lines).');
 
     randomCard.appendChild(randomHint);
     content.appendChild(randomCard);
@@ -4029,7 +4205,7 @@
   }
 
   function isSongSection(section) {
-    return section === 'spells' || section === 'bardic' || section === 'mockery';
+    return section === 'spells' || section === 'songs' || section === 'bardic' || section === 'classLines' || section === 'mockery';
   }
 
   function creditKey(value) {
@@ -4143,7 +4319,7 @@
 
   function resetParodyAiUi(hidePanel) {
     if (parodyAiFields) {
-      const show = !hidePanel && isSongSection(currentEditingSection);
+      const show = !hidePanel && isSongSection(currentEditingSection) && currentEditingSection !== 'songs';
       parodyAiFields.hidden = !show;
     }
     if (editParodyGuidance && hidePanel) editParodyGuidance.value = '';
@@ -4317,7 +4493,12 @@
       const song = editSong.value.trim();
       const artist = editArtist.value.trim();
       
-      if (!text || !song || !artist) {
+      if (section === 'songs') {
+        if (!song || !artist) {
+          showToast('Please fill in song and artist');
+          return;
+        }
+      } else if (!text || !song || !artist) {
         showToast('Please fill in all fields');
         return;
       }
@@ -4381,7 +4562,7 @@
       console.log('Creating newItem with:', { text, song, artist, youtube, startTime });
       
       const newItem = {
-        t: text,
+        t: text || song,
         s: song,
         a: artist
       };
@@ -4562,6 +4743,8 @@
   }
 
   sectionSelect.addEventListener('change', () => { 
+    const clamped = allowedCatalogSection(sectionSelect.value);
+    if (clamped !== sectionSelect.value) sectionSelect.value = clamped;
     buildCategories(); 
     const section = sectionSelect.value;
     const isWorkflow = !!window.ActionWorkflow?.isWorkflowSection(section);
@@ -5182,13 +5365,11 @@
               importedCount++;
               importedCategories.push('lists');
             }
-            if (data.character !== undefined && window.CharacterSheet?.setFromData) {
-              window.CharacterSheet.setFromData(data.character);
+            if (applyLoadedCharacter(data)) {
               importedCount++;
               importedCategories.push('character');
             }
-            if (data.personality !== undefined && window.OutcomeGenerate?.setPersonality) {
-              window.OutcomeGenerate.setPersonality(data.personality);
+            if (applyLoadedPersonality(data)) {
               importedCount++;
               importedCategories.push('personality');
             }

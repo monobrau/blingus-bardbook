@@ -69,8 +69,12 @@ window.BlingusConstants = (function() {
 
   // Section configuration
   const SECTIONS = {
-    SPELLS: { value: 'spells', label: 'Spell Parodies', icon: '🔮', key: '1' },
+    SPELLS: { value: 'spells', label: 'Karaoke', icon: '🎤', key: '1' },
+    SONGS: { value: 'songs', label: 'Karaoke', icon: '🎤', key: '' },
     BARDIC: { value: 'bardic', label: 'Bardic Inspiration', icon: '✨', key: '2' },
+    CLASS_LINES: { value: 'classLines', label: 'Class Lines', icon: '✨', key: '' },
+    KIT: { value: 'kit', label: 'Attacks', icon: '⚔️', key: '' },
+    CAST: { value: 'cast', label: 'Spells', icon: '✨', key: '' },
     OUTCOMES: { value: 'outcomes', label: 'Scene Outcomes', icon: '🎲', key: '3' },
     MOCKERY: { value: 'mockery', label: 'Vicious Mockery', icon: '🗡️', key: '' },
     ACTIONS: { value: 'actions', label: 'Character Actions', icon: '🎭', key: '4' },

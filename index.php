@@ -14,15 +14,22 @@ $moduleFiles = [
   'shared-utils.js',
   'storage-utils.js',
   'ui-utils.js',
+  'site-identity.js',
   'tab-navigation.js',
   'keyboard-shortcuts.js',
   'action-workflow.js',
   'outcome-generate.js',
   'character-sheet.js',
+  'puck-fx.js',
+  'vadania-fx.js',
+  'brawn-fx.js',
+  'ddb-sheet-import.js',
   'd20-roll.js',
   'workflow-catalog.js',
   'karaoke-manager.js',
   'data/spells-data.js',
+  'data/songs-data.js',
+  'data/class-lines-data.js',
   'data/bardic-data.js',
   'data/mockery-data.js',
   'data/actions-data.js',
@@ -43,6 +50,64 @@ foreach ($moduleFiles as $file) {
   }
   $versions[$file] = file_exists($filePath) ? filemtime($filePath) : time();
 }
+
+$blingusSites = [
+  'blingus.knospe.org' => [
+    'title' => "Blingus's Bardbook",
+    'subtitle' => 'Song parodies, bardic lines, and Claude-backed table lines',
+    'crests' => ['⚔️', '🛡️'],
+    'showSwitcher' => false,
+    'lockCharacter' => 'blingus',
+  ],
+  'vadania.knospe.org' => [
+    'title' => "Vadania's Trailbook",
+    'subtitle' => 'Ranger marks, trail beats, and Claude-backed table lines',
+    'crests' => ['🏹', '🌲'],
+    'showSwitcher' => false,
+    'lockCharacter' => 'vadania',
+  ],
+  'brawn.knospe.org' => [
+    'title' => "Brawn's Brawlbook",
+    'subtitle' => 'Monk strikes, ki beats, and Claude-backed table lines',
+    'crests' => ['👊', '⛰️'],
+    'showSwitcher' => false,
+    'lockCharacter' => 'bruck',
+  ],
+  'bruck.knospe.org' => [
+    'title' => "Brawn's Brawlbook",
+    'subtitle' => 'Monk strikes, ki beats, and Claude-backed table lines',
+    'crests' => ['👊', '⛰️'],
+    'showSwitcher' => false,
+    'lockCharacter' => 'bruck',
+  ],
+  'puck.knospe.org' => [
+    'title' => "Puck's Surgebook",
+    'subtitle' => 'Wild Magic surges, fairy mischief, and Claude-backed table lines',
+    'crests' => ['✨', '🌀'],
+    'showSwitcher' => false,
+    'lockCharacter' => 'puck',
+  ],
+];
+$httpHost = strtolower(preg_replace('/:\\d+$/', '', (string) ($_SERVER['HTTP_HOST'] ?? '')));
+$site = $blingusSites[$httpHost] ?? [
+  'title' => "Blingus's Bardbook",
+  'subtitle' => 'Song parodies, bardic lines, and Claude-backed table lines',
+  'crests' => ['⚔️', '🛡️'],
+  'showSwitcher' => true,
+  'lockCharacter' => null,
+];
+$lock = $site['lockCharacter'] ?? null;
+$showKaraoke = !$lock || $lock === 'blingus';
+$showSongbook = $lock && $lock !== 'blingus';
+$showClassLines = $lock && $lock !== 'blingus';
+$classLinesMeta = [
+  'vadania' => ['label' => 'Marks', 'icon' => '🏹', 'tip' => 'Ranger marks and trail lines'],
+  'bruck' => ['label' => 'Focus', 'icon' => '👊', 'tip' => 'Monk Focus and ki lines'],
+  'puck' => ['label' => 'Surges', 'icon' => '🌀', 'tip' => 'Wild Magic surge lines'],
+][$lock] ?? ['label' => 'Class', 'icon' => '✨', 'tip' => 'Class lines'];
+$showKit = in_array($lock, ['vadania', 'bruck'], true);
+$showCast = in_array($lock, ['puck', 'vadania'], true);
+$defaultTab = $showKaraoke ? 'spells' : ($showSongbook ? 'songs' : ($showKit ? 'kit' : ($showCast ? 'cast' : 'outcomes')));
 ?>
 <!doctype html>
 <html lang="en">
@@ -52,20 +117,20 @@ foreach ($moduleFiles as $file) {
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>Blingus's Bardbook</title>
+  <title><?php echo htmlspecialchars($site['title'], ENT_QUOTES, 'UTF-8'); ?></title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="icon" href="favicon.ico" sizes="48x48">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="stylesheet" href="styles.css?v=<?php echo $versions['styles.css']; ?>" />
 </head>
-<body>
+<body class="book-<?php echo htmlspecialchars($lock ?: 'blingus', ENT_QUOTES, 'UTF-8'); ?>">
   <header class="banner banner--compact">
     <div class="banner__wrap">
-      <div class="crest" aria-hidden="true">⚔️</div>
-      <h1>Blingus's Bardbook</h1>
-      <div class="crest" aria-hidden="true">🛡️</div>
+      <div class="crest" aria-hidden="true"><?php echo $site['crests'][0]; ?></div>
+      <h1><?php echo htmlspecialchars($site['title'], ENT_QUOTES, 'UTF-8'); ?></h1>
+      <div class="crest" aria-hidden="true"><?php echo $site['crests'][1]; ?></div>
     </div>
-    <p class="subtitle">Song parodies, bardic lines, and Claude-backed table lines</p>
+    <p class="subtitle" id="bannerSubtitle"><?php echo htmlspecialchars($site['subtitle'], ENT_QUOTES, 'UTF-8'); ?></p>
   </header>
 
   <nav class="toolbar" aria-label="Controls">
@@ -73,28 +138,50 @@ foreach ($moduleFiles as $file) {
       <!-- Section Tabs + utilities -->
       <div class="toolbar__row toolbar__row--tabs">
         <div class="tabs" role="tablist" aria-label="Content sections">
-          <button class="tab tab--active" role="tab" data-section="spells" aria-selected="true" data-tooltip="Spell song parodies (Press 1)">
-            <span class="tab__icon">🔮</span>
-            <span class="tab__label">Spells</span>
+          <button class="tab<?php echo $defaultTab === 'spells' ? ' tab--active' : ''; ?>" role="tab" data-section="spells" aria-selected="<?php echo $defaultTab === 'spells' ? 'true' : 'false'; ?>"<?php echo $showKaraoke ? '' : ' hidden'; ?> data-tooltip="Karaoke spell parodies (Press 1)">
+            <span class="tab__icon">🎤</span>
+            <span class="tab__label">Karaoke</span>
           </button>
-          <button class="tab" role="tab" data-section="bardic" aria-selected="false" data-tooltip="Bardic inspiration lines (Press 2)">
+          <button class="tab" role="tab" data-section="songs" aria-selected="false"<?php echo $showSongbook ? '' : ' hidden'; ?> data-tooltip="General karaoke songs, no spell required">
+            <span class="tab__icon">🎤</span>
+            <span class="tab__label">Karaoke</span>
+          </button>
+          <button class="tab" role="tab" data-section="bardic" aria-selected="false"<?php echo $showKaraoke ? '' : ' hidden'; ?> data-tooltip="Bardic inspiration lines (Press 2)">
             <span class="tab__icon">✨</span>
             <span class="tab__label">Bardic</span>
           </button>
-          <button class="tab" role="tab" data-section="outcomes" aria-selected="false" data-tooltip="Scene outcomes and Vicious Mockery (Press 3)">
+          <button class="tab" role="tab" data-section="classLines" aria-selected="false"<?php echo $showClassLines ? '' : ' hidden'; ?> data-tooltip="<?php echo htmlspecialchars($classLinesMeta['tip'], ENT_QUOTES, 'UTF-8'); ?>">
+            <span class="tab__icon"><?php echo $classLinesMeta['icon']; ?></span>
+            <span class="tab__label" id="classLinesTabLabel"><?php echo htmlspecialchars($classLinesMeta['label'], ENT_QUOTES, 'UTF-8'); ?></span>
+          </button>
+          <button class="tab<?php echo $defaultTab === 'kit' ? ' tab--active' : ''; ?>" role="tab" data-section="kit" aria-selected="<?php echo $defaultTab === 'kit' ? 'true' : 'false'; ?>"<?php echo $showKit ? '' : ' hidden'; ?> data-tooltip="Weapon attacks and combat lines">
+            <span class="tab__icon">⚔️</span>
+            <span class="tab__label">Attacks</span>
+          </button>
+          <button class="tab<?php echo $defaultTab === 'cast' ? ' tab--active' : ''; ?>" role="tab" data-section="cast" aria-selected="<?php echo $defaultTab === 'cast' ? 'true' : 'false'; ?>"<?php echo $showCast ? '' : ' hidden'; ?> data-tooltip="Cast a spell from this sheet">
+            <span class="tab__icon">✨</span>
+            <span class="tab__label">Spells</span>
+          </button>
+          <button class="tab<?php echo $defaultTab === 'outcomes' ? ' tab--active' : ''; ?>" role="tab" data-section="outcomes" aria-selected="<?php echo $defaultTab === 'outcomes' ? 'true' : 'false'; ?>" data-tooltip="Scene outcomes and spoken lines">
             <span class="tab__icon">🎲</span>
             <span class="tab__label">Outcomes</span>
           </button>
-          <button class="tab" role="tab" data-section="character" aria-selected="false" data-tooltip="Live character sheet for Claude">
+          <button class="tab" role="tab" data-section="character" aria-selected="false" data-tooltip="Live party sheets for Claude">
             <span class="tab__icon">🧚</span>
-            <span class="tab__label">Character</span>
+            <span class="tab__label" id="characterTabLabel">Character</span>
           </button>
         </div>
         <div class="toolbar__utilities">
+          <button type="button" id="partyFxBtn" class="btn btn--secondary btn--compact" data-tooltip="Critters, punches, runes, and wild-magic sparkles" aria-pressed="true">FX on</button>
           <button type="button" id="d20SoundBtn" class="btn btn--secondary btn--compact" data-tooltip="Play a cue on crit or fumble" aria-pressed="false">Sound off</button>
           <button type="button" id="historyBtn" class="btn btn--secondary btn--compact" data-tooltip="Recently used items (Press H)">History</button>
           <button type="button" id="settingsBtn" class="btn btn--secondary btn--compact" data-tooltip="Edit, data, dark mode, personality" aria-haspopup="dialog">Settings</button>
         </div>
+      </div>
+
+      <div class="toolbar__row toolbar__row--cast" id="characterSwitcherRow"<?php echo $site['showSwitcher'] ? '' : ' hidden'; ?>>
+        <span class="character-switcher__label">Playing as</span>
+        <div class="character-switcher chips chips--pills" data-character-switcher role="tablist" aria-label="Active character"></div>
       </div>
 
       <!-- Category Chips Row (spells, bardic) -->
@@ -105,13 +192,13 @@ foreach ($moduleFiles as $file) {
       </div>
 
       <!-- Progressive Outcomes wizard (pill questions) -->
-      <div id="workflowPanel" class="workflow workflow--wizard toolbar__row" style="display: none;" aria-label="Blingus outcome wizard">
+      <div id="workflowPanel" class="workflow workflow--wizard toolbar__row" style="display: none;" aria-label="Outcome wizard">
         <div class="workflow__wizard">
           <div class="workflow__step workflow__step--mood" id="workflowMoodStep">
             <button type="button" class="workflow__step-summary" id="workflowMoodSummary" hidden aria-expanded="false"></button>
             <div class="workflow__step-body" id="workflowMoodBody">
               <div class="workflow__mood-head">
-                <div class="workflow__question">Blingus's mood <span class="workflow__hint">(colors every Claude line)</span> <button type="button" class="btn btn--ghost btn--compact catalog-manage-btn" data-catalog="moods">Manage</button></div>
+                <div class="workflow__question" id="workflowMoodQuestion">Mood <span class="workflow__hint">(colors every Claude line)</span> <button type="button" class="btn btn--ghost btn--compact catalog-manage-btn" data-catalog="moods">Manage</button></div>
                 <button type="button" id="personalityBtn" class="btn btn--ghost btn--compact" data-tooltip="Edit standing personality for Claude">Personality</button>
               </div>
               <div class="chips chips--pills" id="workflowMoodChips" role="group" aria-label="Blingus mood"></div>
@@ -208,8 +295,12 @@ foreach ($moduleFiles as $file) {
 
       <!-- Hidden selects for backward compatibility -->
       <select id="sectionSelect" style="display: none;" aria-hidden="true">
-        <option value="spells">Spell Parodies</option>
+        <option value="spells">Karaoke</option>
+        <option value="songs">Karaoke Songs</option>
         <option value="bardic">Bardic Inspiration</option>
+        <option value="classLines">Class Lines</option>
+        <option value="kit">Attacks</option>
+        <option value="cast">Spells</option>
         <option value="mockery">Vicious Mockery</option>
         <option value="outcomes">Scene Outcomes</option>
         <option value="character">Character</option>
@@ -429,12 +520,14 @@ foreach ($moduleFiles as $file) {
   </div>
 
   <!-- Core utilities (load first - other modules depend on these) -->
+  <script>window.__blingusLock = <?php echo $lock ? json_encode($lock) : 'null'; ?>;</script>
   <script src="js/constants.js?v=<?php echo $versions['constants.js']; ?>"></script>
   <script src="js/shared-utils.js?v=<?php echo $versions['shared-utils.js']; ?>"></script>
 
   <!-- Utility modules -->
   <script src="js/storage-utils.js?v=<?php echo $versions['storage-utils.js']; ?>"></script>
   <script src="js/ui-utils.js?v=<?php echo $versions['ui-utils.js']; ?>"></script>
+  <script src="js/site-identity.js?v=<?php echo $versions['site-identity.js']; ?>"></script>
 
   <!-- Tab navigation -->
   <script src="js/tab-navigation.js?v=<?php echo $versions['tab-navigation.js']; ?>"></script>
@@ -447,6 +540,8 @@ foreach ($moduleFiles as $file) {
 
   <!-- Data modules (load before main script) -->
   <script src="js/data/spells-data.js?v=<?php echo $versions['data/spells-data.js']; ?>"></script>
+  <script src="js/data/songs-data.js?v=<?php echo $versions['data/songs-data.js']; ?>"></script>
+  <script src="js/data/class-lines-data.js?v=<?php echo $versions['data/class-lines-data.js']; ?>"></script>
   <script src="js/data/bardic-data.js?v=<?php echo $versions['data/bardic-data.js']; ?>"></script>
   <script src="js/data/mockery-data.js?v=<?php echo $versions['data/mockery-data.js']; ?>"></script>
   <script src="js/data/actions-data.js?v=<?php echo $versions['data/actions-data.js']; ?>"></script>
@@ -456,9 +551,13 @@ foreach ($moduleFiles as $file) {
   <script>window.BlingusSceneVersion = "<?php echo $versions['data/scene-outcomes.js']; ?>";</script>
 
   <!-- Action workflow + Claude outcome generation (after data modules) -->
+  <script src="js/ddb-sheet-import.js?v=<?php echo $versions['ddb-sheet-import.js']; ?>"></script>
   <script src="js/character-sheet.js?v=<?php echo $versions['character-sheet.js']; ?>"></script>
+  <script src="js/puck-fx.js?v=<?php echo $versions['puck-fx.js']; ?>"></script>
+  <script src="js/vadania-fx.js?v=<?php echo $versions['vadania-fx.js']; ?>"></script>
+  <script src="js/brawn-fx.js?v=<?php echo $versions['brawn-fx.js']; ?>"></script>
   <script src="js/d20-roll.js?v=<?php echo $versions['d20-roll.js']; ?>"></script>
-  <script>window.WorkflowCatalogConfig = { app: 'blingus', storageKey: 'blingusWorkflowCatalogV1', partyKey: 'blingusPartyMembersV1', defaultParty: ['Blingus', "Brawn O'Neil", 'Puck Pinewhistle', 'Vadania Amakiir', 'Bo'] };</script>
+  <script>window.WorkflowCatalogConfig = { app: 'blingus', storageKey: 'blingusWorkflowCatalogV1', partyKey: 'blingusPartyMembersV1', defaultParty: ['Blingus', 'Bruck', "Brawn O'Neil", 'Puck Pinewhistle', 'Vadania Amakiir', 'Bo'] };</script>
   <script src="js/workflow-catalog.js?v=<?php echo $versions['workflow-catalog.js']; ?>"></script>
   <script src="js/action-workflow.js?v=<?php echo $versions['action-workflow.js']; ?>"></script>
   <script src="js/outcome-generate.js?v=<?php echo $versions['outcome-generate.js']; ?>"></script>

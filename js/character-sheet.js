@@ -6,10 +6,21 @@
   'use strict';
 
   const STORAGE_KEY = 'blingusCharacterV2';
+  const ROSTER_KEY = 'blingusCharacterRosterV1';
+  const ACTIVE_KEY = 'blingusActiveCharacterV1';
   const SAVE_DEBOUNCE_MS = 250;
   let saveTimer = null;
   let sheet = null;
   let renderHost = null;
+  let activeId = 'blingus';
+  const roster = {};
+
+  const CHARACTERS = [
+    { id: 'blingus', label: 'Blingus' },
+    { id: 'vadania', label: 'Vadania' },
+    { id: 'bruck', label: 'Bruck' },
+    { id: 'puck', label: 'Puck' },
+  ];
 
   function uid(prefix) {
     return prefix + '_' + Math.random().toString(36).slice(2, 9);
@@ -40,6 +51,11 @@
     'Shatter': true,
     'Synaptic Static': true,
     'Mass Healing Word': true,
+    'Hail of Thorns': true,
+    'Spike Growth': true,
+    'Fog Cloud': true,
+    'Web': true,
+    'Scorching Ray': true,
   };
   const SPELL_KIND_DEFAULTS = {
     'Vicious Mockery': 'save',
@@ -81,6 +97,23 @@
     'Compelled Duel': 'save',
     'Searing Smite': 'save',
     'Thunderous Smite': 'save',
+    'Hunter\'s Mark': 'other',
+    'Cure Wounds': 'other',
+    'Ensnaring Strike': 'save',
+    'Hail of Thorns': 'save',
+    'Fog Cloud': 'other',
+    'Speak with Animals': 'other',
+    'Pass without Trace': 'other',
+    'Spike Growth': 'save',
+    'Lesser Restoration': 'other',
+    'Fire Bolt': 'attack',
+    'Mage Hand': 'other',
+    'Chaos Bolt': 'attack',
+    'Shield': 'other',
+    'Mage Armor': 'other',
+    'Scorching Ray': 'attack',
+    'Counterspell': 'other',
+    'Web': 'save',
   };
 
   function inferSpellKind(name, notes) {
@@ -128,9 +161,10 @@
     return inferSpellTargets(raw && raw.name, raw && raw.notes);
   }
 
-  function defaultCharacter() {
+  function defaultBlingus() {
     return {
       version: 2,
+      characterId: 'blingus',
       identity: {
         name: 'Blingus the Wayfarer',
         aka: 'Blingus',
@@ -235,7 +269,7 @@
         'Slots: 4 first, 3 second, 2 third.',
         '',
         'TABLE-KNOWN WITCHLIGHT (do not invent unpublished spoilers):',
-        'Wild Beyond the Witchlight / Prismeer. DM Geoe. Party: Puck Pinewhistle (wild magic sorcerer fairy), Brawn O\'Neil/O\'Neal (dwarven monk; has the Crown of Remembrance), Vadania Amakiir (elven ranger; Vandan / Van Damme), Bo (toad-cauldron era, enlarge, dragon breath at Granny).',
+        'Wild Beyond the Witchlight / Prismeer. DM Geoe. Player characters: Puck Pinewhistle (wild magic sorcerer fairy), Brawn O\'Neil/O\'Neal (dwarven monk; has the Crown of Remembrance), Vadania Amakiir (elven ranger; Vandan / Van Damme). Bo is an NPC: he brought the party together (toad-cauldron era, enlarge, dragon breath at Granny).',
         'Carnival: someone bought the party tickets. Mr. Witch and Mr. Light run it. Quest: find out why they are on edge. Quest: someone stole a locket from someone at the carnival (do not assume it is the cracked mirror-shard locket). Star is a displacer-beast cub; quest to bring him back to another displacer beast at the carnival. Do not invent who bought the tickets or the other beast\'s name. Do not assume Star is the Misplacer Beast.',
         'Midnight Carnival recap (table notes): Misplacer Beast is a fairy-type displacer beast on lost-and-found duty; liked the party and became an ally. Swan boatwoman on the lazy river asked "What is Joy?"; party brushed it off and she dumped them in the water. Witch and Light were reluctant to help. A quiet bugbear stagehand told Blingus they needed Mr. Witch\'s watch; it controls the carnival\'s travel between worlds. During the Carnival Monarch crowning, Blingus pickpocketed the watch. They entrusted it to the Misplacer Beast and used it as leverage to negotiate passage to Prismeer. The portal is behind them; they have crossed. Do not invent the bugbear\'s name or whether the watch was given back.',
         'Opening rumors (as heard): Brawn hears Zybilna (Zilbana / Fairy Godmother) is frozen in time. Blingus hears three hags formed a coven. Vadania hears Bavlorna (Babiatha) lair is a rambling cottage on stilts in the swamp; Skabatha (Zabatha) lair is a hollowed tree in a forest; Endelyn (Indulin) lair is a mountain-top theater. Puck hears hag names Skabatha Nightshade and Endelyn Moongrave (scabatha / indilun); splinter realms are Hither, Thither, and Yon; each hag is convinced her sisters are plotting against her.',
@@ -248,9 +282,275 @@
         'Riddle of Fortitude (Declan): Stand at his altar, remember my friend. He never faltered ere his end. In memory of Declan\'s name, we shall play a riddle game. What cannot be thrown when opened, what only may land when closed? What should not be given easily, and often strikes the nose?',
         'Riddle of Will (Tristan): Stand at his altar, remember my friend. The cosmos themselves were his to amend. In memory of Tristan\'s name, we shall play a riddle game. When silence breaks, when power calls, what carries your command? What tool or weapon can you wield with nothing in your hand?',
         'Riddle of Reflex (Owen): Stand at his altar, remember my friend. He was someone on whom you could always depend. In memory of Owen\'s name, we shall play a riddle game. What can you get with a knife in the back? A covert assault or a silent attack? What comes with an enemy sworn you have killed? Sweet retribution and blood oath fulfilled?',
-        'Blingus backstory (his telling): never fit the High Forest fairies; wanderlust louder than a maybe-family; found purpose under Bo, a warlock bound to Zybilna who went silent over a year. Motto: the world\'s a big place, and big problems don\'t solve themselves.',
+        'Blingus backstory (his telling): never fit the High Forest fairies; wanderlust louder than a maybe-family; found purpose under Bo, the NPC who assembled this party, a warlock bound to Zybilna who went silent over a year. Motto: the world\'s a big place, and big problems don\'t solve themselves.',
       ].join('\n'),
     };
+  }
+
+  function emptyAbilities() {
+    return { str: 0, dex: 0, con: 0, int: 0, wis: 0, cha: 0 };
+  }
+
+  function emptyCombat(speed) {
+    return {
+      proficiency: 3,
+      ac: 10,
+      hpCurrent: 0,
+      hpMax: 0,
+      hitDice: '',
+      speed: speed || '',
+    };
+  }
+
+  function stubCharacter(id, identity, extras) {
+    extras = extras || {};
+    return {
+      version: 4,
+      characterId: id,
+      identity: identity,
+      abilities: extras.abilities || emptyAbilities(),
+      combat: extras.combat || emptyCombat(extras.speed),
+      skills: extras.skills || [],
+      features: extras.features || [],
+      armor: extras.armor || [],
+      weapons: extras.weapons || [],
+      gear: extras.gear || [],
+      spells: extras.spells || [],
+      languages: extras.languages || [],
+      notes: extras.notes || '',
+    };
+  }
+
+  function placeholderNotes(lines) {
+    return [
+      'PLACEHOLDER SHEET. Typical level-5 class array so Outcomes, Attacks, Spells, and Claude have a kit. Confirm scores, HP, AC, DC, bonuses, prepared/known list, and subclass at the table. These numbers are not a D&D Beyond export.',
+      '',
+    ].concat(lines).join('\n');
+  }
+
+  function defaultVadania() {
+    return stubCharacter('vadania', {
+      name: 'Vadania Amakiir',
+      aka: 'Van Damme',
+      level: 5,
+      className: 'Ranger',
+      race: 'Elf',
+      alignment: '',
+      background: '',
+    }, {
+      languages: ['Common', 'Elvish'],
+      abilities: { str: 12, dex: 16, con: 14, int: 10, wis: 16, cha: 8 },
+      combat: {
+        proficiency: 3,
+        ac: 14,
+        hpCurrent: 44,
+        hpMax: 44,
+        hitDice: '5d10',
+        speed: '30 ft',
+      },
+      skills: [
+        item('Perception', { notes: 'PLACEHOLDER +6; confirm bonus' }),
+        item('Survival', { notes: 'PLACEHOLDER +6; confirm bonus' }),
+        item('Stealth', { notes: 'PLACEHOLDER +6; confirm bonus' }),
+        item('Nature', { notes: 'PLACEHOLDER +3; confirm bonus' }),
+        item('Athletics', { notes: 'PLACEHOLDER +4; confirm bonus' }),
+        item('Insight', { notes: 'PLACEHOLDER +6; confirm bonus' }),
+        item('Animal Handling', { notes: 'PLACEHOLDER +6; confirm bonus' }),
+        item('Investigation', { notes: 'PLACEHOLDER +3; confirm bonus' }),
+      ],
+      features: [
+        item('Spellcasting', { notes: 'PLACEHOLDER WIS ranger. Typical DC 14, spell attack +6. Confirm at the table.', magicUse: true }),
+        item('Hunter\'s Mark', { notes: '2024 ranger mark. Confirm uses at the table.', magicUse: true }),
+        item('Extra Attack', { notes: 'Level 5 ranger' }),
+        item('Weapon Mastery', { notes: 'Ranger weapons. Confirm which masteries at the table.' }),
+        item('Favored Enemy', { notes: 'Ranger. Confirm the table target types.' }),
+      ],
+      armor: [
+        item('Studded Leather', { notes: 'PLACEHOLDER AC 14 with DEX 16. Confirm armor at the table.' }),
+      ],
+      weapons: [
+        item('Longbow', { notes: 'PLACEHOLDER +6, 1d8+3 piercing; 150/600. Confirm bonus, mastery, and ammo at the table.', attackType: 'pierce' }),
+        item('Shortsword', { notes: 'PLACEHOLDER +6, 1d6+3 slashing; finesse. Confirm bonus and mastery at the table.', attackType: 'slash' }),
+        item('Hunting Knife', { notes: 'PLACEHOLDER +6, 1d4+3 piercing; backup melee. Confirm at the table.', attackType: 'pierce' }),
+      ],
+      gear: [
+        item('Quiver', { notes: 'PLACEHOLDER. Longbow ammo. Confirm count at the table. Do not invent magic arrows.' }),
+        item('Traveler\'s pack', { notes: 'PLACEHOLDER ranger kit: bedroll, tinder, rope. Confirm at the table.' }),
+      ],
+      spells: [
+        item('Hunter\'s Mark', { notes: 'ranger feature / 1st; confirm prepared uses', spellKind: 'other' }),
+        item('Cure Wounds', { notes: 'ranger 1st; confirm prepared', spellKind: 'other' }),
+        item('Ensnaring Strike', { notes: 'ranger 1st; STR save; confirm prepared', spellKind: 'save' }),
+        item('Hail of Thorns', { notes: 'ranger 1st; DEX save; confirm prepared', spellKind: 'save' }),
+        item('Fog Cloud', { notes: 'ranger 1st; confirm prepared', spellKind: 'other' }),
+        item('Speak with Animals', { notes: 'ranger 1st; confirm prepared', spellKind: 'other' }),
+        item('Pass without Trace', { notes: 'ranger 2nd; confirm prepared', spellKind: 'other' }),
+        item('Spike Growth', { notes: 'ranger 2nd; confirm prepared', spellKind: 'other' }),
+        item('Lesser Restoration', { notes: 'ranger 2nd; confirm prepared', spellKind: 'other' }),
+      ],
+      notes: placeholderNotes([
+        'Table-known: Vadania Amakiir, elven ranger. Nicknames: Vandan, Van Damme. The one who notices the door.',
+        'Party of Blingus the Wayfarer (Witchlight / Prismeer). Bo is an NPC who brought the party together, not a PC. Do not invent unpublished module plot.',
+        'Opening rumor she heard: Bavlorna (Babiatha) lair is a rambling cottage on stilts in the swamp; Skabatha (Zabatha) lair is a hollowed tree in a forest; Endelyn (Indulin) lair is a mountain-top theater.',
+        'Thither: Scorching Ray hit Vadania at Loomlurch. Journal of Vandan: she writes that the ray felt aimed; trust scorched; she checks doors twice and the mimic proved her right. Someone slipped her a Sylvan note at the Stinky Court. Do not invent who cast the ray.',
+      ]),
+    });
+  }
+
+  function defaultBruck() {
+    return stubCharacter('bruck', {
+      name: 'Bruck',
+      aka: "Brawn O'Neil",
+      level: 5,
+      className: 'Monk',
+      race: 'Dwarf',
+      alignment: '',
+      background: '',
+    }, {
+      languages: ['Common', 'Dwarvish'],
+      abilities: { str: 14, dex: 16, con: 14, int: 8, wis: 16, cha: 10 },
+      combat: {
+        proficiency: 3,
+        ac: 16,
+        hpCurrent: 43,
+        hpMax: 43,
+        hitDice: '5d8',
+        speed: '35 ft (dwarf 25 plus Unarmored Movement; confirm)',
+      },
+      skills: [
+        item('Acrobatics', { notes: 'PLACEHOLDER +6; confirm bonus' }),
+        item('Athletics', { notes: 'PLACEHOLDER +4; confirm bonus' }),
+        item('Stealth', { notes: 'PLACEHOLDER +6; confirm bonus' }),
+        item('Insight', { notes: 'PLACEHOLDER +6; confirm bonus' }),
+        item('History', { notes: 'PLACEHOLDER +2; confirm bonus' }),
+        item('Religion', { notes: 'PLACEHOLDER +2; confirm bonus' }),
+      ],
+      features: [
+        item('Martial Arts', { notes: 'Unarmed strike and monk weapons. Confirm the Martial Arts die at the table.' }),
+        item('Unarmored Defense', { notes: 'PLACEHOLDER AC 16 from DEX 16 + WIS 16. Confirm the table formula.' }),
+        item('Unarmored Movement', { notes: 'Level 5 monk extra speed. Confirm the bonus at the table.' }),
+        item('Extra Attack', { notes: 'Level 5 monk' }),
+        item('Flurry of Blows', { notes: 'Bonus Action, spend Focus/Ki. Confirm the 2024 name and cost at the table.' }),
+        item('Patient Defense', { notes: 'Monk defensive option. Confirm cost at the table.' }),
+        item('Step of the Wind', { notes: 'Monk movement option. Confirm cost at the table.' }),
+        item('Stunning Strike', { notes: 'Monk. Confirm save and uses at the table.' }),
+        item('Crown of Remembrance', {
+          notes: 'Geoe Identify. Rare wondrous, attunement. Holly boughs, amber stone. +1 AC and saves. 1/day Action: name Declan (CON), Owen (DEX), or Tristan (WIS); three allies within twenty feet get Advantage on that next save before the start of Bruck\'s next turn.',
+        }),
+      ],
+      armor: [
+        item('Unarmored', { notes: 'PLACEHOLDER monk Unarmored Defense. No armor worn unless the table said otherwise.' }),
+      ],
+      weapons: [
+        item('Unarmed Strike', { notes: 'PLACEHOLDER +6, Martial Arts die + DEX. Confirm die and bonus at the table.', attackType: 'blunt' }),
+        item('Quarterstaff', { notes: 'PLACEHOLDER +6, 1d8+3 blunt versatile. Confirm bonus at the table.', attackType: 'blunt' }),
+      ],
+      gear: [
+        item('Crown of Remembrance', {
+          notes: 'Worn by Bruck / Brawn. Rare wondrous, attunement. +1 AC and saving throws. 1/day Action: Declan CON, Owen DEX, or Tristan WIS for three allies within twenty feet.',
+        }),
+        item('Hand wraps', { notes: 'PLACEHOLDER monk wraps. Not armor. Confirm at the table.' }),
+        item('Flask', { notes: 'PLACEHOLDER. Something to sip between rounds. Confirm what is in it at the table.' }),
+      ],
+      notes: placeholderNotes([
+        'Table-known: Bruck, also called Brawn O\'Neil / O\'Neal, dwarven monk. No spell list. Crown of Remembrance is his.',
+        'Party of Blingus the Wayfarer (Witchlight / Prismeer). Bo is an NPC who brought the party together, not a PC. Do not invent unpublished module plot.',
+        'Opening rumor he heard: Zybilna (Zilbana / Fairy Godmother) is frozen in time.',
+        'Crown of Remembrance is his. Sundial answers the table used: Revenge / Reflex, a Fist / Fortitude, Words / Will. Lived the grappling chairs at Granny and the marching-band near-wipe.',
+      ]),
+    });
+  }
+
+  function defaultPuck() {
+    return stubCharacter('puck', {
+      name: 'Puck Pinewhistle',
+      aka: 'Puke',
+      level: 5,
+      className: 'Sorcerer (Wild Magic)',
+      race: 'Fairy',
+      alignment: '',
+      background: '',
+    }, {
+      languages: ['Common'],
+      abilities: { str: 8, dex: 14, con: 14, int: 10, wis: 12, cha: 17 },
+      combat: {
+        proficiency: 3,
+        ac: 12,
+        hpCurrent: 32,
+        hpMax: 32,
+        hitDice: '5d6',
+        speed: '30 ft walk, 30 ft fly',
+      },
+      skills: [
+        item('Arcana', { notes: 'PLACEHOLDER +3; confirm bonus' }),
+        item('Deception', { notes: 'PLACEHOLDER +6; confirm bonus' }),
+        item('Insight', { notes: 'PLACEHOLDER +4; confirm bonus' }),
+        item('Intimidation', { notes: 'PLACEHOLDER +6; confirm bonus' }),
+        item('Persuasion', { notes: 'PLACEHOLDER +6; confirm bonus' }),
+        item('Religion', { notes: 'PLACEHOLDER +3; confirm bonus' }),
+      ],
+      features: [
+        item('Spellcasting', { notes: 'PLACEHOLDER CHA sorcerer. Typical DC 14, spell attack +6. Slots 4/3/2. Confirm known list at the table.', magicUse: true }),
+        item('Wild Magic Surge', { notes: 'Wild Magic sorcerer. Confirm surge rules at the table. Do not invent extra metamagic.' }),
+        item('Tides of Chaos', { notes: 'Wild Magic. Confirm uses at the table.' }),
+        item('Font of Magic', { notes: 'Sorcery points. Confirm the pool at the table.' }),
+        item('Innate Sorcery', { notes: '2024 sorcerer. Confirm at the table.' }),
+        item('Flight', { notes: 'Fairy: fly speed equals walk speed unless the table said otherwise.' }),
+        item('Fairy Magic', { notes: 'Druidcraft; Faerie Fire 1/LR; Enlarge/Reduce 1/LR; CHA', magicUse: true }),
+      ],
+      armor: [
+        item('Unarmored', { notes: 'PLACEHOLDER AC 12 with DEX 14. Mage Armor on the list if they cast it (AC 15).' }),
+      ],
+      weapons: [
+        item('Dagger', { notes: 'PLACEHOLDER last-resort +5, 1d4+2 piercing. Confirm at the table. Not a Lore bard dagger.', attackType: 'pierce' }),
+      ],
+      gear: [
+        item('Crystal focus', { notes: 'PLACEHOLDER sorcerer focus. Confirm the stone at the table. Not a clarinet.' }),
+        item('Component pouch', { notes: 'PLACEHOLDER. Confirm at the table.' }),
+      ],
+      spells: [
+        item('Druidcraft', { notes: 'cantrip; Fairy Magic', spellKind: 'other' }),
+        item('Fire Bolt', { notes: 'sorcerer cantrip; confirm known', spellKind: 'attack' }),
+        item('Prestidigitation', { notes: 'sorcerer cantrip; confirm known', spellKind: 'other' }),
+        item('Mage Hand', { notes: 'sorcerer cantrip; confirm known', spellKind: 'other' }),
+        item('Chaos Bolt', { notes: 'sorcerer 1st; confirm known', spellKind: 'attack' }),
+        item('Shield', { notes: 'sorcerer 1st; confirm known', spellKind: 'other' }),
+        item('Mage Armor', { notes: 'sorcerer 1st; confirm known', spellKind: 'other' }),
+        item('Magic Missile', { notes: 'sorcerer 1st; confirm known', spellKind: 'damage' }),
+        item('Faerie Fire', { notes: '1st; Fairy Magic; DEX save; 1/LR free', spellKind: 'save' }),
+        item('Misty Step', { notes: 'sorcerer 2nd; confirm known', spellKind: 'other' }),
+        item('Scorching Ray', { notes: 'sorcerer 2nd; confirm known', spellKind: 'attack' }),
+        item('Shatter', { notes: 'sorcerer 2nd; CON save; confirm known', spellKind: 'save' }),
+        item('Enlarge', { notes: '2nd; Fairy Magic; 1/LR free; grow', spellKind: 'other' }),
+        item('Reduce', { notes: '2nd; Fairy Magic; 1/LR free; shrink', spellKind: 'other' }),
+        item('Fireball', { notes: 'sorcerer 3rd; DEX save; confirm known', spellKind: 'save' }),
+        item('Counterspell', { notes: 'sorcerer 3rd; confirm known', spellKind: 'other' }),
+      ],
+      notes: placeholderNotes([
+        'Table-known: Puck Pinewhistle, fairy Wild Magic sorcerer. Nickname: Puke. Fellow fairy and friend of Blingus. Not a Lore bard.',
+        'Party of Blingus the Wayfarer (Witchlight / Prismeer). Bo is an NPC who brought the party together, not a PC. Do not invent unpublished module plot.',
+        'Opening rumor he heard: hag names Skabatha Nightshade and Endelyn Moongrave (scabatha / indilun); splinter realms are Hither, Thither, and Yon; each hag is convinced her sisters are plotting against her.',
+        'Flew up with Blingus to the deflated airship and Sir Talavar. Do not invent that he cast the Loomlurch Scorching Ray.',
+      ]),
+    });
+  }
+
+  function defaultCharacter(characterId) {
+    const id = knownCharacterId(characterId);
+    if (id === 'vadania') return defaultVadania();
+    if (id === 'bruck') return defaultBruck();
+    if (id === 'puck') return defaultPuck();
+    return defaultBlingus();
+  }
+
+  function knownCharacterId(id) {
+    const key = String(id || '').toLowerCase();
+    return CHARACTERS.some((c) => c.id === key) ? key : 'blingus';
+  }
+
+  function characterMeta(id) {
+    const key = knownCharacterId(id);
+    return CHARACTERS.find((c) => c.id === key) || CHARACTERS[0];
   }
 
   function clone(obj) {
@@ -517,24 +817,160 @@
     return PHOBIA_NOTE + '\n' + next;
   }
 
-  function normalize(raw) {
-    const base = defaultCharacter();
+  function cloneKitItem(row) {
+    return item(row.name, {
+      notes: row.notes,
+      attackType: row.attackType,
+      magicUse: row.magicUse,
+      bonus: row.bonus,
+      spellKind: row.spellKind,
+      spellTargets: row.spellTargets,
+    });
+  }
+
+  function hydrateNamedList(current, fallback) {
+    if (current && current.length) return current;
+    return (fallback || []).map(cloneKitItem);
+  }
+
+  function mergeMissingByName(current, fallback) {
+    if (!fallback || !fallback.length) return current || [];
+    if (!current || !current.length) return fallback.map(cloneKitItem);
+    const have = new Set(current.map((row) => normalizeName(row.name)));
+    const extra = fallback.filter((row) => row.name && !have.has(normalizeName(row.name)));
+    return current.concat(extra.map(cloneKitItem));
+  }
+
+  function mergeKitFields(current, fallback) {
+    if (!fallback || !fallback.length) return current || [];
+    if (!current || !current.length) return fallback.map(cloneKitItem);
+    const byName = new Map(fallback.map((row) => [normalizeName(row.name), row]));
+    const merged = current.map((row) => {
+      const base = byName.get(normalizeName(row.name));
+      if (!base) return row;
+      return item(row.name, {
+        notes: notesNeedKitRefresh(row.notes) ? (base.notes || row.notes) : (row.notes || base.notes),
+        attackType: row.attackType || base.attackType,
+        magicUse: row.magicUse != null ? row.magicUse : base.magicUse,
+        bonus: row.bonus != null && row.bonus !== 0 ? row.bonus : base.bonus,
+        spellKind: row.spellKind || base.spellKind,
+        spellTargets: row.spellTargets || base.spellTargets,
+      });
+    });
+    return mergeMissingByName(merged, fallback);
+  }
+
+  function abilitiesAreEmpty(ab) {
+    if (!ab) return true;
+    return ['str', 'dex', 'con', 'int', 'wis', 'cha'].every((k) => !Number(ab[k]));
+  }
+
+  function combatNeedsPlaceholder(combat) {
+    return !combat || !Number(combat.hpMax);
+  }
+
+  function notesNeedKitRefresh(notes) {
+    const text = String(notes || '');
+    if (!text.trim()) return true;
+    if (/Imported from D&D Beyond/.test(text)) return false;
+    if (/PLACEHOLDER/.test(text) && /\+\d/.test(text)) return false;
+    return /class skill|Ranger kit|Monk kit|confirm known|confirm prepared/.test(text)
+      && !/\+\d/.test(text);
+  }
+
+  function kitNameBlob(raw) {
+    return []
+      .concat(raw && raw.spells)
+      .concat(raw && raw.features)
+      .concat(raw && raw.weapons)
+      .concat(raw && raw.gear)
+      .map((row) => String(row && row.name || '').toLowerCase())
+      .join(' | ');
+  }
+
+  function isBlingusShaped(raw, cid) {
+    if (!raw || typeof raw !== 'object' || cid === 'blingus') return false;
+    const id = raw.identity || {};
+    const name = String(id.name || '').toLowerCase();
+    const aka = String(id.aka || '').toLowerCase();
+    const cls = String(id.className || '').toLowerCase();
+    if (/\bblingus\b/.test(name) || /\bblingus\b/.test(aka)) return true;
+    const want = { vadania: 'ranger', bruck: 'monk', puck: 'sorcerer' }[cid];
+    if (want && /\bbard\b/.test(cls) && !new RegExp('\\b' + want + '\\b').test(cls)) return true;
+    const blob = kitNameBlob(raw);
+    return /vicious mockery|cutting words|bardic inspiration|clarinet|witchlight carnival cloth wings/.test(blob);
+  }
+
+  function incomingCharacterId(raw) {
+    if (!raw || typeof raw !== 'object') return '';
+    const cid = String(raw.characterId || '').toLowerCase();
+    if (CHARACTERS.some((c) => c.id === cid)) return cid;
+    const name = String((raw.identity || {}).name || '').toLowerCase();
+    if (/vadania|van damme|\bvandan\b/.test(name)) return 'vadania';
+    if (/bruck|brawn/.test(name)) return 'bruck';
+    if (/\bpuck\b|pinewhistle/.test(name)) return 'puck';
+    if (/blingus/.test(name)) return 'blingus';
+    return '';
+  }
+
+  function acceptsRemoteSheet(raw) {
+    const cid = getActiveId();
+    if (!raw || typeof raw !== 'object') return false;
+    if (isBlingusShaped(raw, cid)) return false;
+    const incoming = incomingCharacterId(raw);
+    if (incoming && incoming !== cid) return false;
+    return true;
+  }
+
+  function shouldRefreshNotes(notes) {
+    const text = String(notes || '');
+    if (!text.trim()) return true;
+    if (/Imported from D&D Beyond/.test(text)) return false;
+    if (/PLACEHOLDER SHEET/.test(text)) return false;
+    if (/Zeros in scores/.test(text)) return true;
+    if (/Do not invent combat stats/.test(text)) return true;
+    return false;
+  }
+
+  function isImportedSheet(raw) {
+    if (!raw || typeof raw !== 'object') return false;
+    if (raw.importedSheet || raw.importedFromDdb) return true;
+    return /Imported from D&D Beyond/.test(String(raw.notes || ''));
+  }
+
+  function normalize(raw, characterId) {
+    const cid = knownCharacterId(characterId || (raw && raw.characterId) || activeId);
+    const base = defaultCharacter(cid);
+    const isBlingus = cid === 'blingus';
+    if (isBlingusShaped(raw, cid)) return base;
     if (!raw || typeof raw !== 'object') return base;
+    const imported = isImportedSheet(raw);
     const id = raw.identity || {};
     const ab = raw.abilities || {};
     const combat = raw.combat || {};
+    const features = normalizeList(raw.features);
+    const gear = normalizeList(raw.gear);
+    const spells = normalizeList(raw.spells, { spellKind: true });
+    const notesRaw = raw.notes != null ? raw.notes : base.notes;
+    const skills = normalizeList(raw.skills, { withBonus: true });
+    const weapons = normalizeList(raw.weapons, { attackType: 'slash', withBonus: true });
+    const usePlaceholderStats = !isBlingus && !imported && abilitiesAreEmpty(ab);
+    const usePlaceholderCombat = !isBlingus && !imported && combatNeedsPlaceholder(combat);
+    const useImportedLists = isBlingus || imported;
     return {
-      version: 1,
+      version: isBlingus ? Math.max(3, Number(raw.version) || 0) : Math.max(4, Number(raw.version) || 0),
+      characterId: cid,
+      importedSheet: imported,
       identity: {
         name: String(id.name || base.identity.name),
         aka: String(id.aka || base.identity.aka),
         level: Number(id.level) || base.identity.level,
         className: String(id.className || base.identity.className),
         race: String(id.race || base.identity.race),
-        alignment: String(id.alignment || base.identity.alignment),
-        background: String(id.background || base.identity.background),
+        alignment: String(id.alignment != null ? id.alignment : base.identity.alignment),
+        background: String(id.background != null ? id.background : base.identity.background),
       },
-      abilities: {
+      abilities: usePlaceholderStats ? Object.assign({}, base.abilities) : {
         str: Number(ab.str) || 0,
         dex: Number(ab.dex) || 0,
         con: Number(ab.con) || 0,
@@ -542,41 +978,93 @@
         wis: Number(ab.wis) || 0,
         cha: Number(ab.cha) || 0,
       },
-      combat: {
+      combat: usePlaceholderCombat ? Object.assign({}, base.combat) : {
         proficiency: Number(combat.proficiency) || 0,
         ac: Number(combat.ac) || 0,
         hpCurrent: Number(combat.hpCurrent) || 0,
         hpMax: Number(combat.hpMax) || 0,
-        hitDice: String(combat.hitDice || base.combat.hitDice),
-        speed: String(combat.speed || base.combat.speed),
+        hitDice: String(combat.hitDice != null ? combat.hitDice : base.combat.hitDice),
+        speed: String(combat.speed != null ? combat.speed : base.combat.speed),
       },
-      skills: normalizeList(raw.skills, { withBonus: true }),
-      features: upgradeFeatures(normalizeList(raw.features)),
-      armor: normalizeList(raw.armor),
-      weapons: normalizeList(raw.weapons, { attackType: 'slash', withBonus: true }),
-      gear: upgradeGearNotes(normalizeList(raw.gear)),
-      spells: splitCombinedEnlargeReduce(normalizeList(raw.spells, { spellKind: true })),
+      skills: useImportedLists ? skills : normalizeList(mergeKitFields(skills, base.skills), { withBonus: true }),
+      features: useImportedLists ? (isBlingus ? upgradeFeatures(features) : features) : mergeKitFields(features, base.features),
+      armor: useImportedLists ? normalizeList(raw.armor) : mergeKitFields(normalizeList(raw.armor), base.armor),
+      weapons: useImportedLists ? weapons : normalizeList(mergeKitFields(weapons, base.weapons), { attackType: 'slash', withBonus: true }),
+      gear: useImportedLists ? (isBlingus ? upgradeGearNotes(gear) : gear) : mergeKitFields(gear, base.gear),
+      spells: useImportedLists
+        ? (isBlingus ? splitCombinedEnlargeReduce(spells) : spells)
+        : normalizeList(mergeKitFields(spells, base.spells), { spellKind: true }),
       languages: Array.isArray(raw.languages)
         ? raw.languages.map((l) => String(l || '').trim()).filter(Boolean)
         : base.languages.slice(),
-      notes: ensurePhobiaNote(stripRetiredNotes(raw.notes)),
+      notes: isBlingus
+        ? ensurePhobiaNote(stripRetiredNotes(notesRaw))
+        : (shouldRefreshNotes(notesRaw) ? base.notes : String(notesRaw || '')),
     };
   }
 
-  function load() {
+  function readStoredRoster() {
+    try {
+      const raw = localStorage.getItem(ROSTER_KEY);
+      if (!raw) return {};
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function readLegacyBlingus() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        const beforeNotes = String(parsed.notes || '');
-        sheet = normalize(parsed);
-        if (sheet.notes !== beforeNotes) persistNow();
-        return sheet;
-      }
+      if (!raw) return null;
+      return JSON.parse(raw);
     } catch (e) {
-      /* ignore */
+      return null;
     }
-    sheet = defaultCharacter();
+  }
+
+  function lockedCharacterId() {
+    return window.BlingusSite?.lockedCharacterId?.() || null;
+  }
+
+  function loadActiveId() {
+    const locked = lockedCharacterId();
+    if (locked) return knownCharacterId(locked);
+    try {
+      return knownCharacterId(localStorage.getItem(ACTIVE_KEY));
+    } catch (e) {
+      return 'blingus';
+    }
+  }
+
+  function load() {
+    activeId = loadActiveId();
+    const stored = readStoredRoster();
+    CHARACTERS.forEach((c) => {
+      if (stored[c.id]) roster[c.id] = stored[c.id];
+    });
+    if (!roster.blingus) {
+      const legacy = readLegacyBlingus();
+      if (legacy) roster.blingus = legacy;
+    }
+    const beforeNotes = roster[activeId] ? String(roster[activeId].notes || '') : '';
+    let hydrated = false;
+    CHARACTERS.forEach((c) => {
+      const raw = roster[c.id];
+      const rawVersion = raw ? Number(raw.version) : 0;
+      roster[c.id] = normalize(raw, c.id);
+      if (c.id !== 'blingus' && !isImportedSheet(raw) && (
+        !raw
+        || isBlingusShaped(raw, c.id)
+        || rawVersion < 4
+        || !(raw.skills || []).length
+        || abilitiesAreEmpty(raw.abilities)
+        || combatNeedsPlaceholder(raw.combat)
+      )) hydrated = true;
+    });
+    sheet = roster[activeId];
+    if (hydrated || (sheet && sheet.notes !== beforeNotes && beforeNotes)) persistNow();
     return sheet;
   }
 
@@ -585,17 +1073,196 @@
     return sheet;
   }
 
+  const CLASS_KEYS = [
+    'bard', 'sorcerer', 'wizard', 'warlock', 'cleric', 'druid',
+    'paladin', 'ranger', 'monk', 'fighter', 'rogue', 'barbarian', 'artificer',
+  ];
+  const CASTER_KEYS = [
+    'bard', 'sorcerer', 'wizard', 'warlock', 'cleric', 'druid',
+    'paladin', 'ranger', 'artificer',
+  ];
+  const KIT_KEYS = ['ranger', 'monk', 'fighter', 'rogue', 'barbarian', 'paladin'];
+  const PARTY_CLASS = {
+    blingus: 'bard',
+    vadania: 'ranger',
+    bruck: 'monk',
+    puck: 'sorcerer',
+  };
+
+  function classKeys(fromSheet) {
+    const s = fromSheet || get();
+    const id = s?.characterId || activeId;
+    const forced = PARTY_CLASS[id];
+    const cls = String(s?.identity?.className || '').toLowerCase();
+    let found = CLASS_KEYS.filter((key) => new RegExp('\\b' + key + '\\b').test(cls));
+    if (forced) {
+      if (!found.includes(forced)) found = [forced, ...found];
+      if (id !== 'blingus') found = found.filter((key) => key !== 'bard');
+      if (!found.length) found = [forced];
+    }
+    return found.length ? found : (forced ? [forced] : ['generic']);
+  }
+
+  function hasClass(name, fromSheet) {
+    return classKeys(fromSheet).includes(name);
+  }
+
+  function isCaster(fromSheet) {
+    return classKeys(fromSheet).some((key) => CASTER_KEYS.includes(key));
+  }
+
+  function speakerName(fromSheet) {
+    const id = (fromSheet || get())?.identity || {};
+    return String(id.aka || id.name || 'Character').trim() || 'Character';
+  }
+
+  function namedNonBard(fromSheet) {
+    const id = (fromSheet || get())?.characterId || activeId;
+    return id === 'vadania' || id === 'bruck' || id === 'puck';
+  }
+
+  function hasKaraoke(fromSheet) {
+    if (namedNonBard(fromSheet)) return false;
+    return hasClass('bard', fromSheet);
+  }
+
+  function hasSongbook(fromSheet) {
+    return !hasKaraoke(fromSheet);
+  }
+
+  function hasBardic(fromSheet) {
+    if (namedNonBard(fromSheet)) return false;
+    return hasClass('bard', fromSheet);
+  }
+
+  function classLinesKey(fromSheet) {
+    if (hasClass('ranger', fromSheet)) return 'ranger';
+    if (hasClass('monk', fromSheet)) return 'monk';
+    if (hasClass('sorcerer', fromSheet)) return 'sorcerer';
+    return '';
+  }
+
+  function classLinesLabel(fromSheet) {
+    const key = classLinesKey(fromSheet);
+    if (key === 'ranger') return 'Marks';
+    if (key === 'monk') return 'Focus';
+    if (key === 'sorcerer') return 'Surges';
+    return 'Class';
+  }
+
+  function classLinesIcon(fromSheet) {
+    const key = classLinesKey(fromSheet);
+    if (key === 'ranger') return '🏹';
+    if (key === 'monk') return '👊';
+    if (key === 'sorcerer') return '🌀';
+    return '✨';
+  }
+
+  function hasClassLines(fromSheet) {
+    return Boolean(classLinesKey(fromSheet)) && !hasBardic(fromSheet);
+  }
+
+  function hasCastTab(fromSheet) {
+    const s = fromSheet || get();
+    const keys = classKeys(s);
+    if (hasKaraoke(s) && keys.every((key) => key === 'bard')) return false;
+    const fullCasters = ['sorcerer', 'wizard', 'warlock', 'cleric', 'druid'];
+    if (keys.some((key) => fullCasters.includes(key))) return true;
+    return Array.isArray(s.spells) && s.spells.length > 0;
+  }
+
+  function hasKitTab(fromSheet) {
+    const s = fromSheet || get();
+    if (classKeys(s).some((key) => KIT_KEYS.includes(key))) return true;
+    if (hasKaraoke(s) && classKeys(s).every((key) => key === 'bard')) return false;
+    return Array.isArray(s.weapons) && s.weapons.length > 0;
+  }
+
+  function visibleSections(fromSheet) {
+    const s = fromSheet || get();
+    const out = [];
+    if (hasKaraoke(s)) out.push('spells');
+    if (hasSongbook(s)) out.push('songs');
+    if (hasBardic(s)) out.push('bardic');
+    if (hasClassLines(s)) out.push('classLines');
+    if (hasKitTab(s)) out.push('kit');
+    if (hasCastTab(s)) out.push('cast');
+    out.push('outcomes', 'character');
+    return out;
+  }
+
+  function defaultSection(fromSheet) {
+    return visibleSections(fromSheet)[0] || 'outcomes';
+  }
+
+  function listHasName(list, needle) {
+    const want = String(needle || '').toLowerCase();
+    return (list || []).some((row) => String(row && row.name || '').toLowerCase().includes(want));
+  }
+
+  function allowsOutcomeMod(modId, fromSheet) {
+    const s = fromSheet || get();
+    const race = String(s?.identity?.race || '').toLowerCase();
+    const id = s?.characterId || activeId;
+    if ((modId === 'mockery' || modId === 'cuttingWords' || modId === 'introduction')
+        && id && id !== 'blingus' && PARTY_CLASS[id]) {
+      return false;
+    }
+    if (modId === 'mockery') {
+      return hasClass('bard', s) || listHasName(s.spells, 'vicious mockery');
+    }
+    if (modId === 'cuttingWords') {
+      return hasClass('bard', s) || listHasName(s.features, 'cutting words');
+    }
+    if (modId === 'introduction') return hasClass('bard', s);
+    if (modId === 'paulHarvey' || modId === 'productPlacement'
+        || modId === 'infomercial' || modId === 'wrongSoundtrack'
+        || modId === 'pharmaAd' || modId === 'confessional'
+        || modId === 'cliffhanger' || modId === 'standup'
+        || modId === 'troyMcClure' || modId === 'showtime'
+        || modId === 'closer') {
+      return id === 'blingus' || hasClass('bard', s);
+    }
+    if (modId === 'inspiration' || modId === 'songOfRest') {
+      return hasClass('bard', s);
+    }
+    if (modId === 'healBuff') {
+      return hasCastTab(s) || hasKaraoke(s) || (Array.isArray(s.spells) && s.spells.length > 0);
+    }
+    if (modId === 'trailCall') return hasClass('ranger', s);
+    if (modId === 'focus') return hasClass('monk', s);
+    if (modId === 'surge') return hasClass('sorcerer', s);
+    if (modId === 'feyGambit') return /\bfairy\b|\bfey\b/.test(race);
+    if (modId === 'spell') {
+      return hasCastTab(s) || hasKaraoke(s) || (Array.isArray(s.spells) && s.spells.length > 0);
+    }
+    return true;
+  }
+
   function persistNow() {
+    if (sheet) {
+      sheet.characterId = activeId;
+      roster[activeId] = sheet;
+    }
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(sheet));
+      const payload = {};
+      CHARACTERS.forEach((c) => {
+        if (roster[c.id]) payload[c.id] = roster[c.id];
+      });
+      localStorage.setItem(ROSTER_KEY, JSON.stringify(payload));
+      localStorage.setItem(ACTIVE_KEY, activeId);
+      if (roster.blingus) localStorage.setItem(STORAGE_KEY, JSON.stringify(roster.blingus));
     } catch (e) {
       /* ignore */
     }
     try {
-      window.dispatchEvent(new CustomEvent('blingus-character-change', { detail: { sheet: clone(sheet) } }));
+      window.dispatchEvent(new CustomEvent('blingus-character-change', {
+        detail: { sheet: clone(sheet), characterId: activeId },
+      }));
     } catch (e) {
       /* ignore */
     }
+    renderAllSwitchers();
   }
 
   function save(next) {
@@ -613,15 +1280,84 @@
   }
 
   function reset() {
-    sheet = defaultCharacter();
+    sheet = defaultCharacter(activeId);
     saveImmediate(sheet);
     return sheet;
   }
 
-  function setFromData(data) {
-    sheet = normalize(data);
-    saveImmediate(sheet);
+  function getActiveId() {
+    if (!sheet) load();
+    return activeId;
+  }
+
+  function getRoster() {
+    get();
+    const out = {};
+    CHARACTERS.forEach((c) => {
+      if (roster[c.id]) out[c.id] = clone(roster[c.id]);
+    });
+    return out;
+  }
+
+  function listCharacters() {
+    return CHARACTERS.map((c) => Object.assign({}, c, { active: c.id === getActiveId() }));
+  }
+
+  function setActive(characterId) {
+    const locked = lockedCharacterId();
+    const next = knownCharacterId(locked || characterId);
+    if (!sheet) load();
+    if (next === activeId) return sheet;
+    persistNow();
+    activeId = next;
+    sheet = normalize(roster[next], next);
+    roster[next] = sheet;
+    persistNow();
+    if (renderHost) render(renderHost);
     return sheet;
+  }
+
+  function setFromData(data) {
+    sheet = normalize(data, activeId);
+    if (sheet) sheet.characterId = activeId;
+    saveImmediate(sheet);
+    if (renderHost) render(renderHost);
+    return sheet;
+  }
+
+  function mergeImportedNotes(existing, imported, meta) {
+    const keep = String(existing || '').trim();
+    const add = String(imported || '').trim();
+    const stamp = 'Imported from D&D Beyond' + (meta && meta.fileName ? ' (' + meta.fileName + ')' : '') + '.';
+    const keepIsPlaceholder = /PLACEHOLDER SHEET/.test(keep);
+    const preserve = !keepIsPlaceholder && /TABLE-KNOWN|Witchlight|Phobias:|Quirk:/.test(keep);
+    if (preserve) {
+      const bits = [keep];
+      if (add && keep.indexOf(add.slice(0, 80)) === -1) bits.push(add);
+      if (keep.indexOf('Imported from D&D Beyond') === -1) bits.push(stamp);
+      return bits.join('\n\n');
+    }
+    if (add) return add + (add.indexOf('Imported from D&D Beyond') === -1 ? '\n\n' + stamp : '');
+    return keep || stamp;
+  }
+
+  async function importDdbFile(file) {
+    if (!file) return null;
+    if (!window.DdbSheetImport || !window.DdbSheetImport.parseFile) {
+      throw new Error('Importer is not loaded.');
+    }
+    const result = await window.DdbSheetImport.parseFile(file);
+    if (window.DdbSheetImport.sheetLooksPopulated && !window.DdbSheetImport.sheetLooksPopulated(result.sheet)) {
+      throw new Error(result.error || 'This PDF has no readable stats. D&D Beyond print PDFs are images. Export the character as JSON and import that instead.');
+    }
+    const guessed = window.DdbSheetImport.guessRosterId(result.sheet);
+    if (guessed && guessed !== activeId && !lockedCharacterId()) setActive(guessed);
+    const current = get();
+    const next = Object.assign({}, result.sheet, { characterId: activeId, importedSheet: true });
+    next.notes = mergeImportedNotes(current.notes, result.sheet.notes, result);
+    setFromData(next);
+    result.appliedTo = characterMeta(activeId).label;
+    return result;
   }
 
   function abilityMod(score) {
@@ -646,7 +1382,9 @@
     const a = c.abilities;
     const combat = c.combat;
     const id = c.identity;
+    const speaker = id.name || characterMeta(activeId).label;
     const lines = [
+      `ACTIVE SPEAKER: ${speaker}` + (id.aka ? ` (aka ${id.aka})` : '') + `. Write as this character, not as anyone else.`,
       `Name: ${id.name}` + (id.aka ? ` (aka ${id.aka})` : ''),
       `Level ${id.level} ${id.race} ${id.className}, ${id.alignment}, ${id.background}.`,
       `STATS: STR ${a.str} (${modLabel(a.str)}), DEX ${a.dex} (${modLabel(a.dex)}), CON ${a.con} (${modLabel(a.con)}), INT ${a.int} (${modLabel(a.int)}), WIS ${a.wis} (${modLabel(a.wis)}), CHA ${a.cha} (${modLabel(a.cha)}); proficiency +${combat.proficiency}; AC ${combat.ac}; HP ${combat.hpCurrent}/${combat.hpMax}; Hit Dice ${combat.hitDice}; Speed ${combat.speed}.`,
@@ -660,6 +1398,9 @@
     ];
     if ((c.notes || '').trim()) lines.push(`NOTES: ${c.notes.trim()}`);
     lines.push('Honor this CURRENT CHARACTER SHEET over any older mechanical stats elsewhere in the personality text.');
+    if (activeId !== 'blingus') {
+      lines.push('This is NOT Blingus. Do not use Blingus\'s name-amnesia, clarinet, cloth wings, or Lore bard kit unless this sheet lists them.');
+    }
     return lines.join('\n');
   }
 
@@ -787,7 +1528,18 @@
       const notes = (hit.notes || '').trim();
       parts.push(notes ? `On the standing sheet: ${hit.name} (${notes}).` : `On the standing sheet: ${hit.name}.`);
     } else {
-      parts.push('Not on the standing sheet. Still use THIS exact item for every line. Do not substitute Dagger, Shortbow, Vicious Mockery, or any other kit item.');
+      const keys = classKeys();
+      let hint = 'Do not substitute a different kit item.';
+      if (keys.includes('bard')) {
+        hint = 'Do not substitute Dagger, Shortbow, Vicious Mockery, or any other kit item.';
+      } else if (keys.includes('ranger')) {
+        hint = 'Do not substitute Longbow, Shortsword, Hunter\'s Mark, or any other kit item.';
+      } else if (keys.includes('monk')) {
+        hint = 'Do not substitute Unarmed Strike, Quarterstaff, or any other kit item.';
+      } else if (keys.includes('sorcerer')) {
+        hint = 'Do not substitute Fire Bolt, Chaos Bolt, Fireball, or any other kit item.';
+      }
+      parts.push('Not on the standing sheet. Still use THIS exact item for every line. ' + hint);
     }
     if (family) parts.push(family);
     return parts.join(' ');
@@ -797,16 +1549,74 @@
     return get().spells.slice();
   }
 
+  function getSkillNames() {
+    const fromSheet = (get().skills || []).map((row) => String(row && row.name || '').trim()).filter(Boolean);
+    if (!fromSheet.length) {
+      return [
+        'Acrobatics', 'Animal Handling', 'Arcana', 'Athletics', 'Deception',
+        'History', 'Insight', 'Intimidation', 'Investigation', 'Medicine',
+        'Nature', 'Perception', 'Performance', 'Persuasion', 'Religion',
+        'Sleight of Hand', 'Stealth', 'Survival', 'Thieves\' Tools',
+      ];
+    }
+    const order = [
+      'Acrobatics', 'Animal Handling', 'Arcana', 'Athletics', 'Deception',
+      'History', 'Insight', 'Intimidation', 'Investigation', 'Medicine',
+      'Nature', 'Perception', 'Performance', 'Persuasion', 'Religion',
+      'Sleight of Hand', 'Stealth', 'Survival', 'Thieves\' Tools',
+    ];
+    const have = new Set(fromSheet.map((name) => name.toLowerCase()));
+    const ordered = order.filter((name) => have.has(name.toLowerCase()));
+    const extra = fromSheet.filter((name) => !order.some((known) => known.toLowerCase() === name.toLowerCase()));
+    return ordered.concat(extra);
+  }
+
+  function getClassCombatOptions() {
+    const empty = { slash: [], pierce: [], blunt: [], magic: [] };
+    const id = getActiveId();
+    if (id === 'vadania') {
+      empty.pierce.push({ label: "Van Damme's marks", ids: ["Hunter's Mark", "Extra Attack"] });
+      empty.slash.push({ label: "Van Damme's marks", ids: ["Hunter's Mark", "Extra Attack"] });
+      empty.magic.push({ label: "Van Damme's marks", ids: ["Hunter's Mark"] });
+      return empty;
+    }
+    if (id === 'bruck') {
+      empty.blunt.push({
+        label: "Brawn's focus",
+        ids: ["Flurry of Blows", "Stunning Strike", "Patient Defense", "Step of the Wind", "Crown of Remembrance"],
+      });
+      return empty;
+    }
+    if (id === 'puck') {
+      empty.magic.push({
+        label: "Puke's surges",
+        ids: ["Wild Magic Surge", "Tides of Chaos", "Innate Sorcery", "Fairy Magic"],
+      });
+      return empty;
+    }
+    return empty;
+  }
+
   function getMagicOptions(options) {
     const kinds = options && options.kinds;
     const allow = Array.isArray(kinds) && kinds.length ? new Set(kinds) : null;
     const c = get();
     const spellRows = (c.spells || []).filter((s) => !allow || allow.has(resolveSpellKind(s)));
     const buckets = { attack: [], save: [], damage: [], other: [] };
-    spellRows.forEach((s) => {
-      const name = String(s.name || '').trim();
+    const seen = new Set();
+    function addMagic(row) {
+      const name = String(row && row.name || '').trim();
       if (!name) return;
-      buckets[resolveSpellKind(s)].push(name);
+      const key = name.toLowerCase();
+      if (seen.has(key)) return;
+      const kind = resolveSpellKind(row);
+      if (allow && !allow.has(kind)) return;
+      seen.add(key);
+      buckets[kind].push(name);
+    }
+    spellRows.forEach(addMagic);
+    (c.features || []).forEach((row) => {
+      if (row && row.magicUse) addMagic(row);
     });
     const labels = {
       attack: 'Spell attacks',
@@ -1052,24 +1862,71 @@
     get();
     host.innerHTML = '';
 
+    const meta = characterMeta(activeId);
     const root = el('div', 'character-sheet');
+    const locked = Boolean(lockedCharacterId());
+    let switcher = null;
+    if (!locked) {
+      const cast = el('div', 'character-sheet__cast');
+      cast.appendChild(el('span', 'character-switcher__label', 'Playing as'));
+      switcher = el('div', 'character-switcher chips chips--pills');
+      switcher.setAttribute('data-character-switcher', '1');
+      cast.appendChild(switcher);
+      root.appendChild(cast);
+    }
     const toolbar = el('div', 'character-sheet__toolbar');
-    toolbar.appendChild(el('h2', 'character-sheet__heading', 'Character'));
-    const hint = el('p', 'character-sheet__hint', 'Live sheet for Outcomes and Claude. Edit freely; changes save automatically.');
+    toolbar.appendChild(el('h2', 'character-sheet__heading', meta.label));
+    const hint = el('p', 'character-sheet__hint', locked
+      ? 'Live sheet for Outcomes and Claude. Edits save automatically.'
+      : 'Live sheet for Outcomes and Claude. Switch characters anytime. Edits save automatically.');
     const actions = el('div', 'character-sheet__actions');
     const soundBtn = el('button', 'btn btn--secondary btn--compact', 'Sound off');
     soundBtn.type = 'button';
     if (window.D20Roll?.bindSoundToggle) window.D20Roll.bindSoundToggle(soundBtn);
     actions.appendChild(soundBtn);
-    const resetBtn = el('button', 'btn btn--secondary btn--compact', 'Reset to L5 sheet');
+    const resetBtn = el('button', 'btn btn--secondary btn--compact', 'Reset this sheet');
     resetBtn.type = 'button';
     resetBtn.addEventListener('click', () => {
-      if (!confirm('Reset Blingus\'s sheet to the D&D Beyond level 5 defaults? Your edits will be lost.')) return;
+      const who = characterMeta(activeId).label;
+      if (!confirm('Reset ' + who + '\'s sheet to the starter defaults? Your edits for this character will be lost.')) return;
       reset();
       render(host);
-      if (typeof window.showToast === 'function') window.showToast('Character sheet reset');
+      if (typeof window.showToast === 'function') window.showToast(who + ' sheet reset');
     });
     actions.appendChild(resetBtn);
+    const importBtn = el('button', 'btn btn--secondary btn--compact', 'Import D&D Beyond PDF or JSON');
+    importBtn.type = 'button';
+    importBtn.title = 'Prefer a D&D Beyond character JSON export. Print PDFs are images and usually have no readable stats.';
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.pdf,.json,application/pdf,application/json';
+    fileInput.hidden = true;
+    fileInput.addEventListener('change', async () => {
+      const file = fileInput.files && fileInput.files[0];
+      fileInput.value = '';
+      if (!file) return;
+      importBtn.disabled = true;
+      importBtn.textContent = 'Reading…';
+      try {
+        const result = await importDdbFile(file);
+        const extra = (result.warnings && result.warnings.length) ? ' ' + result.warnings[0] : '';
+        if (typeof window.showToast === 'function') {
+          window.showToast('Imported ' + (result.sheet.identity && result.sheet.identity.name || 'sheet') + ' onto ' + result.appliedTo + '.' + extra);
+        }
+      } catch (err) {
+        if (typeof window.showToast === 'function') {
+          window.showToast(err && err.message ? err.message : 'Could not import that file.');
+        } else {
+          alert(err && err.message ? err.message : 'Could not import that file.');
+        }
+      } finally {
+        importBtn.disabled = false;
+        importBtn.textContent = 'Import D&D Beyond PDF or JSON';
+      }
+    });
+    importBtn.addEventListener('click', () => fileInput.click());
+    actions.appendChild(importBtn);
+    actions.appendChild(fileInput);
     toolbar.appendChild(hint);
     toolbar.appendChild(actions);
     root.appendChild(toolbar);
@@ -1185,7 +2042,7 @@
     notesCard.appendChild(el(
       'p',
       'sheet-empty',
-      'Paste the real sheet, loot, wounds, or anything Claude should remember about Blingus\'s current status.'
+      'Paste the real sheet, loot, wounds, or anything Claude should remember about ' + characterMeta(activeId).label + '\'s current status.'
     ));
     const notes = document.createElement('textarea');
     notes.className = 'sheet-input sheet-input--area sheet-input--notes-large';
@@ -1204,30 +2061,98 @@
     root.appendChild(notesCard);
 
     host.appendChild(root);
+    renderSwitcher(switcher);
+  }
+
+  function updateCharacterTabLabel() {
+    const tab = document.getElementById('characterTabLabel');
+    if (tab) tab.textContent = 'Character · ' + characterMeta(activeId).label;
+  }
+
+  function renderSwitcher(host) {
+    if (!host) return;
+    host.innerHTML = '';
+    host.classList.add('character-switcher', 'chips', 'chips--pills');
+    host.setAttribute('role', 'tablist');
+    host.setAttribute('aria-label', 'Active character');
+    CHARACTERS.forEach((c) => {
+      const btn = el('button', 'chip chip--pill' + (c.id === activeId ? ' chip--active' : ''), c.label);
+      btn.type = 'button';
+      btn.setAttribute('aria-pressed', c.id === activeId ? 'true' : 'false');
+      btn.addEventListener('click', () => {
+        setActive(c.id);
+        if (typeof window.showToast === 'function') window.showToast('Playing as ' + c.label);
+      });
+      host.appendChild(btn);
+    });
+    updateCharacterTabLabel();
+  }
+
+  function renderAllSwitchers() {
+    document.querySelectorAll('[data-character-switcher]').forEach(renderSwitcher);
   }
 
   // Eager load
   load();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', renderAllSwitchers);
+  } else {
+    renderAllSwitchers();
+  }
 
   window.CharacterSheet = {
     STORAGE_KEY,
+    ROSTER_KEY,
+    ACTIVE_KEY,
+    CHARACTERS,
     defaultCharacter,
     load,
     get,
+    getActiveId,
+    getRoster,
+    acceptsRemoteSheet,
+    classKeys,
+    hasClass,
+    isCaster,
+    speakerName,
+    namedNonBard,
+    hasKaraoke,
+    hasSongbook,
+    hasBardic,
+    hasClassLines,
+    classLinesKey,
+    classLinesLabel,
+    classLinesIcon,
+    hasCastTab,
+    hasKitTab,
+    visibleSections,
+    defaultSection,
+    allowsOutcomeMod,
+    lockedCharacterId,
+    getSkillNames,
+    listCharacters,
+    setActive,
     save,
     saveImmediate,
     reset,
     setFromData,
+    importDdbFile,
     toPersonalityBlock,
+    renderSwitcher,
     getRollBonus,
     getWeapons,
     getWeaponsForAttackType,
     getSpells,
     getMagicOptions,
+    getClassCombatOptions,
     resolveSpellKind,
     resolveSpellTargets,
     matchDetail,
     detailBrief,
     render,
   };
+
+  if (window.TabNavigation?.refreshForCharacter) {
+    window.TabNavigation.refreshForCharacter();
+  }
 })();

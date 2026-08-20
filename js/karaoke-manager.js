@@ -428,7 +428,7 @@ window.BlingusKaraoke = (function () {
       toast(data.cached ? 'Playing cached karaoke' : 'Karaoke downloaded!');
       playLocal(videoId, startTime, title, item);
     } catch (e) {
-      toast('Download failed — open YouTube in a new tab instead');
+      toast('Download failed: ' + (e.message || 'open YouTube in a new tab instead'));
       showYouTubeExternalFallback(videoId, startTime, title, item, { autoOpen: true });
     }
   }

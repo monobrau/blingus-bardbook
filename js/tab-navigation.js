@@ -7,15 +7,76 @@
   'use strict';
 
   const TAB_KEY = 'activeTab';
-  const DEFAULT_SECTION = 'spells';
+  const DEFAULT_SECTION = 'outcomes';
   let currentSection = DEFAULT_SECTION;
   let currentCategory = null;
   const collapsedSpellGroups = new Set();
 
-  function validSections() {
-    return Array.from(document.querySelectorAll('.tab[data-section]'))
+  function visibleSectionIds() {
+    if (window.CharacterSheet?.visibleSections) {
+      return window.CharacterSheet.visibleSections();
+    }
+    return Array.from(document.querySelectorAll('.tab[data-section]:not([hidden])'))
       .map((tab) => tab.getAttribute('data-section'))
       .filter(Boolean);
+  }
+
+  function validSections() {
+    return visibleSectionIds();
+  }
+
+  function updateCastChrome() {
+    const sheet = window.CharacterSheet;
+    const who = sheet?.speakerName?.() || 'Character';
+    const subtitle = document.getElementById('bannerSubtitle');
+    const site = window.BlingusSite?.current?.();
+    if (subtitle) {
+      if (site && site.subtitle && site.showSwitcher === false) {
+        subtitle.textContent = site.subtitle;
+      } else {
+        subtitle.textContent = sheet?.hasKaraoke?.()
+          ? 'Song parodies, bardic lines, and Claude-backed table lines'
+          : 'Claude-backed table lines for ' + who;
+      }
+    }
+    const moodQ = document.getElementById('workflowMoodQuestion');
+    if (moodQ) {
+      const hint = moodQ.querySelector('.workflow__hint');
+      const manage = moodQ.querySelector('.catalog-manage-btn');
+      moodQ.textContent = '';
+      moodQ.appendChild(document.createTextNode(who + "'s mood "));
+      if (hint) moodQ.appendChild(hint);
+      moodQ.appendChild(document.createTextNode(' '));
+      if (manage) moodQ.appendChild(manage);
+    }
+  }
+
+  function refreshForCharacter() {
+    const allowed = visibleSectionIds();
+    const classLabel = document.getElementById('classLinesTabLabel');
+    const classTab = document.querySelector('.tab[data-section="classLines"]');
+    if (classLabel && window.CharacterSheet?.classLinesLabel) {
+      classLabel.textContent = window.CharacterSheet.classLinesLabel();
+    }
+    if (classTab && window.CharacterSheet?.classLinesIcon) {
+      const icon = classTab.querySelector('.tab__icon');
+      if (icon) icon.textContent = window.CharacterSheet.classLinesIcon();
+      classTab.setAttribute('data-tooltip', window.CharacterSheet.classLinesLabel() + ' lines');
+    }
+    document.querySelectorAll('.tab[data-section]').forEach((tab) => {
+      const id = tab.getAttribute('data-section');
+      const show = allowed.includes(id);
+      tab.hidden = !show;
+      if (!show) {
+        tab.classList.remove('tab--active');
+        tab.setAttribute('aria-selected', 'false');
+      }
+    });
+    updateCastChrome();
+    if (currentSection && !allowed.includes(currentSection)) {
+      const fallback = window.CharacterSheet?.defaultSection?.() || allowed[0] || DEFAULT_SECTION;
+      switchToSection(fallback);
+    }
   }
 
   function loadSavedSection() {
@@ -55,12 +116,25 @@
 
   function setupNavigation() {
     restoreSectionEarly();
+    refreshForCharacter();
     setupTabs();
     setupChips();
 
     setTimeout(() => {
-      switchToSection(currentSection || DEFAULT_SECTION, true);
+      refreshForCharacter();
+      const allowed = validSections();
+      const start = allowed.includes(currentSection)
+        ? currentSection
+        : (window.CharacterSheet?.defaultSection?.() || allowed[0] || DEFAULT_SECTION);
+      switchToSection(start, true);
     }, 100);
+
+    if (!window.__blingusTabRoleListenerBound) {
+      window.addEventListener('blingus-character-change', () => {
+        refreshForCharacter();
+      });
+      window.__blingusTabRoleListenerBound = true;
+    }
   }
 
   function setupTabs() {
@@ -69,6 +143,7 @@
     tabs.forEach(tab => {
       tab.addEventListener('click', (e) => {
         e.preventDefault();
+        if (tab.hidden) return;
         const section = tab.getAttribute('data-section');
         switchToSection(section);
       });
@@ -84,7 +159,14 @@
     });
   }
 
+  function clampSection(section) {
+    const allowed = validSections();
+    if (section && allowed.includes(section)) return section;
+    return window.CharacterSheet?.defaultSection?.() || allowed[0] || DEFAULT_SECTION;
+  }
+
   function switchToSection(section, isInitial = false) {
+    section = clampSection(section);
     currentSection = section;
     saveSection(section);
 
@@ -319,6 +401,8 @@
     switchToCategory,
     getCurrentSection: () => currentSection,
     getCurrentCategory: () => currentCategory,
+    visibleSections: visibleSectionIds,
+    refreshForCharacter,
     cleanup
   };
 

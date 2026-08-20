@@ -95,6 +95,30 @@ OUTCOME_LABELS = {
     "toast": "Raised-glass toast the player can speak at the table",
     "motivation": "Motivational speech the player can deliver at the table (pep talk, rally, Bardic Inspiration energy)",
     "introduction": "Chaucer-style herald introduction (ornate party/NPC presentation)",
+    "paulHarvey": "Paul Harvey recap (radio newsman closer)",
+    "productPlacement": "Product placement (sudden sponsor read)",
+    "infomercial": "Infomercial pitch",
+    "wrongSoundtrack": "Wrong soundtrack",
+    "pharmaAd": "Pharma ad (benefit pitch, then real side effects, ask-your-cleric)",
+    "confessional": "Reality-show confessional",
+    "cliffhanger": "Cliffhanger balladeer freeze-frame",
+    "standup": "Standup one-liner about this scene",
+    "roast": "Comedy-club roast",
+    "troyMcClure": "Troy McClure credit-reel intro",
+    "showtime": "Showtime (opens a performance)",
+    "closer": "Closer (good-night / walk-off)",
+    "inspiration": "Bardic Inspiration spend",
+    "songOfRest": "Song of Rest",
+    "healBuff": "Heal / Buff verbal component",
+    "flirt": "Flirt / pickup / dedication",
+    "graffiti": "Written graffiti tag",
+    "travelBanter": "Travel banter / companion bark",
+    "rally": "Cinematic pre-battle rally",
+    "downed": "Last Breath (0 HP)",
+    "eulogy": "Eulogy (remembrance speech)",
+    "yelpReview": "Yelp review",
+    "previouslyOn": "Season recap / previously on",
+    "natureDoc": "Nature-doc whisper",
 }
 
 
@@ -354,7 +378,13 @@ ITEM IN PLAY FOR THIS BATCH (wizard Detail is authoritative):
 - Every combat line must be recognizably THIS item. Do not replace it with a different weapon or spell, even if the standing sheet lists something else.
 """
 
-    force_parody = bool(body.get("forceParody"))
+    allow_parody = bool(body.get("allowParody"))
+    force_parody = bool(body.get("forceParody")) and allow_parody
+    parody_rule = (
+        "- OCCASIONAL SONG PARODY: in a minority of lines (about 0-1 per batch), Blingus may weave a recognizable song-parody snatch into the beat in his karaoke-bard style. Most lines stay unsung. When Force Song Parody is active, ignore this rarity and do every line."
+        if allow_parody
+        else "- Do not write song parodies, karaoke hooks, or sung lyric snatches. This speaker is not a karaoke bard."
+    )
     force_parody_block = ""
     if force_parody:
         force_parody_block = """
@@ -438,7 +468,7 @@ HOUSE RULES:
 - If Target focus lists more than one kind (enemy and ally, NPC and object, environment, etc.), every line must include those kinds. They are all in play. Do not drop one. Do not assign a headcount to each kind.
 - If Spell kind is "damage with no spell attack roll": the harm just happens (darts, a cube of blades, an area pulse). Do NOT write a to-hit, a spell attack roll, or a crit swing. A crit-hit outcome is the effect landing especially hard; a crit-fail is the effect going wrong (wrong spot, fizzle, friendly fire), not a missed attack roll.
 - If Spell kind is "saving throw": do not write a spell attack roll. The save result above is authoritative.
-- OCCASIONAL SONG PARODY: in a minority of lines (about 0-1 per batch), Blingus may weave a recognizable song-parody snatch into the beat in his karaoke-bard style. Most lines stay unsung. When Force Song Parody is active, ignore this rarity and do every line.
+{parody_rule}
 {sheet_block}{kit_match_block}{rating_block}{party_mode}{force_parody_block}"""
 
     user = f"""Write {count} lines for this selection:

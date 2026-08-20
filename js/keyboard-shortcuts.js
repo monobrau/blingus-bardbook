@@ -26,11 +26,13 @@
       return true;
     },
 
-    // Section shortcuts (1-4: Spells, Bardic, Outcomes, Character)
-    '1': () => selectSectionId('spells'),
-    '2': () => selectSectionId('bardic'),
-    '3': () => selectSectionId('outcomes'),
-    '4': () => selectSectionId('character'),
+    // Section shortcuts follow the visible tabs for the active character
+    '1': () => selectVisibleSection(0),
+    '2': () => selectVisibleSection(1),
+    '3': () => selectVisibleSection(2),
+    '4': () => selectVisibleSection(3),
+    '5': () => selectVisibleSection(4),
+    '6': () => selectVisibleSection(5),
 
     // Help modal
     '?': () => {
@@ -61,6 +63,22 @@
       return false;
     }
   };
+
+  function visibleSectionIds() {
+    if (window.TabNavigation?.visibleSections) {
+      return window.TabNavigation.visibleSections();
+    }
+    if (window.CharacterSheet?.visibleSections) {
+      return window.CharacterSheet.visibleSections();
+    }
+    return ['songs', 'outcomes', 'character'];
+  }
+
+  function selectVisibleSection(index) {
+    const ids = visibleSectionIds();
+    if (!ids[index]) return false;
+    return selectSectionId(ids[index]);
+  }
 
   function selectSectionId(section) {
     if (isInputFocused()) return false;
@@ -146,14 +164,7 @@
               <span>Close modal / Clear selection</span>
 
               <strong style="grid-column: 1 / -1; margin-top: 8px; color: var(--accent); border-bottom: 1px solid var(--burnt); padding-bottom: 4px;">Sections</strong>
-              <kbd>1</kbd>
-              <span>Spells</span>
-              <kbd>2</kbd>
-              <span>Bardic</span>
-              <kbd>3</kbd>
-              <span>Outcomes (incl. Vicious Mockery)</span>
-              <kbd>4</kbd>
-              <span>Character</span>
+              <div id="keyboardHelpSections" style="grid-column: 1 / -1; display: grid; grid-template-columns: auto 1fr; gap: 12px 20px; align-items: center;"></div>
 
               <strong style="grid-column: 1 / -1; margin-top: 8px; color: var(--accent); border-bottom: 1px solid var(--burnt); padding-bottom: 4px;">Other</strong>
               <kbd>Ctrl+D</kbd>
@@ -198,6 +209,29 @@
         if (e.key === 'Escape' && modal.classList.contains('show')) {
           closeModal(modal);
         }
+      });
+    }
+
+    const sectionHost = modal.querySelector('#keyboardHelpSections');
+    if (sectionHost) {
+      const labels = {
+        spells: 'Karaoke',
+        songs: 'Karaoke',
+        bardic: 'Bardic',
+        classLines: window.CharacterSheet?.classLinesLabel?.() || 'Class',
+        kit: 'Attacks',
+        cast: 'Spells',
+        outcomes: 'Outcomes',
+        character: 'Character',
+      };
+      sectionHost.innerHTML = '';
+      visibleSectionIds().forEach((id, index) => {
+        const kbd = document.createElement('kbd');
+        kbd.textContent = String(index + 1);
+        const span = document.createElement('span');
+        span.textContent = labels[id] || id;
+        sectionHost.appendChild(kbd);
+        sectionHost.appendChild(span);
       });
     }
 
