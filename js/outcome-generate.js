@@ -13,6 +13,15 @@
   const ENDPOINT = (window.BlingusConstants?.API?.GENERATE_ENDPOINT) || '/api/generate-outcome.php';
   const DEFAULT_MOOD = 'playful';
   const DEFAULT_RATING = '';
+  const HUMOR_KEY = 'blingusHumorV1';
+  const DEFAULT_HUMOR = 3;
+  const HUMOR_LABELS = {
+    1: '1 · Straight',
+    2: '2 · Dry',
+    3: '3 · Table',
+    4: '4 · Big swing',
+    5: '5 · Full bit',
+  };
 
   const PREVIOUS_DEFAULT_PERSONALITY = [
     'You are Blingus the Wayfarer: level 5 College of Lore fairy bard, Chaotic Good, Wayfarer background. Small fey. The world\'s a big place, and big problems don\'t solve themselves.',
@@ -44,9 +53,14 @@
     'Tales of Sir Whats-his-face: Glim the goblin in a pizza uniform once tried to deliver a sausage that was a pungent mushroom, following a shiny talking box. Call Sir Talavar his royal nobleness when it fits.',
   ].join(' ');
 
-  const DEFAULT_PERSONALITY = [
+  const STALE_PERSONALITY_PRE_SESSION3 = [
     STALE_PERSONALITY_PRE_FAIRY_INSULT,
     'Fairy-twin insult bit with Puck: a lot of the time, when you two insult each other, you pretend you ARE Puck. Speak first person as Puck and say nasty, perverted things about "yourself" (meaning him). He does the same back as you. Honor the content rating. Do not use this bit on Brawn, Vadania, or Bo.',
+  ].join(' ');
+
+  const DEFAULT_PERSONALITY = [
+    STALE_PERSONALITY_PRE_SESSION3,
+    'Table-known now: Mishka supervised Granny into the oven; Elkhorn of Valor\'s Call; Lamorna and Elidon\'s stolen horn; Amadore the dandelion in Yon; unconscious cloaked attacker on the lake shore. You forgot the two youths\' names at Loomlurch. Defer details to the live sheet notes. Do not invent unpublished Witchlight.',
   ].join(' ');
 
   const SHARED_VOICE_RULES = [
@@ -64,7 +78,7 @@
     SHARED_VOICE_RULES,
   ].join(' ');
 
-  const DEFAULT_PERSONALITY_VADANIA = [
+  const STALE_PERSONALITY_VADANIA_PRE_SESSION3 = [
     'You are Vadania Amakiir, also called Van Damme or Vandan when the table feels like it: level 5 elf ranger. Write as Vadania, not as Blingus.',
     'Voice: journal-steady. Dry, precise, a little lethal. You write like the ink might tremble even when the hand does not. Track first, talk second. Humor is aimed, not performed. You do not karaoke, fish for applause, or forget names on purpose.',
     'Combat style: bow and patience. Longbow when you can choose the range, a blade if they close. Ranger spells if the sheet lists them (Hunter\'s Mark, trail work). Your journal mentions prodding chests with a spear; honor the live sheet for what is in your hands. You are not a Lore bard and you do not cast Vicious Mockery.',
@@ -73,6 +87,11 @@
     'Table-known from your seat: someone slipped you a note in Sylvan at the Stinky Court. You notice the door. You noticed the chairs.',
     'Party from your seat: Blingus the Wayfarer (loud fairy bard, friend, liability), Puck Pinewhistle (wild-magic fairy, "Puke" is fine, fire lives in his fingers), Brawn O\'Neil (dwarven monk, Crown of Remembrance, planted). Bo is the NPC who brought you together (toad-cauldron era, enlarge heroics), not a fourth PC. You are the one who notices the door.',
     SHARED_VOICE_RULES,
+  ].join(' ');
+
+  const DEFAULT_PERSONALITY_VADANIA = [
+    STALE_PERSONALITY_VADANIA_PRE_SESSION3,
+    'Session 3 from your seat: you declined the unicorn-costume rear, then took it for the lake mist. You fumbled the flower mound and redeemed it with the bow.',
   ].join(' ');
 
   const STALE_PERSONALITY_BRUCK = [
@@ -95,9 +114,19 @@
     SHARED_VOICE_RULES,
   ].join(' ');
 
-  const DEFAULT_PERSONALITY_BRUCK = [
+  const STALE_PERSONALITY_BRUCK_PRE_URKEL = [
     STALE_PERSONALITY_BRUCK_PRE_OH_WELL,
     'Oh well: sometimes, after you do horrific violence or watch it done to someone else, you say "Oh well!" like you are indifferent, with a sarcastic shrug-grin. Do not invent that the violence happened unless the scene, Detail, or Name already has it. Not every line. Honor the content rating for how graphic it gets.',
+  ].join(' ');
+
+  const STALE_PERSONALITY_BRUCK_PRE_SESSION3 = [
+    STALE_PERSONALITY_BRUCK_PRE_URKEL,
+    'Did I do that: sometimes, after you caused the mess, the crit, or the violence, you say "Did I do that?" like you are surprised and a little proud. High, innocent, sarcastic. Rotate with "Oh well!" Do not stack both in one line. Do not name Steve Urkel. Do not invent that you caused it unless the scene, Detail, or Name already has it. Not every line.',
+  ].join(' ');
+
+  const DEFAULT_PERSONALITY_BRUCK = [
+    STALE_PERSONALITY_BRUCK_PRE_SESSION3,
+    'Session 3 from your seat: you tanked three redcaps (party took zero) and you were the first one stuffed in the unicorn-costume rear. The insult flower mound grappled you.',
   ].join(' ');
 
   const STALE_PERSONALITY_PUCK = [
@@ -118,9 +147,15 @@
     SHARED_VOICE_RULES,
   ].join(' ');
 
-  const DEFAULT_PERSONALITY_PUCK = [
+  const STALE_PERSONALITY_PUCK_PRE_SESSION3 = [
     STALE_PERSONALITY_PUCK_PRE_FAIRY_INSULT,
     'Fairy-twin insult bit with Blingus: a lot of the time, when you two insult each other, you pretend you ARE Blingus. Speak first person as Blingus and say nasty, perverted things about "yourself" (meaning him). He does the same back as you. Honor the content rating. Do not steal his name-amnesia bit while doing this. Do not use this bit on Brawn, Vadania, or Bo.',
+  ].join(' ');
+
+  const DEFAULT_PERSONALITY_PUCK = [
+    STALE_PERSONALITY_PUCK_PRE_SESSION3,
+    'Carnival: you were named Witchlight Monarch. Blingus pickpocketed Witch\'s watch while you held the spotlight. Dirlagraun kept it. Do not invent whether the watch was given back.',
+    'Session 3 from your seat: you intimidated the ragdoll by threatening Granny\'s unconscious head. Careful Fireball on the flower mound. Witch Bolt as the green dragon fled. You wore the unicorn costume head.',
   ].join(' ');
 
   const DEFAULT_PERSONALITIES = {
@@ -139,7 +174,7 @@
     'Vadania Amakiir (elven ranger; the table calls them Vandan, Van Damme, or whatever feels right that day),',
     'and Bo (toad-cauldron era, enlarge heroics, dragon breath at Granny; closest thing Blingus has to family / a mentor, Zybilna-silent warlock flavor when it fits).',
     'Habits: chronic NPC name-amnesia (Sir Whats-his-face, including swapping Vadania nicknames); soft spot for fairy dragons (Sir Talavar); distrust chairs after the mimic; joke about mud muffins, the Stinky Court, and the marching-band near-wipe.',
-    'TABLE-KNOWN PRISMEER ONLY: Hither swamp and Bavlorna still alive (need her yarn); Skabatha/Granny Nightshade of Thither is dead (oven); Endelyn of Yon next; Zybilna frozen in the Palace of Heart\'s Desire; Elidon\'s stolen horn is the key; Lamorna the unicorn; do not invent unpublished Witchlight plot past these notes.',
+    'TABLE-KNOWN PRISMEER ONLY: Hither swamp and Bavlorna still alive (need her yarn); Skabatha/Granny Nightshade of Thither is dead (oven); Endelyn of Yon next, mountain-top theater of puppets; Zybilna frozen in the Palace of Heart\'s Desire; Elidon\'s stolen horn is the key; Lamorna the unicorn; do not invent unpublished Witchlight plot past these notes.',
     'Prose: witty and concrete, not purple. One clear action or beat per line.',
     'Never use em dashes or en dashes. Always capitalize the pronoun I.',
   ].join(' ');
@@ -256,6 +291,8 @@
   let moodChipsEl = null;
   let moodInputEl = null;
   let ratingChipsEl = null;
+  let humorSliderEl = null;
+  let humorHintEl = null;
   let moodBound = false;
 
   function normalizePersonalityWs(text) {
@@ -286,6 +323,7 @@
   function isBlingusDefaultText(text) {
     const n = normalizePersonalityWs(text);
     return n === normalizePersonalityWs(DEFAULT_PERSONALITY)
+      || n === normalizePersonalityWs(STALE_PERSONALITY_PRE_SESSION3)
       || n === normalizePersonalityWs(STALE_PERSONALITY_PRE_FAIRY_INSULT)
       || n === normalizePersonalityWs(DEFAULT_PERSONALITY_PRE_FEYWILD)
       || n === normalizePersonalityWs(STALE_DEFAULT_PERSONALITY)
@@ -297,6 +335,7 @@
     const n = normalizePersonalityWs(text);
     if (!n) return '';
     if (n === normalizePersonalityWs(DEFAULT_PERSONALITY_PUCK)
+      || n === normalizePersonalityWs(STALE_PERSONALITY_PUCK_PRE_SESSION3)
       || n === normalizePersonalityWs(STALE_PERSONALITY_PUCK_PRE_FAIRY_INSULT)
       || n === normalizePersonalityWs(STALE_PERSONALITY_PUCK)
       || /^you are puck pinewhistle\b/i.test(n)
@@ -304,11 +343,14 @@
       return 'puck';
     }
     if (n === normalizePersonalityWs(DEFAULT_PERSONALITY_VADANIA)
+      || n === normalizePersonalityWs(STALE_PERSONALITY_VADANIA_PRE_SESSION3)
       || n === normalizePersonalityWs(STALE_PERSONALITY_VADANIA)
       || /^you are vadania\b/i.test(n)) {
       return 'vadania';
     }
     if (n === normalizePersonalityWs(DEFAULT_PERSONALITY_BRUCK)
+      || n === normalizePersonalityWs(STALE_PERSONALITY_BRUCK_PRE_SESSION3)
+      || n === normalizePersonalityWs(STALE_PERSONALITY_BRUCK_PRE_URKEL)
       || n === normalizePersonalityWs(STALE_PERSONALITY_BRUCK_PRE_OH_WELL)
       || n === normalizePersonalityWs(STALE_PERSONALITY_BRUCK)
       || /^you are bruck\b/i.test(n)
@@ -335,21 +377,28 @@
       || normalizePersonalityWs(value) === normalizePersonalityWs(STALE_DEFAULT_PERSONALITY)
       || normalizePersonalityWs(value) === normalizePersonalityWs(DEFAULT_PERSONALITY_PRE_FEYWILD)
       || normalizePersonalityWs(value) === normalizePersonalityWs(STALE_PERSONALITY_PRE_FAIRY_INSULT)
+      || normalizePersonalityWs(value) === normalizePersonalityWs(STALE_PERSONALITY_PRE_SESSION3)
     )) {
       return DEFAULT_PERSONALITY;
     }
-    if (who === 'vadania' && normalizePersonalityWs(value) === normalizePersonalityWs(STALE_PERSONALITY_VADANIA)) {
+    if (who === 'vadania' && (
+      normalizePersonalityWs(value) === normalizePersonalityWs(STALE_PERSONALITY_VADANIA)
+      || normalizePersonalityWs(value) === normalizePersonalityWs(STALE_PERSONALITY_VADANIA_PRE_SESSION3)
+    )) {
       return DEFAULT_PERSONALITY_VADANIA;
     }
     if (who === 'bruck' && (
       normalizePersonalityWs(value) === normalizePersonalityWs(STALE_PERSONALITY_BRUCK)
       || normalizePersonalityWs(value) === normalizePersonalityWs(STALE_PERSONALITY_BRUCK_PRE_OH_WELL)
+      || normalizePersonalityWs(value) === normalizePersonalityWs(STALE_PERSONALITY_BRUCK_PRE_URKEL)
+      || normalizePersonalityWs(value) === normalizePersonalityWs(STALE_PERSONALITY_BRUCK_PRE_SESSION3)
     )) {
       return DEFAULT_PERSONALITY_BRUCK;
     }
     if (who === 'puck' && (
       normalizePersonalityWs(value) === normalizePersonalityWs(STALE_PERSONALITY_PUCK)
       || normalizePersonalityWs(value) === normalizePersonalityWs(STALE_PERSONALITY_PUCK_PRE_FAIRY_INSULT)
+      || normalizePersonalityWs(value) === normalizePersonalityWs(STALE_PERSONALITY_PUCK_PRE_SESSION3)
     )) {
       return DEFAULT_PERSONALITY_PUCK;
     }
@@ -506,7 +555,7 @@
       moodInputEl.classList.toggle('workflow__name-input--active', mood.id === CUSTOM_MOOD_ID);
     }
     try {
-      window.dispatchEvent(new CustomEvent('blingus-mood-change', { detail: { mood: mood.id } }));
+      window.dispatchEvent(new CustomEvent('blingus-mood-change', { detail: { mood: mood.id, fromInput } }));
     } catch (e) {
       /* ignore */
     }
@@ -564,6 +613,50 @@
     return next;
   }
 
+  function clampHumor(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return DEFAULT_HUMOR;
+    return Math.min(5, Math.max(1, Math.round(n)));
+  }
+
+  function getHumor() {
+    try {
+      const stored = localStorage.getItem(HUMOR_KEY);
+      if (stored != null && stored !== '') return clampHumor(stored);
+    } catch (e) {
+      /* ignore */
+    }
+    return DEFAULT_HUMOR;
+  }
+
+  function getHumorMeta(value = getHumor()) {
+    const n = clampHumor(value);
+    return { id: n, label: HUMOR_LABELS[n] || HUMOR_LABELS[DEFAULT_HUMOR] };
+  }
+
+  function syncHumorSlider() {
+    const n = getHumor();
+    if (humorSliderEl) humorSliderEl.value = String(n);
+    if (humorHintEl) humorHintEl.textContent = HUMOR_LABELS[n] || '';
+  }
+
+  function setHumor(value) {
+    const next = clampHumor(value);
+    try {
+      localStorage.setItem(HUMOR_KEY, String(next));
+    } catch (e) {
+      /* ignore */
+    }
+    clearLastResult();
+    syncHumorSlider();
+    try {
+      window.dispatchEvent(new CustomEvent('blingus-humor-change', { detail: { humor: next } }));
+    } catch (e) {
+      /* ignore */
+    }
+    return next;
+  }
+
   function baseSelectionKey(selection) {
     const env = Array.isArray(selection.environment)
       ? selection.environment.join(',')
@@ -581,6 +674,8 @@
       selection.name || '',
       selection.mood || getMood(),
       selection.rating || getRating() || 'default',
+      selection.humor || getHumor(),
+      selection.yelpStars || 0,
       selection.combatRound ? '6s' : 'free',
       selection.pace || '',
     ].join('|');
@@ -643,9 +738,12 @@
     moodChipsEl = document.getElementById('workflowMoodChips');
     moodInputEl = document.getElementById('workflowMoodInput');
     ratingChipsEl = document.getElementById('workflowRatingChips');
+    humorSliderEl = document.getElementById('workflowHumorSlider');
+    humorHintEl = document.getElementById('workflowHumorHint');
     if (moodBound) {
       renderMoodChips();
       renderRatingChips();
+      syncHumorSlider();
       syncMoodInput();
       return;
     }
@@ -658,6 +756,11 @@
         if (moodInputEl.value.trim()) setCustomMood(moodInputEl.value);
       });
     }
+    if (humorSliderEl) {
+      humorSliderEl.addEventListener('input', () => {
+        setHumor(humorSliderEl.value);
+      });
+    }
     window.addEventListener('blingus-character-change', () => {
       getPersonality();
       renderMoodChips();
@@ -666,6 +769,7 @@
     getPersonality();
     renderMoodChips();
     renderRatingChips();
+    syncHumorSlider();
     syncMoodInput();
   }
 
@@ -703,6 +807,8 @@
       mood: mood.id === CUSTOM_MOOD_ID ? getCustomMoodText().slice(0, 40) : mood.id,
       moodPrompt: mood.prompt,
       rating: selection.rating || getRating(),
+      humor: selection.humor || getHumor(),
+      yelpStars: Number(selection.yelpStars) || 0,
       count: selection.count || 5,
       pace: selection.pace || '',
       combatRound: Boolean(selection.combatRound),
@@ -853,6 +959,9 @@
     getRating,
     getRatingMeta,
     setRating,
+    getHumor,
+    getHumorMeta,
+    setHumor,
     initMoodUI,
     renderMoodChips,
     renderRatingChips,

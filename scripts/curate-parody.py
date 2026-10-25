@@ -154,6 +154,10 @@ def score_parody(item: dict) -> int:
         score -= 2
     if re.search(r"contain 'em.*sustain 'em", t, re.I):
         score -= 3
+    if re.search(r";\s*(bonus|add the|pass that|I minus|I tax|I shave|I dock|that's the|now you're|numbers bow)", t, re.I):
+        score -= 3
+    if re.search(r"\b(oomph|trope|hymn|that's the call|that's the crime|that's the primer|extra oomph|numbers bow)\b", t, re.I):
+        score -= 3
 
     return score
 

@@ -179,49 +179,50 @@
   }
 
   const OUTCOME_MODS = [
-    { id: 'roleplay', label: '🎭 Roleplay', group: 'scene' },
-    { id: 'meanwhile', label: '🧚 Meanwhile', group: 'scene' },
-    { id: 'spell', label: '✨ Spell', group: 'scene' },
-    { id: 'hit', label: '⚔️ Crit Hit', group: 'scene' },
-    { id: 'fail', label: '💥 Crit Fail', group: 'scene' },
-    { id: 'success', label: '✅ Success', group: 'scene' },
-    { id: 'failure', label: '❌ Failure', group: 'scene' },
-    { id: 'battleCry', label: '📢 Battle Cry', group: 'speech' },
-    { id: 'mockery', label: '🗡️ Vicious Mockery', group: 'speech' },
-    { id: 'cuttingWords', label: '✂️ Cutting Words', group: 'speech' },
-    { id: 'trailCall', label: '🏹 Trail Call', group: 'speech' },
-    { id: 'focus', label: '👊 Focus', group: 'speech' },
-    { id: 'surge', label: '🌀 Wild Surge', group: 'speech' },
-    { id: 'insult', label: '💬 Insult', group: 'speech' },
-    { id: 'compliment', label: '💬 Compliment', group: 'speech' },
-    { id: 'toast', label: '🥂 Toast', group: 'speech' },
-    { id: 'motivation', label: '📣 Motivational Speech', group: 'speech' },
-    { id: 'introduction', label: '🎭 Chaucer Intro', group: 'speech' },
-    { id: 'feyGambit', label: '🧚 Fey Gambit', group: 'speech' },
-    { id: 'paulHarvey', label: '📻 Paul Harvey', group: 'speech' },
-    { id: 'productPlacement', label: '📺 Product Placement', group: 'speech' },
-    { id: 'infomercial', label: '📣 Infomercial', group: 'speech' },
-    { id: 'wrongSoundtrack', label: '🎵 Wrong Soundtrack', group: 'speech' },
-    { id: 'pharmaAd', label: '💊 Pharma Ad', group: 'speech' },
-    { id: 'confessional', label: '🎥 Confessional', group: 'speech' },
-    { id: 'cliffhanger', label: '🤠 Cliffhanger', group: 'speech' },
-    { id: 'standup', label: '🎤 Standup', group: 'speech' },
-    { id: 'roast', label: '🔥 Roast', group: 'speech' },
-    { id: 'troyMcClure', label: '🌟 Troy McClure', group: 'speech' },
-    { id: 'showtime', label: '🎪 Showtime', group: 'speech' },
-    { id: 'closer', label: '🌙 Closer', group: 'speech' },
-    { id: 'inspiration', label: '🎲 Inspiration', group: 'speech' },
-    { id: 'songOfRest', label: '🎵 Song of Rest', group: 'speech' },
-    { id: 'healBuff', label: '💚 Heal / Buff', group: 'speech' },
-    { id: 'flirt', label: '💋 Flirt', group: 'speech' },
-    { id: 'graffiti', label: '🖌️ Graffiti', group: 'speech' },
-    { id: 'travelBanter', label: '🧭 Travel Banter', group: 'speech' },
-    { id: 'rally', label: '📯 Rally', group: 'speech' },
-    { id: 'downed', label: '😵 Last Breath', group: 'speech' },
-    { id: 'eulogy', label: '⚱️ Eulogy', group: 'speech' },
-    { id: 'yelpReview', label: '⭐ Yelp Review', group: 'speech' },
-    { id: 'previouslyOn', label: '📺 Previously On', group: 'speech' },
-    { id: 'natureDoc', label: '🌿 Nature Doc', group: 'speech' },
+    { id: 'roleplay', label: '🎭 Roleplay', group: 'scene', hint: 'You chose to do something. A directed beat, not a speech. Use when you know what you are attempting.' },
+    { id: 'meanwhile', label: '🧚 Meanwhile', group: 'scene', hint: 'The DM asked what you are doing and you froze. An idle habit already in progress. Not a useful job.' },
+    { id: 'spell', label: '✨ Spell', group: 'scene', hint: 'You are casting the named spell on purpose. Not a skill check and not a weapon crit.' },
+    { id: 'hit', label: '⚔️ Crit Hit', group: 'scene', hint: 'The crit landed. Narrate the hit on the target.' },
+    { id: 'fail', label: '💥 Crit Fail', group: 'scene', hint: 'The crit fumbled. Narrate it going wrong.' },
+    { id: 'success', label: '✅ Success', group: 'scene', hint: 'The skill check worked. Narrate the success.' },
+    { id: 'failure', label: '❌ Failure', group: 'scene', hint: 'The skill check failed. Narrate the miss or fumble.' },
+    { id: 'battleCry', label: '📢 Battle Cry', group: 'speech', hint: 'Short shout before or during a fight. One breath. Not a pep talk and not pre-battle oratory.' },
+    { id: 'mockery', label: '🗡️ Vicious Mockery', group: 'speech', hint: 'The cantrip itself. Read this aloud as the verbal component. Not a generic insult.' },
+    { id: 'cuttingWords', label: '✂️ Cutting Words', group: 'speech', hint: 'Lore reaction. Spoken barb that subtracts a Bardic Inspiration die from a seen attack, check, or damage. Not Inspiration (that boosts an ally).' },
+    { id: 'trailCall', label: '🏹 Trail Call', group: 'speech', hint: 'Ranger warning, mark, or hunt cue you can read aloud. Not mockery and not a herald intro.' },
+    { id: 'focus', label: '👊 Focus', group: 'speech', hint: 'Monk ki spend: Flurry, Stunning Strike, Patient Defense, or Step of the Wind. Not a spell and not a pep talk.' },
+    { id: 'surge', label: '🌀 Wild Surge', group: 'speech', hint: 'The weave pops. Use when Wild Magic is in play. Do not invent a full surge table unless the spark jumped.' },
+    { id: 'insult', label: '💬 Insult', group: 'speech', hint: 'A witty jab. Not Vicious Mockery and not Cutting Words.' },
+    { id: 'compliment', label: '💬 Compliment', group: 'speech', hint: 'Warm praise in this character\'s voice. Not a toast and not a flirt.' },
+    { id: 'toast', label: '🥂 Toast', group: 'speech', hint: 'Glass up. A speakable toast for a person, win, place, or the dead. Not a compliment-only line.' },
+    { id: 'motivation', label: '📣 Motivational Speech', group: 'speech', hint: 'Pep talk or rally energy to the table. Not Battle Cry, not Inspiration spend, not cinematic Rally.' },
+    { id: 'introduction', label: '🎭 Chaucer Intro', group: 'speech', hint: 'Ornate herald presentation. Use to introduce someone. Not Showtime.' },
+    { id: 'feyGambit', label: '🧚 Fey Gambit', group: 'speech', hint: 'Bluff that fairy custom binds them: rule of three, reciprocity, true name, or octave. Selling mystique, not confirmed law.' },
+    { id: 'paulHarvey', label: '📻 Paul Harvey', group: 'speech', hint: 'Radio recap closer. And now you know the rest of the story. Table-known beats only.' },
+    { id: 'productPlacement', label: '📺 Product Placement', group: 'speech', hint: 'Sudden sincere sponsor read. A brand plug, not an infomercial and not Paul Harvey.' },
+    { id: 'infomercial', label: '📣 Infomercial', group: 'speech', hint: 'But wait, there is more. Operators standing by. Pitch voice. Not Product Placement.' },
+    { id: 'wrongSoundtrack', label: '🎵 Wrong Soundtrack', group: 'speech', hint: 'Starts the wrong genre for this moment and will not apologize.' },
+    { id: 'pharmaAd', label: '💊 Pharma Ad', group: 'speech', hint: 'Warm benefit pitch, then a deadpan side-effect rattle from the real spell or item.' },
+    { id: 'confessional', label: '🎥 Confessional', group: 'speech', hint: 'Reality-show talking head to an unseen camera. Their version contradicts what the table saw.' },
+    { id: 'cliffhanger', label: '🤠 Cliffhanger', group: 'speech', hint: 'Freeze-frame balladeer. Heap of trouble, we will be right back.' },
+    { id: 'standup', label: '🎤 Standup', group: 'speech', hint: 'One-sentence vaudeville chestnut about THIS scene. Punch last.' },
+    { id: 'roast', label: '🔥 Roast', group: 'speech', hint: 'Comedy-club bit, not a one-liner. Not Insult and not Vicious Mockery.' },
+    { id: 'troyMcClure', label: '🌟 Troy McClure', group: 'speech', hint: 'You might remember me from such [category] as [title] and [title]. Credit-reel intro.' },
+    { id: 'showtime', label: '🎪 Showtime', group: 'speech', hint: 'Opens a performance and introduces himself to the actual audience. Not a Chaucer intro.' },
+    { id: 'closer', label: '🌙 Closer', group: 'speech', hint: 'Good-night / walk-off. Opposite of Showtime.' },
+    { id: 'inspiration', label: '🎲 Inspiration', group: 'speech', hint: 'Spend a Bardic Inspiration die. Spoken line to the named recipient. Not Motivational Speech and not Cutting Words.' },
+    { id: 'songOfRest', label: '🎵 Song of Rest', group: 'speech', hint: 'Short-rest recovery song. Not a Meanwhile tune-up.' },
+    { id: 'storytime', label: '📖 Storytime', group: 'speech', hint: 'Invent a tale and tell it. Not Previously On, not Paul Harvey, not Showtime.' },
+    { id: 'healBuff', label: '💚 Heal / Buff', group: 'speech', hint: 'Verbal component for Healing Word or a named buff. One breath in battle.' },
+    { id: 'flirt', label: '💋 Flirt', group: 'speech', hint: 'Pickup, dedication, or across-the-room line. Not a Compliment.' },
+    { id: 'graffiti', label: '🖌️ Graffiti', group: 'speech', hint: 'Written tag, 2 to 8 words. Not spoken.' },
+    { id: 'travelBanter', label: '🧭 Travel Banter', group: 'speech', hint: 'Overworld companion bark while walking. Not Meanwhile and not Nature Doc.' },
+    { id: 'rally', label: '📯 Rally', group: 'speech', hint: 'Cinematic pre-battle oratory. Not Motivational Speech and not Battle Cry.' },
+    { id: 'downed', label: '😵 Last Breath', group: 'speech', hint: 'You are at 0 HP. Last words. Do not kill party members. Not a eulogy.' },
+    { id: 'eulogy', label: '⚱️ Eulogy', group: 'speech', hint: 'Remembrance for the named dead or the empty chair. Not a toast. Do not invent a death.' },
+    { id: 'yelpReview', label: '⭐ Yelp Review', group: 'speech', hint: 'Pick 1 to 5 stars, then review the place. Service, bathrooms, would not stay again.' },
+    { id: 'previouslyOn', label: '📺 Previously On', group: 'speech', hint: 'Season recap. Table-known beats only. No unpublished spoilers.' },
+    { id: 'natureDoc', label: '🌿 Nature Doc', group: 'speech', hint: 'Hushed wildlife narration. The party or mark is the footage.' },
   ];
 
   const BATTLE_LINE_COUNT = 5;
@@ -234,8 +235,8 @@
 
   /** Outcome types available for each pace. Skills + insults appear in both. */
   const MODS_BY_PACE = {
-    battle: ['spell', 'hit', 'fail', 'success', 'failure', 'mockery', 'cuttingWords', 'trailCall', 'focus', 'surge', 'battleCry', 'insult', 'toast', 'motivation', 'paulHarvey', 'productPlacement', 'infomercial', 'wrongSoundtrack', 'pharmaAd', 'confessional', 'cliffhanger', 'standup', 'roast', 'troyMcClure', 'showtime', 'closer', 'inspiration', 'healBuff', 'flirt', 'graffiti', 'rally', 'downed', 'yelpReview', 'natureDoc'],
-    roleplay: ['roleplay', 'meanwhile', 'spell', 'success', 'failure', 'mockery', 'cuttingWords', 'trailCall', 'focus', 'surge', 'insult', 'compliment', 'toast', 'motivation', 'introduction', 'feyGambit', 'paulHarvey', 'productPlacement', 'infomercial', 'wrongSoundtrack', 'pharmaAd', 'confessional', 'cliffhanger', 'standup', 'roast', 'troyMcClure', 'showtime', 'closer', 'inspiration', 'songOfRest', 'healBuff', 'flirt', 'graffiti', 'travelBanter', 'rally', 'downed', 'eulogy', 'yelpReview', 'previouslyOn', 'natureDoc'],
+    battle: ['spell', 'hit', 'fail', 'success', 'failure', 'mockery', 'cuttingWords', 'trailCall', 'focus', 'surge', 'battleCry', 'insult', 'toast', 'motivation', 'paulHarvey', 'productPlacement', 'infomercial', 'wrongSoundtrack', 'pharmaAd', 'confessional', 'cliffhanger', 'standup', 'roast', 'troyMcClure', 'showtime', 'closer', 'inspiration', 'healBuff', 'flirt', 'graffiti', 'rally', 'downed', 'yelpReview', 'natureDoc', 'storytime'],
+    roleplay: ['roleplay', 'meanwhile', 'spell', 'success', 'failure', 'mockery', 'cuttingWords', 'trailCall', 'focus', 'surge', 'insult', 'compliment', 'toast', 'motivation', 'introduction', 'feyGambit', 'paulHarvey', 'productPlacement', 'infomercial', 'wrongSoundtrack', 'pharmaAd', 'confessional', 'cliffhanger', 'standup', 'roast', 'troyMcClure', 'showtime', 'closer', 'inspiration', 'songOfRest', 'healBuff', 'flirt', 'graffiti', 'travelBanter', 'rally', 'downed', 'eulogy', 'yelpReview', 'previouslyOn', 'natureDoc', 'storytime'],
   };
 
   const SPEECH_META = {
@@ -419,6 +420,12 @@
       metaLabel: 'Song of Rest',
       modalPrefix: '🎵',
     },
+    storytime: {
+      section: 'outcomes',
+      category: 'storytime',
+      metaLabel: 'Storytime',
+      modalPrefix: '📖',
+    },
     healBuff: {
       section: 'outcomes',
       category: 'healBuffs',
@@ -529,12 +536,17 @@
     { id: "Jingle-Jangle's cave", label: "🔑 Jingle-Jangle's cave", setting: 'indoors', type: 'dungeon', region: 'prismeer' },
     { id: 'Thither woods', label: '🌲 Thither woods', setting: 'outdoors', type: 'wilderness', region: 'prismeer' },
     { id: 'Loomlurch', label: '🌳 Loomlurch', setting: 'both', type: 'adventure', region: 'prismeer' },
+    { id: "Granny's kitchen", label: "🔥 Granny's kitchen", setting: 'indoors', type: 'adventure', region: 'prismeer' },
+    { id: "Granny's study", label: "📚 Granny's study", setting: 'indoors', type: 'adventure', region: 'prismeer' },
+    { id: "Granny's bedroom", label: "🛏️ Granny's bedroom", setting: 'indoors', type: 'adventure', region: 'prismeer' },
+    { id: "Will's tree", label: "🌳 Will's tree", setting: 'outdoors', type: 'wilderness', region: 'prismeer' },
+    { id: "Lamorna's island", label: "🦄 Lamorna's island", setting: 'outdoors', type: 'wilderness', region: 'prismeer' },
     { id: 'Wayward Pool', label: '💧 Wayward Pool', setting: 'outdoors', type: 'wilderness', region: 'prismeer' },
     { id: 'Old fortress', label: '🏰 Old fortress', setting: 'both', type: 'adventure', region: 'prismeer' },
     { id: 'Yon peaks', label: '🗻 Yon peaks', setting: 'outdoors', type: 'wilderness', region: 'prismeer' },
     { id: "Lamorna's lake", label: "🦄 Lamorna's lake", setting: 'outdoors', type: 'wilderness', region: 'prismeer' },
     { id: "Palace of Heart's Desire", label: "❄️ Palace of Heart's Desire", setting: 'indoors', type: 'special', region: 'prismeer' },
-    { id: 'Puppet theater', label: '🎭 Puppet theater', setting: 'indoors', type: 'adventure', region: 'prismeer' },
+    { id: "Endelyn's theater", label: "🎭 Endelyn's theater", setting: 'indoors', type: 'adventure', region: 'prismeer' },
     { id: 'Fey crossing', label: '🍄 Fey crossing', setting: 'outdoors', type: 'wilderness', region: 'feywild' },
     { id: 'Twilight market', label: '🌙 Twilight market', setting: 'outdoors', type: 'social', region: 'feywild' },
     { id: 'Pixie revel', label: '✨ Pixie revel', setting: 'outdoors', type: 'wilderness', region: 'feywild' },
@@ -558,6 +570,9 @@
     { id: 'mud-muffin', name: 'Mud muffin', label: '🧁 Mud muffin', group: 'prismeer' },
     { id: 'will-o-wisp', name: "Will-o'-wisp", label: "👻 Will-o'-wisp", group: 'prismeer' },
     { id: 'shambling-mound', name: 'Shambling mound', label: '🌿 Shambling mound', group: 'prismeer' },
+    { id: 'insult-mound', name: 'Insult flower mound', label: '🌸 Insult mound', group: 'prismeer' },
+    { id: 'fire-elemental', name: 'Fire elemental', label: '🔥 Fire elemental', group: 'prismeer' },
+    { id: 'ragdoll', name: 'Ragdoll', label: '🧵 Ragdoll', group: 'prismeer' },
     { id: 'mimic-chair', name: 'Mimic chair', label: '🪑 Mimic chair', group: 'prismeer' },
     { id: 'marching-band', name: 'Marching band', label: '🎺 Marching band', group: 'prismeer' },
     { id: 'black-pudding', name: 'Black pudding', label: '⬛ Black pudding', group: 'prismeer' },
@@ -566,6 +581,8 @@
     { id: 'green-dragon', name: 'Green dragon', label: '🐉 Green dragon', group: 'prismeer' },
     { id: 'cloaked-assassin', name: 'Cloaked assassin', label: '🗡️ Cloaked assassin', group: 'prismeer' },
     { id: 'jabberwock', name: 'Jabberwock', label: '🐲 Jabberwock', group: 'prismeer' },
+    { id: 'endelyn', name: 'Endelyn Moongrave', label: '🎭 Endelyn', group: 'prismeer' },
+    { id: 'living-puppet', name: 'Living puppet', label: '🪆 Puppet', group: 'prismeer' },
     { id: 'redcap', name: 'Redcap', label: '🧢 Redcap', group: 'feywild' },
     { id: 'quickling', name: 'Quickling', label: '⚡ Quickling', group: 'feywild' },
     { id: 'darkling', name: 'Darkling', label: '🌑 Darkling', group: 'feywild' },
@@ -780,6 +797,7 @@
     'Tundra': [/tundra|snow|ice|frost|whiteout|aurora|frozen/i],
     'Swamp / Marsh': [/swamp|marsh|mud|quicksand|murky|bog|fen/i],
     'Carnival / Feywild (Wild Beyond The Witchlight)': [/carnival|feywild|prismeer|witchlight|zybilna|ticket|rigged/i],
+    "Endelyn's theater": [/endelyn|endolyn|motherhorn|puppet theater|theatre|yon theater|mountain-top theater|living puppet|marionette/i],
   };
 
   /** Which targets make sense for each outcome type. */
@@ -821,6 +839,7 @@
     closer: ['any', 'self', 'npc', 'group'],
     inspiration: ['any', 'ally'],
     songOfRest: ['any', 'ally', 'group', 'self'],
+    storytime: ['any', 'ally', 'npc', 'group', 'self', 'environment'],
     healBuff: ['any', 'ally', 'self'],
     flirt: ['any', 'npc', 'ally', 'enemy'],
     graffiti: ['any', 'environment', 'object'],
@@ -845,6 +864,9 @@
     yelpReview: ['Inn', 'Tavern', 'Dungeon', 'Kitchen', 'Shop'],
     previouslyOn: ['After a rest', 'Camp', 'Morning after', 'Catching someone up'],
     natureDoc: ['Sneaking', 'Hovering', 'Hiding', 'Eavesdropping', 'The wildlife'],
+    now: [
+      'Unconscious attacker', 'The token', 'Find Amadore', 'Symbolic eclipse',
+    ],
     pharmaAd: ['Healing Word', 'Potion', 'Bardic die', 'Ask your cleric', 'Side effects', 'As directed'],
     confessional: ['What really happened', 'I was the hero', 'They started it', 'Unseen camera', 'Confession'],
     cliffhanger: ['Heap of trouble', 'Don\'t go away', 'Freeze-frame', 'Just when they thought', 'We\'ll be right back'],
@@ -855,6 +877,10 @@
     closer: ['Good night', 'Walk-off', 'Last song', 'Tip the jar', 'That\'s the set'],
     inspiration: ['Spend the die', 'You got this', 'Before they roll', 'After they miss', 'Name the recipient'],
     songOfRest: ['Short rest', 'After the fight', 'Soft verse', 'Stay down and listen'],
+    storytime: [
+      'Once upon a time', 'Campfire', 'Tavern yarn', 'Tall tale', 'Cautionary',
+      'Bedtime', 'Excuse', 'About this place', 'About the mark', 'The moral',
+    ],
     healBuff: ['Healing Word', 'While I cast', 'You stay up', 'Detail the buff', 'One breath'],
     flirt: ['Pickup line', 'Dedication', 'Across the room', 'After the save', 'Too on the nose'],
     graffiti: ['Was here', 'Dirty rhyme', 'Cryptic', 'For a good time', 'Tag', 'Arrow'],
@@ -905,6 +931,27 @@
     },
   };
 
+  const SITUATION_BY_CHARACTER = {
+    blingus: [
+      'Forgot their names', 'Bathe the curse', 'Supervise the oven', 'Costume neck',
+    ],
+    puck: [
+      'Granny\'s head', 'Stay at 30 feet', 'Careful Fireball', 'Costume head',
+    ],
+    bruck: [
+      'Costume rear', 'Tanked it', 'Can\'t breathe', 'Oh well',
+    ],
+    vadania: [
+      'Took the rear', 'Redeem the shot', 'Write it down', 'Watch the mist',
+    ],
+  };
+
+  function speakerCharacterId() {
+    return window.CharacterSheet?.getActiveId?.()
+      || window.BlingusSite?.lockedCharacterId?.()
+      || '';
+  }
+
   function speakerClassKey() {
     const keys = window.CharacterSheet?.classKeys?.() || [];
     if (keys.includes('bard')) return 'bard';
@@ -936,7 +983,11 @@
 
   function getSituationChips(outcomeMod) {
     const pack = SITUATION_BY_CLASS[speakerClassKey()] || SITUATION_BY_CLASS.generic;
-    if (outcomeMod === 'roleplay' || outcomeMod === 'meanwhile') return pack.scene || [];
+    if (outcomeMod === 'roleplay' || outcomeMod === 'meanwhile') {
+      const who = speakerCharacterId();
+      const mine = SITUATION_BY_CHARACTER[who] || [];
+      return (SITUATION_SHARED.now || []).concat(mine, pack.scene || []);
+    }
     if (outcomeMod === 'motivation') return pack.motivation || SITUATION_SHARED.motivationCore;
     if (outcomeMod === 'feyGambit') return SITUATION_SHARED.feyGambit;
     if (SITUATION_SHARED[outcomeMod]) return SITUATION_SHARED[outcomeMod];
@@ -1041,7 +1092,38 @@
   let targetSummaryEl = null;
   let targetLabelEl = null;
   let targetEl = null;
+  const YELP_STARS_KEY = 'blingusYelpStarsV1';
+  const DEFAULT_YELP_STARS = 3;
+
+  function getYelpStars() {
+    try {
+      const n = Number(localStorage.getItem(YELP_STARS_KEY));
+      if (n >= 1 && n <= 5) return n;
+    } catch (e) {
+      /* ignore */
+    }
+    return DEFAULT_YELP_STARS;
+  }
+
+  function setYelpStars(n) {
+    const next = Math.min(5, Math.max(1, Number(n) || DEFAULT_YELP_STARS));
+    try {
+      localStorage.setItem(YELP_STARS_KEY, String(next));
+    } catch (e) {
+      /* ignore */
+    }
+    if (window.OutcomeGenerate?.clearLastResult) {
+      window.OutcomeGenerate.clearLastResult();
+    }
+    renderYelpStars();
+    notifyChange();
+    return next;
+  }
+
   let nameBlockEl = null;
+  let yelpStarsLabelEl = null;
+  let yelpStarsEl = null;
+  let yelpStarsHintEl = null;
   let situationLabelEl = null;
   let situationChipsEl = null;
   let audienceLabelEl = null;
@@ -1072,6 +1154,9 @@
 
   function normalizeLocationId(locationId) {
     if (locationId === 'Walking in a Dungeon') return 'Dungeon';
+    if (locationId === 'Puppet theater' || locationId === 'Motherhorn' || locationId === "Endolyn's theater") {
+      return "Endelyn's theater";
+    }
     return locationId;
   }
 
@@ -1381,6 +1466,7 @@
     const name = (state.focusName || '').trim();
     const mood = window.OutcomeGenerate?.getMood?.() || '';
     const rating = window.OutcomeGenerate?.getRating?.() || '';
+    const humor = window.OutcomeGenerate?.getHumor?.() || 3;
     return {
       ready: true,
       scene: ctx.location,
@@ -1406,6 +1492,8 @@
       partyMember: isPartyFocusName(name),
       mood,
       rating,
+      humor,
+      yelpStars: state.outcomeMod === 'yelpReview' ? getYelpStars() : 0,
       pace: state.pace || '',
       combatRound: state.pace === 'battle',
       count: state.pace === 'battle' ? BATTLE_LINE_COUNT : ROLEPLAY_LINE_COUNT,
@@ -1880,8 +1968,9 @@
     const moodLabel = window.OutcomeGenerate?.getMoodMeta?.()?.label || '';
     const ratingMeta = window.OutcomeGenerate?.getRatingMeta?.();
     const ratingLabel = ratingMeta ? ratingMeta.label : '';
+    const humorLabel = window.OutcomeGenerate?.getHumorMeta?.()?.label || '';
     const paceLabel = PACE_OPTIONS.find((p) => p.id === state.pace)?.label || '';
-    const parts = [moodLabel, ratingLabel, paceLabel, modLabel, settingLabel, sceneLabel].filter(Boolean);
+    const parts = [moodLabel, ratingLabel, humorLabel, paceLabel, modLabel, settingLabel, sceneLabel].filter(Boolean);
     if (weatherLabel) parts.push(weatherLabel);
     if (lightingLabel) parts.push(lightingLabel);
     if (envLabels.length) parts.push(envLabels.join(', '));
@@ -2143,6 +2232,28 @@
     });
   }
 
+  function renderYelpStars() {
+    if (!yelpStarsEl) return;
+    const show = state.outcomeMod === 'yelpReview';
+    if (yelpStarsLabelEl) yelpStarsLabelEl.hidden = !show;
+    yelpStarsEl.hidden = !show;
+    yelpStarsEl.innerHTML = '';
+    if (!show) return;
+    const current = getYelpStars();
+    if (yelpStarsHintEl) {
+      yelpStarsHintEl.textContent = current + (current === 1 ? ' star' : ' stars');
+    }
+    [1, 2, 3, 4, 5].forEach((n) => {
+      renderChip(yelpStarsEl, {
+        id: 'yelp-' + n,
+        label: '★'.repeat(n) + '☆'.repeat(5 - n),
+        active: current === n,
+        title: n + (n === 1 ? ' star' : ' stars'),
+        onClick: () => setYelpStars(n),
+      });
+    });
+  }
+
   function renderSituationChips() {
     if (!situationChipsEl) return;
     const chips = getSituationChips(state.outcomeMod);
@@ -2189,6 +2300,7 @@
     const show = detailReady() && showNamePicker();
     nameBlockEl.hidden = !show;
     if (!show) return;
+    renderYelpStars();
     renderSituationChips();
     renderAudienceChips();
     renderPartyChips();
@@ -2217,6 +2329,7 @@
       chip.title = title || 'Not applicable for this outcome type';
     } else if (title) {
       chip.title = title;
+      chip.setAttribute('data-tooltip', title);
     }
     chip.addEventListener('click', (e) => {
       e.preventDefault();
@@ -2513,7 +2626,9 @@
   function moodSummaryText() {
     const mood = window.OutcomeGenerate?.getMoodMeta?.();
     const label = mood?.label || 'Playful';
-    return `Mood · ${label}`;
+    const rating = window.OutcomeGenerate?.getRatingMeta?.()?.label;
+    const humor = window.OutcomeGenerate?.getHumorMeta?.()?.label;
+    return ['Mood · ' + label, rating, humor].filter(Boolean).join(' · ');
   }
 
   function paceSummaryText() {
@@ -2757,6 +2872,7 @@
           id: mod.id,
           label: mod.label,
           active: state.outcomeMod === mod.id,
+          title: mod.hint || '',
           onClick: () => setState({ outcomeMod: mod.id }),
         });
       });
@@ -2773,6 +2889,7 @@
           id: mod.id,
           label: mod.label,
           active: state.outcomeMod === mod.id,
+          title: mod.hint || '',
           onClick: () => setState({ outcomeMod: mod.id }),
         });
       });
@@ -2934,6 +3051,9 @@
     targetLabelEl = document.getElementById('workflowTargetLabel');
     targetEl = document.getElementById('workflowTargetChips');
     nameBlockEl = document.getElementById('workflowNameBlock');
+    yelpStarsLabelEl = document.getElementById('workflowYelpStarsLabel');
+    yelpStarsEl = document.getElementById('workflowYelpStars');
+    yelpStarsHintEl = document.getElementById('workflowYelpStarsHint');
     situationLabelEl = document.getElementById('workflowSituationLabel');
     situationChipsEl = document.getElementById('workflowSituationChips');
     audienceLabelEl = document.getElementById('workflowAudienceLabel');
@@ -2977,16 +3097,21 @@
     // Wizard starts blank — user answers questions top to bottom.
     resetWizardState();
     if (!window.__blingusMoodListenerBound) {
-      const onSessionSettingChange = () => {
+      const onSessionSettingChange = (e) => {
         if (window.OutcomeGenerate?.clearLastResult) {
           window.OutcomeGenerate.clearLastResult();
         }
-        if (expandedStep === 'mood') advanceExpandedStep();
+        const kind = e && e.type;
+        const fromInput = Boolean(e && e.detail && e.detail.fromInput);
+        if (expandedStep === 'mood' && kind === 'blingus-mood-change' && !fromInput) {
+          advanceExpandedStep();
+        }
         applyCollapseUI();
         notifyChange();
       };
       window.addEventListener('blingus-mood-change', onSessionSettingChange);
       window.addEventListener('blingus-rating-change', onSessionSettingChange);
+      window.addEventListener('blingus-humor-change', onSessionSettingChange);
       window.__blingusMoodListenerBound = true;
     }
     if (!window.__blingusCatalogListenerBound) {

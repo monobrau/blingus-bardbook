@@ -23,12 +23,15 @@ copy tab-navigation.js
 copy keyboard-shortcuts.js
 copy constants.js
 copy site-identity.js
+copy whats-new.js
 copy puck-fx.js
 copy vadania-fx.js
 copy brawn-fx.js
 copy songs-data.js
 copy class-lines-data.js
+copy bardic-data.js
 copy generate-outcome.php
+copy generate-parody.php
 copy blingus-data.php
 ssh -o BatchMode=yes -o ConnectTimeout=15 -o IdentitiesOnly=yes -i ~/.ssh/id_rsa -o IPQoS=none "$DEST" "bash -s" << EOS
 set -euo pipefail
@@ -43,25 +46,44 @@ gzip -dc $STAGE/tab-navigation.js.gz > $ROOT/js/tab-navigation.js
 gzip -dc $STAGE/keyboard-shortcuts.js.gz > $ROOT/js/keyboard-shortcuts.js
 gzip -dc $STAGE/constants.js.gz > $ROOT/js/constants.js
 gzip -dc $STAGE/site-identity.js.gz > $ROOT/js/site-identity.js
+gzip -dc $STAGE/whats-new.js.gz > $ROOT/js/whats-new.js
 gzip -dc $STAGE/puck-fx.js.gz > $ROOT/js/puck-fx.js
 gzip -dc $STAGE/vadania-fx.js.gz > $ROOT/js/vadania-fx.js
 gzip -dc $STAGE/brawn-fx.js.gz > $ROOT/js/brawn-fx.js
 gzip -dc $STAGE/songs-data.js.gz > $ROOT/js/data/songs-data.js
 gzip -dc $STAGE/class-lines-data.js.gz > $ROOT/js/data/class-lines-data.js
+gzip -dc $STAGE/bardic-data.js.gz > $ROOT/js/data/bardic-data.js
 gzip -dc $STAGE/generate-outcome.php.gz > $ROOT/api/generate-outcome.php
+gzip -dc $STAGE/generate-parody.php.gz > $ROOT/api/generate-parody.php
 gzip -dc $STAGE/blingus-data.php.gz > $ROOT/api/blingus-data.php
 php -l $ROOT/index.php
 php -l $ROOT/api/generate-outcome.php
+php -l $ROOT/api/generate-parody.php
 php -l $ROOT/api/blingus-data.php
 grep -q personalityOwner $ROOT/js/outcome-generate.js
 grep -q 'function moodsFor' $ROOT/js/outcome-generate.js
 grep -q journal-steady $ROOT/js/outcome-generate.js
 grep -q lineFitsSpeaker $ROOT/js/action-workflow.js
+grep -q SITUATION_BY_CHARACTER $ROOT/js/action-workflow.js
+grep -q blingusWhatsNewSeenV2 $ROOT/js/whats-new.js
+grep -q whatsNewBanner $ROOT/js/whats-new.js
+grep -q showLog $ROOT/js/whats-new.js
+grep -q whatsNewBtn $ROOT/index.php
 grep -q getClassCombatOptions $ROOT/js/character-sheet.js
 grep -q "Hunter's Patience" $ROOT/js/data/class-lines-data.js
 grep -q 'data.personalities' $ROOT/script.js
 grep -q prevVoices $ROOT/api/blingus-data.php
 grep -q bardSceneBan $ROOT/api/generate-outcome.php
+grep -q 'Ellywick Tumblestrum' $ROOT/js/character-sheet.js
+grep -q 'Hall of Illusions' $ROOT/js/character-sheet.js
+grep -q 'Witchlight Monarch' $ROOT/js/outcome-generate.js
+grep -q 'Ellywick Tumblestrum arranged the tickets' $ROOT/api/generate-outcome.php
+grep -q storytime $ROOT/js/action-workflow.js
+grep -q "modId === 'storytime'" $ROOT/js/character-sheet.js
+grep -q 'Storytime: invent a tale' $ROOT/api/generate-outcome.php
+grep -q Story-Knot $ROOT/js/character-sheet.js
+grep -q 'SINGABLE PARODY' $ROOT/api/generate-parody.php
+grep -q 'stayin'\'' alive, stayin'\'' alive' $ROOT/js/data/bardic-data.js
 test ! -e $ROOT/api/.anthropic_key || echo key-untouched
 test -f $ROOT/data/blingus-data.json && echo data-untouched
 echo shipped

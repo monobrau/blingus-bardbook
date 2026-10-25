@@ -698,6 +698,9 @@
           if (data.rating !== undefined && window.OutcomeGenerate?.setRating) {
             window.OutcomeGenerate.setRating(data.rating);
           }
+          if (data.humor !== undefined && window.OutcomeGenerate?.setHumor) {
+            window.OutcomeGenerate.setHumor(data.humor);
+          }
           
           return true;
         }
@@ -826,6 +829,7 @@
       mood: window.OutcomeGenerate?.getMood?.() || null,
       moodCustom: window.OutcomeGenerate?.getCustomMoodText?.() || '',
       rating: window.OutcomeGenerate?.getRating?.() || null,
+      humor: window.OutcomeGenerate?.getHumor?.() || null,
       workflowCatalog: window.WorkflowCatalog?.exportState?.() || null,
       
       // Metadata
@@ -910,6 +914,9 @@
       }
       if (data.rating !== undefined && window.OutcomeGenerate?.setRating) {
         window.OutcomeGenerate.setRating(data.rating);
+      }
+      if (data.humor !== undefined && window.OutcomeGenerate?.setHumor) {
+        window.OutcomeGenerate.setHumor(data.humor);
       }
       
       return true;
@@ -2073,6 +2080,7 @@
 
     if (section === 'character') {
       content.classList.add('content--character');
+      content.classList.remove('content--soundboard');
       if (window.CharacterSheet?.render) {
         window.CharacterSheet.render(content);
       } else {
@@ -2084,7 +2092,22 @@
       }
       return;
     }
+    if (section === 'soundboard') {
+      content.classList.remove('content--character');
+      content.classList.add('content--soundboard');
+      if (window.Soundboard?.render) {
+        window.Soundboard.render(content);
+      } else {
+        clearElement(content);
+        const emptyCard = document.createElement('div');
+        emptyCard.className = 'card';
+        emptyCard.textContent = 'Soundboard failed to load.';
+        content.appendChild(emptyCard);
+      }
+      return;
+    }
     content.classList.remove('content--character');
+    content.classList.remove('content--soundboard');
     
     // If there's a search query, use global search across all sections
     if (q) {
@@ -4334,12 +4357,22 @@
     setCreditCorrectStatus('', false);
   }
 
+  const GOLDEN_PARODY_EXAMPLES = [
+    "Ah, ah, ah, ah, stayin' alive, stayin' alive; ah, ah, ah, ah, pass that save, stayin' alive.",
+    "It's the eye of the tiger, it's the thrill of the fight; risin' up to the swing of the night.",
+    "Never gonna give you up, never gonna let you down; never gonna run this pitch aground.",
+    "Hello darkness, my old friend; I've come to sneak with you again.",
+    "I get knocked down, but I get up again; you're never gonna keep this save down.",
+    "You can't touch this, you can't touch this; I minus this. Hammer time.",
+  ];
+
   function parodyExamplesFor(section, category) {
     const list = getMergedData(section, category) || [];
-    return list
+    const fromCat = list
       .map((item) => (item && typeof item === 'object' && item.t) ? String(item.t) : '')
       .filter(Boolean)
-      .slice(0, 6);
+      .slice(0, 2);
+    return GOLDEN_PARODY_EXAMPLES.concat(fromCat).slice(0, 8);
   }
 
   function parodyAuthHeaders() {
@@ -4748,8 +4781,8 @@
     buildCategories(); 
     const section = sectionSelect.value;
     const isWorkflow = !!window.ActionWorkflow?.isWorkflowSection(section);
-    const hideSearch = isWorkflow || section === 'character';
-    // Hide search on Outcomes and Character
+    const hideSearch = isWorkflow || section === 'character' || section === 'soundboard';
+    // Hide search on Outcomes, Character, and Sounds
     const searchRow = document.getElementById('searchToolbarRow');
     if (searchRow) searchRow.style.display = hideSearch ? 'none' : '';
     const filtersRow = document.getElementById('filtersToolbarRow');
@@ -5386,6 +5419,11 @@
               window.OutcomeGenerate.setRating(data.rating);
               importedCount++;
               importedCategories.push('rating');
+            }
+            if (data.humor !== undefined && window.OutcomeGenerate?.setHumor) {
+              window.OutcomeGenerate.setHumor(data.humor);
+              importedCount++;
+              importedCategories.push('humor');
             }
             
             const message = importedCount > 0 

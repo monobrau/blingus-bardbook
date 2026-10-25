@@ -241,6 +241,7 @@
         item('Wanted poster: Will of the Feywild', { notes: 'Skabatha\'s poster. "This little troublemaker belongs to me. Bring him home alive and unharmed, and you\'ll win the heart of one you love." Bring Will home alive and unharmed. Nonmagical paper; the promise is hers.' }),
         item('Crown of Remembrance (Brawn)', { notes: 'Geoe Identify. Brawn wears this; not Blingus\'s attunement. Rare wondrous, attunement. Woven holly boughs, amber stone front and center. +1 AC and saving throws while worn. Once per day, Action: say Declan, Owen, or Tristan. Three allies within twenty feet gain Advantage on the next matching save before the start of Brawn\'s next turn (Declan CON, Owen DEX, Tristan WIS).' }),
         item('Blood-Slick Token', { notes: 'Uncommon wondrous. Flat iron charm etched with tally marks. When you reduce a creature to 0 HP, gain Temporary HP equal to your proficiency bonus (Blingus +3). Once per turn. No attunement listed. Grows warm when violence pleases it. Table-found as the blood-soaked token after the cloaked assassin at Lamorna was KO\'d.' }),
+        item('Story-Knot', { notes: 'Identified: common wondrous. Once, before a Performance or Persuasion check, untie the knot to gain Advantage on that check. After use, the silk unravels into sparkling threads and disappears. One use. No attunement.' }),
       ],
       spells: [
         item('Vicious Mockery', { notes: 'cantrip; WIS 14; 60 ft; V' }),
@@ -269,15 +270,19 @@
         'Slots: 4 first, 3 second, 2 third.',
         '',
         'TABLE-KNOWN WITCHLIGHT (do not invent unpublished spoilers):',
-        'Wild Beyond the Witchlight / Prismeer. DM Geoe. Player characters: Puck Pinewhistle (wild magic sorcerer fairy), Brawn O\'Neil/O\'Neal (dwarven monk; has the Crown of Remembrance), Vadania Amakiir (elven ranger; Vandan / Van Damme). Bo is an NPC: he brought the party together (toad-cauldron era, enlarge, dragon breath at Granny).',
-        'Carnival: someone bought the party tickets. Mr. Witch and Mr. Light run it. Quest: find out why they are on edge. Quest: someone stole a locket from someone at the carnival (do not assume it is the cracked mirror-shard locket). Star is a displacer-beast cub; quest to bring him back to another displacer beast at the carnival. Do not invent who bought the tickets or the other beast\'s name. Do not assume Star is the Misplacer Beast.',
-        'Midnight Carnival recap (table notes): Misplacer Beast is a fairy-type displacer beast on lost-and-found duty; liked the party and became an ally. Swan boatwoman on the lazy river asked "What is Joy?"; party brushed it off and she dumped them in the water. Witch and Light were reluctant to help. A quiet bugbear stagehand told Blingus they needed Mr. Witch\'s watch; it controls the carnival\'s travel between worlds. During the Carnival Monarch crowning, Blingus pickpocketed the watch. They entrusted it to the Misplacer Beast and used it as leverage to negotiate passage to Prismeer. The portal is behind them; they have crossed. Do not invent the bugbear\'s name or whether the watch was given back.',
+        'Wild Beyond the Witchlight / Prismeer. DM Geoe. Player characters: Puck Pinewhistle (wild magic sorcerer fairy), Brawn O\'Neil/O\'Neal (dwarven monk; has the Crown of Remembrance), Vadania Amakiir (elven ranger; Vandan / Van Damme). Bo is an NPC: Zybilna\'s warlock and their mentor; he sent them to find Witch and Light, then they later found him as a toad (toad-cauldron era, enlarge, dragon breath at Granny). Do not invent mentor charms unless the sheet lists them.',
+        'Carnival: Ellywick Tumblestrum, gnome bard, arranged the party tickets. Mr. Witch and Mr. Light run it. Quest: find out why they are on edge. Quest: someone stole a locket from someone at the carnival (do not assume it is the cracked mirror-shard locket). Star is a displacer-beast cub; quest to bring him back to Dirlagraun at the carnival. Star is not Dirlagraun. Mysterious watchers at the carnival were never identified; do not invent who they were.',
+        'Midnight Carnival recap (table notes): Dirlagraun (the Misplacer Beast) is a fairy-type displacer beast on lost-and-found duty; liked the party and became an ally. Swan boatwoman on the lazy river asked "What is Joy?"; party brushed it off and she dumped them in the water. Witch and Light were reluctant to help. Burly, a quiet bugbear stagehand, told Blingus they needed Mr. Witch\'s watch; it controls the carnival\'s travel between worlds. Puck was named Witchlight Monarch. While he held the spotlight, Blingus pickpocketed the watch. They entrusted it to Dirlagraun and used it as leverage to negotiate passage to Prismeer. The portal is behind them; they have crossed. Do not invent whether the watch was given back.',
+        'Hall of Illusions: Witch and Light\'s reflections showed gloomy shadar-kai children; the party\'s youthful reflections followed, then the mirrors showed true age. The rhyme to step through: Hither, thither, here and there; wander yonder, show me where. Witch: Mind the Rule of Three: future, present, past. Light: Find the alicorn and free the dormant queen at last. Eight motes of pale light in the mist. The alicorn is Elidon\'s stolen horn. Do not invent more Hall rooms or that the shore attacker\'s horn is real.',
         'Opening rumors (as heard): Brawn hears Zybilna (Zilbana / Fairy Godmother) is frozen in time. Blingus hears three hags formed a coven. Vadania hears Bavlorna (Babiatha) lair is a rambling cottage on stilts in the swamp; Skabatha (Zabatha) lair is a hollowed tree in a forest; Endelyn (Indulin) lair is a mountain-top theater. Puck hears hag names Skabatha Nightshade and Endelyn Moongrave (scabatha / indilun); splinter realms are Hither, Thither, and Yon; each hag is convinced her sisters are plotting against her.',
         'Eight unicorn names (collected): Fortune, Bold, Fall, Pride, Stone, Moss, Stitch, Nine.',
         'Hither: Sir Talavar the fairy dragon in a cage; snakes; Glim the goblin pizza-dude / Sir Whats-his-face; Walking Inn druid wants Zybilna back, spits at Bavlorna; mud muffins; drowned will-o-wisps; Clapperclaw the pincer-clawed scarecrow, best guide in Hither, hangs around Downfall and knows the way to Thither (Granny Nightshade); a woman told the party they need that Downfall scarecrow to reach Thither but she could not remember his name (do not invent who she is); bullywug Stinky Court; note "Spittlespew"; Wittershin\'s = run in place counter-clockwise.',
-        'Thither: Loomlurch is a giant hollowed-out tree deep in the Thither forest, Skabatha\'s lair. Granny Nightshade (Skabatha) defeated, incinerated in her oven; key in her back shows mood; children making nightmare toys; Will of the Feywild / Getaway Gang / Little Oak; Skabatha wanted poster: "This little troublemaker belongs to me. Bring him home alive and unharmed, and you\'ll win the heart of one you love."; marching-band near-wipe; mimic chairs; Scorching Ray hit Vadania; Bo turned from toad after cauldron food. Circular room in the heart of Loomlurch displays Skabatha\'s portrait beside her three sisters: Bavlorna, Endelyn, and Tasha. Skabatha quirk: she forgets the first creature she sees when she wakes; her memory of it returns each night when she sleeps; a creature forgotten this way is invisible to her. Do not invent that the party used this, or that it still applies now that she is dead.',
-        'Coven: Bavlorna Blightstraw (Hither) still alive, party needs her yarn. Skabatha defeated. Endelyn Moongrave (Yon) vulnerable during a (symbolic) eclipse. Zybilna/Tasha frozen in the Palace of Heart\'s Desire by Igwil\'s cauldron.',
-        'Session 3: island / Lamorna the unicorn, mate Elidon; his stolen horn (alicorn) is the key to freeing Zybilna. Quest: find the alicorn and free the dormant queen. Jabberwock (jabbawack) is a dragon-like creature; be careful; mist around the lake keeps it off. Amadore the dandelion in Yon can guide to the palace; might need an invitation to the palace. Cloaked assassin with a unicorn horn attacked Lamorna and was KO\'d; blood-soaked token found (Blood-Slick Token). Library on a 2nd floor holds the most treasured tomes; do not invent which building.',
+        'Thither: Loomlurch is a giant hollowed-out tree deep in the Thither forest, Skabatha\'s lair. Granny Nightshade (Skabatha) defeated, incinerated in her oven (Mishka the chained 9-year-old supervised; a fire elemental powered the oven and was freed after). Key in her back showed mood. Puck intimidated a ragdoll by threatening Granny\'s unconscious head; a halfling and a bugbear were freed; Blingus forgot their names. Pig-mask Carnival girl found in a moth cocoon. Elkhorn of Valor\'s Call was freed; his company came to fight the hag sisters and was captured and scattered. Children making nightmare toys; Will of the Feywild / Getaway Gang / Little Oak; Skabatha wanted poster: "This little troublemaker belongs to me. Bring him home alive and unharmed, and you\'ll win the heart of one you love."; marching-band near-wipe; mimic chairs; Scorching Ray hit Vadania; Bo turned from toad after cauldron food. Circular room in the heart of Loomlurch displays Skabatha\'s portrait beside her three sisters: Bavlorna, Endelyn, and Tasha. Skabatha quirk: she forgets the first creature she sees when she wakes; her memory of it returns each night when she sleeps; a creature forgotten this way is invisible to her. Do not invent that the party used this, or that it still applies now that she is dead.',
+        'Loomlurch leftovers (unresolved; do not invent answers): jar of moths in Granny\'s bedroom; rocking cradle contents; hinged sealed attic (Granny\'s hand did not open it); mirror trigger word (same kind as Bavlorna\'s; known to exist; never recovered; study books turned to dust in the Bag of Holding). Dollhouse password RumpleClump. Beetle from Granny\'s ashes said Endelyn\'s eclipse rule. Three redcaps outside the kitchen: party took zero; Brawn tanked. Cotton Eye Joe got stuck in everyone\'s head.',
+        'Realms: Hither, Thither, and Yon were once one kingdom. A catastrophe sundered them. The ruined causeway in Hither was once in good repair.',
+        'Coven: Bavlorna Blightstraw (Hither) still alive, party still needs her yarn. Skabatha defeated. Endelyn Moongrave (Yon) can only be killed during an eclipse; a symbolic eclipse or a drawing of one counts; Lamorna did not confirm further specifics. Tasha is the fourth, adopted sister of Baba Yaga, seen in Loomlurch portraits; believed to be Zybilna. Zybilna is an archfey imprisoned in time at the Palace of Heart\'s Desire. The stolen unicorn horn is the mechanism; recovering Elidon\'s horn is believed to free her.',
+        'Session 3: Will of the Feywild (Beyoncé / Foxy Cleopatra look) needs bog oil for Squirt the Oilcan and sent the party to the unicorn lake. Four-person unicorn costume is required to pass the mist (unicorns only). Brawn took the rear first; Vadania declined, then later took the rear. Insult shambling mound of flowers split into a flower swarm; Puck Careful Fireball. Same green dragon from the jack-in-the-box fled after a poison breath. Lamorna ("Lady of the Lake") on the island; mate Elidon; his stolen horn is the key to freeing Zybilna. Jabberwock prowls the palace and forest; lake mist keeps it off. Amadore the dandelion in Yon may guide to the palace. Palace 2nd-floor library holds Zybilna\'s most valuable tomes; do not invent other rooms. Cloaked figure wearing a horn (real or not, unknown) attacked Lamorna and was KO\'d; Blood-Slick Token found; identity and motive unknown. Hag Eye is in the Bag of Holding; destroying it hurts the remaining coven (extent unknown).',
+        'Now (lake shore): decide what to do with the unconscious attacker; figure the token; travel to Yon for Amadore; recover Elidon\'s horn; reach the Palace; later Bavlorna and Endelyn. Blingus wanted to bathe (lake removes curses; he is curse-paranoid). Pixies from the whistle watched the swim for sharks. Do not invent the attacker\'s name or that the horn is real.',
         'Crown of Remembrance (Geoe, Brawn attuned): rare wondrous, attunement. Holly boughs, amber stone. +1 AC and saves. 1/day Action: name Declan (CON), Owen (DEX), or Tristan (WIS); three allies within twenty feet get Advantage on that next save before the start of Brawn\'s next turn.',
         'Riddle of Fortitude (Declan): Stand at his altar, remember my friend. He never faltered ere his end. In memory of Declan\'s name, we shall play a riddle game. What cannot be thrown when opened, what only may land when closed? What should not be given easily, and often strikes the nose?',
         'Riddle of Will (Tristan): Stand at his altar, remember my friend. The cosmos themselves were his to amend. In memory of Tristan\'s name, we shall play a riddle game. When silence breaks, when power calls, what carries your command? What tool or weapon can you wield with nothing in your hand?',
@@ -393,6 +398,7 @@
         'Party of Blingus the Wayfarer (Witchlight / Prismeer). Bo is an NPC who brought the party together, not a PC. Do not invent unpublished module plot.',
         'Opening rumor she heard: Bavlorna (Babiatha) lair is a rambling cottage on stilts in the swamp; Skabatha (Zabatha) lair is a hollowed tree in a forest; Endelyn (Indulin) lair is a mountain-top theater.',
         'Thither: Scorching Ray hit Vadania at Loomlurch. Journal of Vandan: she writes that the ray felt aimed; trust scorched; she checks doors twice and the mimic proved her right. Someone slipped her a Sylvan note at the Stinky Court. Do not invent who cast the ray.',
+        'Session 3: declined the unicorn-costume rear at first, then took it for the lake mist crossing. Fumbled in the flower-mound fight and redeemed it with the bow. Lamorna, Elidon\'s stolen horn, Amadore in Yon, unconscious cloaked attacker on the shore. Do not invent unpublished Witchlight.',
       ]),
     });
   }
@@ -457,6 +463,7 @@
         'Party of Blingus the Wayfarer (Witchlight / Prismeer). Bo is an NPC who brought the party together, not a PC. Do not invent unpublished module plot.',
         'Opening rumor he heard: Zybilna (Zilbana / Fairy Godmother) is frozen in time.',
         'Crown of Remembrance is his. Sundial answers the table used: Revenge / Reflex, a Fist / Fortitude, Words / Will. Lived the grappling chairs at Granny and the marching-band near-wipe.',
+        'Session 3: tanked three redcaps, party took zero. First one stuffed in the unicorn-costume rear. Grappled and could not breathe vs the insult flower mound. After violence: "Oh well!" or "Did I do that?" Lamorna, Elidon\'s horn, Amadore, unconscious cloaked attacker on the shore. Do not invent unpublished Witchlight.',
       ]),
     });
   }
@@ -530,7 +537,9 @@
         'Table-known: Puck Pinewhistle, fairy Wild Magic sorcerer. Nickname: Puke. Fellow fairy and friend of Blingus. Not a Lore bard.',
         'Party of Blingus the Wayfarer (Witchlight / Prismeer). Bo is an NPC who brought the party together, not a PC. Do not invent unpublished module plot.',
         'Opening rumor he heard: hag names Skabatha Nightshade and Endelyn Moongrave (scabatha / indilun); splinter realms are Hither, Thither, and Yon; each hag is convinced her sisters are plotting against her.',
+        'Carnival: named Witchlight Monarch. Blingus pickpocketed Witch\'s watch while Puck held the spotlight. Dirlagraun kept it. Do not invent whether the watch was given back.',
         'Flew up with Blingus to the deflated airship and Sir Talavar. Do not invent that he cast the Loomlurch Scorching Ray.',
+        'Session 3: intimidated the ragdoll by threatening to keep hitting Granny\'s unconscious head; two youths freed. Careful Spell Fireball on the flower mound (party safe). Witch Bolt sendoff as the green dragon fled. Unicorn costume head. Hovered at 30 feet when the mound tried to pull him down. Do not invent unpublished Witchlight.',
       ]),
     });
   }
@@ -717,6 +726,10 @@
       from: [''],
       to: 'Uncommon wondrous. Flat iron charm etched with tally marks. When you reduce a creature to 0 HP, gain Temporary HP equal to your proficiency bonus (Blingus +3). Once per turn. No attunement listed. Grows warm when violence pleases it. Table-found as the blood-soaked token after the cloaked assassin at Lamorna was KO\'d.',
     },
+    'Story-Knot': {
+      from: [''],
+      to: 'Identified: common wondrous. Once, before a Performance or Persuasion check, untie the knot to gain Advantage on that check. After use, the silk unravels into sparkling threads and disappears. One use. No attunement.',
+    },
   };
 
   function upgradeGearNotes(list) {
@@ -749,6 +762,12 @@
     if (!haveToken) {
       rows.push(item('Blood-Slick Token', {
         notes: GEAR_NOTE_UPGRADES['Blood-Slick Token'].to,
+      }));
+    }
+    const haveStoryKnot = rows.some((r) => /story-knot|story knot/i.test(r.name || ''));
+    if (!haveStoryKnot) {
+      rows.push(item('Story-Knot', {
+        notes: GEAR_NOTE_UPGRADES['Story-Knot'].to,
       }));
     }
     return rows.map((row) => {
@@ -815,6 +834,37 @@
       return next.replace(/^(2024 rules\.[^\n]*)/m, '$1\n' + PHOBIA_NOTE);
     }
     return PHOBIA_NOTE + '\n' + next;
+  }
+
+  const SESSION3_BLINGUS_NOTE = [
+    'Session 3 recap (table-known only): Hither/Thither/Yon were one kingdom; the Hither causeway was once whole. Elkhorn of Valor\'s Call. Mishka supervised Granny into the oven; a beetle from the ashes said Endelyn dies in a symbolic eclipse. Loomlurch leftovers: moth jar, rocking cradle, sealed attic, lost mirror-word (books dusted in the Bag). Will needs bog oil; unicorn costume to pass Lamorna\'s mist. Elidon\'s stolen horn is the lock on Zybilna. Amadore the dandelion in Yon. Unconscious cloaked attacker on the lake shore; Blood-Slick Token; do not invent his name or that the horn is real. Hag Eye stays in the Bag.',
+  ].join(' ');
+
+  const SESSION3_VADANIA_NOTE = 'Session 3: declined the unicorn-costume rear at first, then took it for the lake mist. Fumbled the flower-mound fight and redeemed it with the bow. Lamorna, Elidon\'s horn, Amadore, unconscious cloaked attacker on the shore.';
+
+  const SESSION3_BRUCK_NOTE = 'Session 3: tanked three redcaps, party took zero. First in the unicorn-costume rear. Grappled by the insult flower mound. After violence: "Oh well!" or "Did I do that?"';
+
+  const SESSION3_PUCK_NOTE = 'Session 3: intimidated the ragdoll by threatening Granny\'s unconscious head. Careful Fireball on the flower mound. Witch Bolt as the green dragon fled. Unicorn costume head.';
+
+  function ensureNoteBeat(text, test, extra) {
+    const next = String(text || '');
+    if (test.test(next)) return next;
+    if (!next.trim()) return extra;
+    return next.replace(/\s*$/, '') + '\n' + extra;
+  }
+
+  function ensureSession3Notes(text, who) {
+    let next = String(text || '');
+    if (who === 'blingus') {
+      next = ensureNoteBeat(next, /Mishka|Elkhorn of Valor/, SESSION3_BLINGUS_NOTE);
+    } else if (who === 'vadania') {
+      next = ensureNoteBeat(next, /unicorn-costume rear/, SESSION3_VADANIA_NOTE);
+    } else if (who === 'bruck') {
+      next = ensureNoteBeat(next, /unicorn-costume rear/, SESSION3_BRUCK_NOTE);
+    } else if (who === 'puck') {
+      next = ensureNoteBeat(next, /Careful Fireball|Careful Spell Fireball/, SESSION3_PUCK_NOTE);
+    }
+    return next;
   }
 
   function cloneKitItem(row) {
@@ -998,8 +1048,8 @@
         ? raw.languages.map((l) => String(l || '').trim()).filter(Boolean)
         : base.languages.slice(),
       notes: isBlingus
-        ? ensurePhobiaNote(stripRetiredNotes(notesRaw))
-        : (shouldRefreshNotes(notesRaw) ? base.notes : String(notesRaw || '')),
+        ? ensureSession3Notes(ensurePhobiaNote(stripRetiredNotes(notesRaw)), 'blingus')
+        : (shouldRefreshNotes(notesRaw) ? base.notes : ensureSession3Notes(String(notesRaw || ''), cid)),
     };
   }
 
@@ -1187,7 +1237,7 @@
     if (hasClassLines(s)) out.push('classLines');
     if (hasKitTab(s)) out.push('kit');
     if (hasCastTab(s)) out.push('cast');
-    out.push('outcomes', 'character');
+    out.push('outcomes', 'character', 'soundboard');
     return out;
   }
 
@@ -1223,7 +1273,7 @@
         || modId === 'closer') {
       return id === 'blingus' || hasClass('bard', s);
     }
-    if (modId === 'inspiration' || modId === 'songOfRest') {
+    if (modId === 'inspiration' || modId === 'songOfRest' || modId === 'storytime') {
       return hasClass('bard', s);
     }
     if (modId === 'healBuff') {

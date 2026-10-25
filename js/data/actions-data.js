@@ -1307,5 +1307,21 @@ const characterActions = {
     "Checking if your bardic magic feels different in the Feywild",
     "Asking about lost things you might have (you should check)",
   ],
+  "Endelyn's theater": [
+    "Testing the acoustics from the cheap seats (a mountain-top theater should boom)",
+    "Counting living puppets vs painted ones (the painted ones might still blink)",
+    "Looking for a symbolic eclipse, a drawing, a prop sun, anything the beetle hinted at",
+    "Asking ushers about Endelyn Moongrave without saying hag (they already know)",
+    "Checking whether the curtain call is a threat or a schedule",
+    "Trying not to sign a playbill, program, or contract (fey take encores seriously)",
+    "Watching the strings to see who is actually working the marionettes",
+    "Looking for Amadore the dandelion in the house or the wings (Yon guide, not a bit player)",
+    "Asking if tonight's show is cancelled for an eclipse (you can hope)",
+    "Scanning the galleries for portraits of Bavlorna, Skabatha, Tasha (you've seen this family before)",
+    "Trying to find the stage door before someone finds you a costume",
+    "Listening for whether the orchestra pit is breathing",
+    "Wondering if Endelyn only dies in a symbolic eclipse and whether a sketch in the program counts",
+    "Keeping one eye on the rafters (puppets drop from above, you just know it)",
+  ],
 };
 window.BlingusData.characterActions = characterActions;

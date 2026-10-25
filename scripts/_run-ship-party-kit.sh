@@ -19,12 +19,15 @@ FILES=(
   js/keyboard-shortcuts.js
   js/constants.js
   js/site-identity.js
+  js/whats-new.js
   js/puck-fx.js
   js/vadania-fx.js
   js/brawn-fx.js
   js/data/songs-data.js
   js/data/class-lines-data.js
+  js/data/bardic-data.js
   api/generate-outcome.php
+  api/generate-parody.php
   api/blingus-data.php
 )
 for f in "${FILES[@]}"; do
@@ -43,12 +46,15 @@ rsync -av -e /tmp/ssh-fedora-pw \
   "$ROOT/js/keyboard-shortcuts.js" \
   "$ROOT/js/constants.js" \
   "$ROOT/js/site-identity.js" \
+  "$ROOT/js/whats-new.js" \
   "$ROOT/js/puck-fx.js" \
   "$ROOT/js/vadania-fx.js" \
   "$ROOT/js/brawn-fx.js" \
   "$ROOT/js/data/songs-data.js" \
   "$ROOT/js/data/class-lines-data.js" \
+  "$ROOT/js/data/bardic-data.js" \
   "$ROOT/api/generate-outcome.php" \
+  "$ROOT/api/generate-parody.php" \
   "$ROOT/api/blingus-data.php" \
   cknospe@192.168.54.208:/tmp/blingus-party-kit-src/
 /tmp/ssh-fedora-pw cknospe@192.168.54.208 'bash -lc "sed -i \"s/\\r$//\" /tmp/blingus-party-kit-src/_ship-party-kit.sh; cd /tmp/blingus-party-kit-src && bash _ship-party-kit.sh"'

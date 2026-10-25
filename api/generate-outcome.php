@@ -163,6 +163,14 @@ $allowedRatings = ['g', 'pg', 'pg-13', 'r', 'x'];
 if (!in_array($rating, $allowedRatings, true)) {
     $rating = '';
 }
+$humor = (int) ($body['humor'] ?? 3);
+if ($humor < 1 || $humor > 5) {
+    $humor = 3;
+}
+$yelpStars = (int) ($body['yelpStars'] ?? 0);
+if ($yelpStars < 1 || $yelpStars > 5) {
+    $yelpStars = 0;
+}
 
 /** Blingus table roster — matching names unlock raunchy party mode. */
 $partyRoster = [
@@ -184,8 +192,8 @@ $partyRoster = [
 /** Table-known hooks only (from session notes). No unrevealed module spoilers. */
 $partyFlavorByKey = [
     'blingus' => 'Self-roast welcome. L5 Lore fairy bard: vanity, name-amnesia, two daggers and a shortbow, fly speed, Cutting Words, Sir Whats-his-face energy. Fairy-twin insult bit with Puck: they often impersonate each other and say nasty, perverted things about "themselves" in first person. Honor the rating.',
-    'puck' => 'Fellow fairy Wild Magic sorcerer. Sparkles, twin-spell mischief, affectionate "Puke" nickname ok, glitter and bad decisions. Flew up with Blingus to Sir Talavar. Do not invent that he cast the Loomlurch Scorching Ray. Fairy-twin insult bit with Blingus: they often impersonate each other and say nasty, perverted things about "themselves" in first person. Honor the rating.',
-    'brawn' => 'Dwarven monk. Wears the Crown of Remembrance (Geoe: rare, attunement; holly and amber; +1 AC and saves; 1/day Action name Declan/Owen/Tristan: three allies within 20 ft get Advantage on next CON/DEX/WIS save before start of Brawn\'s next turn). Sundial answers the table used: Revenge / Reflex, a Fist / Fortitude, Words / Will. Drinks, thinks, swings. Lived the grappling chairs and the marching-band near-wipe. Sometimes, after horrific violence he did or watched, he says "Oh well!" like he is indifferent, sarcastic shrug-grin. Do not invent the violence.',
+    'puck' => 'Fellow fairy Wild Magic sorcerer. Sparkles, twin-spell mischief, affectionate "Puke" nickname ok, glitter and bad decisions. Named Witchlight Monarch at the carnival. Flew up with Blingus to Sir Talavar. Do not invent that he cast the Loomlurch Scorching Ray. Fairy-twin insult bit with Blingus: they often impersonate each other and say nasty, perverted things about "themselves" in first person. Honor the rating.',
+    'brawn' => 'Dwarven monk. Wears the Crown of Remembrance (Geoe: rare, attunement; holly and amber; +1 AC and saves; 1/day Action name Declan/Owen/Tristan: three allies within 20 ft get Advantage on next CON/DEX/WIS save before start of Brawn\'s next turn). Sundial answers the table used: Revenge / Reflex, a Fist / Fortitude, Words / Will. Drinks, thinks, swings. Lived the grappling chairs and the marching-band near-wipe. After violence he did or watched: sometimes "Oh well!" (indifferent shrug-grin), sometimes "Did I do that?" (innocent-proud). Do not name Urkel. Do not invent the violence.',
     'vadania' => 'Elven ranger Vadania Amakiir; the table casually calls them Vandan, Van Damme, or whatever feels right. Journal-steady bow-watcher. Checks doors twice, prods chests, got Scorching-Rayed during a mimic-chair fight. Trust scorched, not a bit. Vigilance was right. Do not name who cast the ray.',
     'bo' => 'NPC who brought the party together, not a player character. Toad-cauldron era, enlarge heroics, dragon breath at Granny Nightshade. Mentor. Closest thing Blingus has to family. Zybilna-silent warlock flavor when it fits. Toad jokes never die.',
 ];
@@ -240,7 +248,7 @@ $allowedOutcomes = [
     'insult', 'compliment', 'toast', 'motivation', 'introduction', 'feyGambit',
     'paulHarvey', 'productPlacement', 'infomercial', 'wrongSoundtrack',
     'pharmaAd', 'confessional', 'cliffhanger', 'standup', 'roast', 'troyMcClure',
-    'showtime', 'closer', 'inspiration', 'songOfRest', 'healBuff', 'flirt',
+    'showtime', 'closer', 'inspiration', 'songOfRest', 'storytime', 'healBuff', 'flirt',
     'graffiti', 'travelBanter', 'rally', 'downed',
     'eulogy', 'yelpReview', 'previouslyOn', 'natureDoc',
 ];
@@ -249,7 +257,7 @@ $speechOutcomes = [
     'insult', 'compliment', 'toast', 'motivation', 'introduction', 'feyGambit',
     'paulHarvey', 'productPlacement', 'infomercial', 'wrongSoundtrack',
     'pharmaAd', 'confessional', 'cliffhanger', 'standup', 'roast', 'troyMcClure',
-    'showtime', 'closer', 'inspiration', 'songOfRest', 'healBuff', 'flirt',
+    'showtime', 'closer', 'inspiration', 'songOfRest', 'storytime', 'healBuff', 'flirt',
     'graffiti', 'travelBanter', 'rally', 'downed',
     'eulogy', 'yelpReview', 'previouslyOn', 'natureDoc',
 ];
@@ -312,6 +320,7 @@ $outcomeLabels = [
     'closer' => 'Closer (good-night / walk-off; opposite of Showtime)',
     'inspiration' => 'Bardic Inspiration spend (spoken line to the named recipient; not Motivational Speech and not Cutting Words)',
     'songOfRest' => 'Song of Rest (short-rest recovery song; not a Meanwhile tune-up)',
+    'storytime' => 'Storytime (invent a tale and tell it; not Previously On, not Paul Harvey, not Showtime)',
     'healBuff' => 'Heal / Buff verbal component (Healing Word or the Detail-named buff; one breath)',
     'flirt' => 'Flirt / pickup / dedication (not a Compliment)',
     'graffiti' => 'Graffiti (written tag, 2-8 words; not spoken)',
@@ -354,6 +363,9 @@ if (!$targetTypes) {
     $targetNote = $targetTypes[0];
 }
 $nameNote = $name !== '' ? $name : '(no specific name)';
+$yelpStarsNote = ($outcome === 'yelpReview' && $yelpStars)
+    ? ($yelpStars . ' star' . ($yelpStars === 1 ? '' : 's'))
+    : '(n/a)';
 $intentNote = $intent !== '' ? $intent : '(none)';
 $castResultNote = $castResult === 'success'
     ? ($isMultiSpell
@@ -396,6 +408,23 @@ Rating: {$ratingNote}
 RATE;
 }
 
+$humorGuides = [
+    1 => 'HUMOR 1 (Straight): Play it sincere. Comedy is optional. A rally can be earnest. Do not force a punchline.',
+    2 => 'HUMOR 2 (Dry): Small smirk only. Underplayed. The joke is a raised eyebrow, not a bit.',
+    3 => 'HUMOR 3 (Table): Normal table wit. Funny without a forced punchline.',
+    4 => 'HUMOR 4 (Big swing): Commit to the joke. Bigger gestures, clearer punch.',
+    5 => 'HUMOR 5 (Full bit): The joke is the point. A 3-foot fairy may deliver Pelennor oratory. Do not quote movie speeches.',
+];
+$humorGuide = $humorGuides[$humor];
+$humorBlock = <<<HUMO
+
+HUMOR SLIDER (mandatory comic intensity for every line in this batch):
+Level: {$humor}
+{$humorGuide}
+- Mood picks the emotional register. Humor picks how hard the joke swings. Rating still caps adultness.
+- Do not ignore this slider.
+HUMO;
+
 $partyModeBlock = '';
 $partySubjectNote = 'no';
 if ($isPartySubject && $name !== '') {
@@ -419,7 +448,7 @@ PARTYMODE;
     $flavor = $partyFlavorByKey[$flavorKey] ?? 'Use established table chemistry and in-jokes for this companion.';
     $partyModeBlock .= "\n- Every line must clearly involve {$name} by name.\n";
     $partyModeBlock .= "- Party-member flavor for {$name}: {$flavor}\n";
-    $partyModeBlock .= "- Lean on table-known gags when they fit: toad-Bo, Crown of Remembrance, mimic chairs, Scorching Ray friendly fire, Stinky Court, mud muffins, Sir Whats-his-face, Sir Talavar, marching-band near-wipe, Granny in the oven, Mr. Witch and Mr. Light, Misplacer Beast, swan boat What is Joy dunk, Witch's watch pickpocket, Star the displacer cub, Jamie you beautiful bastard and Chris as well (do not invent who they are).\n";
+    $partyModeBlock .= "- Lean on table-known gags when they fit: toad-Bo, Crown of Remembrance, mimic chairs, Scorching Ray friendly fire, Stinky Court, mud muffins, Sir Whats-his-face, Sir Talavar, marching-band near-wipe, Granny in the oven, Mr. Witch and Mr. Light, Ellywick Tumblestrum tickets, Dirlagraun the Misplacer Beast, Burly the bugbear, Puck as Witchlight Monarch, swan boat What is Joy dunk, Witch's watch pickpocket, Hall of Illusions rhyme / alicorn, Star the displacer cub, Jamie you beautiful bastard and Chris as well (do not invent who they are).\n";
 }
 
 $meanwhileHabits = [
@@ -435,7 +464,7 @@ $fairyRule = $isBlingus
     ? '- Fairy specifics: Small fey, airborne, vain, name-amnesia. Default kit is two daggers and a shortbow. If Detail names a different weapon or spell, use Detail. Do not invent 4th-level spells unless Detail names one, and do not fly in medium/heavy armor.'
     : '- Honor THIS character\'s race and class from the sheet. Do not give them Blingus\'s name-amnesia, clarinet, cloth wings, or Lore bard kit unless the sheet lists them.';
 $brawnOhWellRule = ($speakerId === 'bruck')
-    ? '- Brawn "Oh well": sometimes, after he does horrific violence or watches it done to someone else, he says "Oh well!" like he is indifferent, with a sarcastic shrug-grin. Do not invent that the violence happened unless the scene, Detail, or Name already has it. Not every line. Honor the content rating for how graphic it gets.'
+    ? '- Brawn after-violence tags: sometimes "Oh well!" (indifferent, sarcastic shrug-grin) and sometimes "Did I do that?" (high, innocent, a little proud). Rotate them. Do not stack both in one line. Do not name Steve Urkel. Use only after he did the violence, watched it, or caused the mess. Do not invent that it happened unless the scene, Detail, or Name already has it. Not every line. Honor the content rating for how graphic it gets.'
     : '';
 $bardSceneBan = $isBlingus
     ? ''
@@ -478,9 +507,12 @@ if ($outcome === 'mockery') {
         ? '- Eulogy: a remembrance the player can read aloud. Not a toast (no glass required), not a compliment of one trait, not a Chaucer intro. Honor the named dead, the empty chair, or the fallen foe. Do not invent that someone died unless the scene, Name, or Situation says so. Table-known only. Theatrical and sincere. If a Situation chip is set, fold that occasion in. In battle: one breath. Out of battle: 3-5 sentences.'
         : '- Eulogy: a remembrance the player can read aloud. Not a toast (no glass required). Honor the named dead, the empty chair, or the fallen foe in THIS character\'s voice. Do not invent that someone died unless the scene, Name, or Situation says so. Table-known only. If a Situation chip is set, fold that occasion in. In battle: one breath. Out of battle: 3-5 sentences.';
 } elseif ($outcome === 'yelpReview') {
+    $yelpStarNote = $yelpStars
+        ? " Every line MUST give this exact rating: {$yelpStars} star" . ($yelpStars === 1 ? '' : 's') . ". Do not invent a different star count."
+        : ' If no star count is given, pick one and keep it consistent in that line.';
     $classSpeechRule = $isBlingus
-        ? '- Yelp review: stars, service, bathrooms, would not stay again. Review an inn, tavern, dungeon, kitchen, shop, or hag cooking in play. First person, speakable. If a Situation chip is set, review THAT kind of place. In battle: one breath. Out of battle: 3-5 sentences.'
-        : '- Yelp review: stars, service, would not stay again, in THIS character\'s voice. Review the place in play (inn, tavern, dungeon, kitchen, shop). If a Situation chip is set, review THAT kind of place. In battle: one breath. Out of battle: 3-5 sentences.';
+        ? '- Yelp review: stars, service, bathrooms, would not stay again. Review an inn, tavern, dungeon, kitchen, shop, or hag cooking in play. First person, speakable. If a Situation chip is set, review THAT kind of place.' . $yelpStarNote . ' In battle: one breath. Out of battle: 3-5 sentences.'
+        : '- Yelp review: stars, service, would not stay again, in THIS character\'s voice. Review the place in play (inn, tavern, dungeon, kitchen, shop). If a Situation chip is set, review THAT kind of place.' . $yelpStarNote . ' In battle: one breath. Out of battle: 3-5 sentences.';
 } elseif ($outcome === 'previouslyOn') {
     $classSpeechRule = $isBlingus
         ? '- Previously on: a season recap the player can read aloud after a rest, camp, morning-after, or when catching someone up. Table-known beats only. No unpublished Witchlight spoilers. TV recap energy. If a Situation chip is set, use THAT recap beat. In battle: one breath. Out of battle: 3-5 sentences.'
@@ -511,6 +543,8 @@ if ($outcome === 'mockery') {
     $classSpeechRule = '- Inspiration: spoken line when he spends a Bardic Inspiration die. Name is the recipient. Not Motivational Speech and not Cutting Words. First person, speakable. If a Situation chip is set, use THAT spend beat. In battle: one breath. Out of battle: 3-5 sentences.';
 } elseif ($outcome === 'songOfRest') {
     $classSpeechRule = '- Song of Rest: short-rest recovery song the player can read aloud. Not a Meanwhile tune-up and not Showtime. Soft, stay-down-and-listen. If a Situation chip is set, use THAT rest beat. Out of battle: 3-5 sentences.';
+} elseif ($outcome === 'storytime') {
+    $classSpeechRule = '- Storytime: invent a tale and tell it. These lines ARE the story the player reads aloud. Not Previously On (that recaps what happened), not Paul Harvey (that closes a true recap), not Showtime (that opens a set), not Song of Rest. Opening, a turn, and a moral or punch. If Name is set, the tale is about them or told to them. If a Situation chip is set (Once upon a time, Campfire, Tavern yarn, Tall tale, Cautionary, Bedtime, Excuse, About this place, About the mark, The moral), that is the kind of story. Table-known people may appear as fiction; do not present unpublished Witchlight as fact. In battle: one breath hook. Out of battle: 3-5 sentences that are the tale.';
 } elseif ($outcome === 'healBuff') {
     $classSpeechRule = $isBlingus
         ? '- Heal / Buff: the verbal component while casting Healing Word or the Detail-named buff. One breath. First person. Do not invent a spell not on the sheet or in Detail. If a Situation chip is set, use THAT cast beat.'
@@ -680,8 +714,8 @@ HOUSE RULES:
 {$fairyRule}
 {$brawnOhWellRule}
 {$bardSceneBan}
-- Lean on table-known Prismeer hooks when they fit: Sir Talavar, Clapperclaw the pincer-clawed scarecrow of Downfall (someone forgot his name), Stinky Court, mud muffins, mimic chairs, marching-band near-wipe, Loomlurch hollow tree and portrait room (Bavlorna Endelyn Tasha), Skabatha dead in the oven, Bavlorna still owed yarn, Lamorna/Elidon alicorn, Jabberwock (dragon-like, be careful), palace may need an invitation, Blood-Slick Token, Crown of Remembrance on Brawn, Mr. Witch and Mr. Light on edge, Star the displacer cub, eight unicorn names (Fortune Bold Fall Pride Stone Moss Stitch Nine). Do not invent unpublished Witchlight spoilers.
-- If Scene names a Feywild or Prismeer place, write to THAT place (Hither mud, Loomlurch timber, Yon peaks, a goblin market, etc.). If Name / subject is a creature, aim the beat at that foe. Do not invent unpublished Witchlight plot.
+- Lean on table-known Prismeer hooks when they fit: Ellywick Tumblestrum arranged the tickets, Dirlagraun the Misplacer Beast kept Witch's watch, Burly tipped the heist, Puck was Witchlight Monarch, Hall of Illusions (shadar-kai child reflections; rhyme Hither, thither, here and there; wander yonder, show me where; Rule of Three future present past; Light said find the alicorn and free the dormant queen), Sir Talavar, Clapperclaw the pincer-clawed scarecrow of Downfall (someone forgot his name), Stinky Court, mud muffins, mimic chairs, marching-band near-wipe, Loomlurch hollow tree and portrait room (Bavlorna Endelyn Tasha), Skabatha dead in the oven (Mishka supervised; fire elemental freed), Bavlorna still owed yarn, Elkhorn of Valor's Call, realms once one kingdom / ruined Hither causeway, Endelyn dies in a symbolic eclipse, Lamorna/Elidon stolen horn is the lock on Zybilna (the alicorn), Amadore the dandelion in Yon, Jabberwock (lake mist keeps it off), Blood-Slick Token, unconscious cloaked attacker on the lake shore (do not invent his name or that the horn is real), Hag Eye in the Bag, Crown of Remembrance on Brawn, Mr. Witch and Mr. Light on edge, Star the displacer cub (not Dirlagraun), eight unicorn names (Fortune Bold Fall Pride Stone Moss Stitch Nine). Do not invent moth-jar, cradle, attic, or mirror-word answers. Do not invent carnival watcher names or whether the watch was given back. Do not invent unpublished Witchlight spoilers.
+- If Scene names a Feywild or Prismeer place, write to THAT place (Hither mud, Loomlurch timber, Yon peaks, Endelyn's mountain-top theater of puppets, a goblin market, etc.). If Scene is Endelyn's theater: house, stage, galleries, strings, living puppets, Endelyn Moongrave, eclipse talk the table already knows. Do not invent unpublished rooms, cast lists, or Motherhorn layout. If Name / subject is a creature, aim the beat at that foe. Do not invent unpublished Witchlight plot.
 {$battleCryRule}
 - Insults: cutting table jab, not a cantrip and not Cutting Words. Aimed at the focus when specified. In battle: one breath. Out of battle: a longer roast (3-5 sentences) is fine.{$fairyTwinInsultRule}
 {$complimentRule}
@@ -693,6 +727,7 @@ HOUSE RULES:
 {$sheetBlock}
 {$kitMatchBlock}
 {$ratingBlock}
+{$humorBlock}
 {$partyModeBlock}
 {$forceParodyBlock}
 {$paceLengthBlock}
@@ -708,6 +743,7 @@ Lighting: {$lightingNote}
 Environment tags: {$environmentNote}
 Current mood: {$moodNote}
 Content rating: {$ratingNote}
+Humor: {$humor}
 Pace: {$pace}
 Outcome type: {$outcomeLabels[$outcome]}
 Attack type: {$attackTypeNote}
@@ -717,6 +753,7 @@ Spell kind: {$spellKindNote}
 Spell area: {$spellTargetsNote}
 Target focus: {$targetNote}
 Name / subject: {$nameNote}
+Yelp stars: {$yelpStarsNote}
 Situation / intent: {$intentNote}
 Party member subject: {$partySubjectNote}
 

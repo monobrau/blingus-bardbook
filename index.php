@@ -15,6 +15,7 @@ $moduleFiles = [
   'storage-utils.js',
   'ui-utils.js',
   'site-identity.js',
+  'whats-new.js',
   'tab-navigation.js',
   'keyboard-shortcuts.js',
   'action-workflow.js',
@@ -25,6 +26,7 @@ $moduleFiles = [
   'brawn-fx.js',
   'ddb-sheet-import.js',
   'd20-roll.js',
+  'soundboard.js',
   'workflow-catalog.js',
   'karaoke-manager.js',
   'data/spells-data.js',
@@ -170,11 +172,16 @@ $defaultTab = $showKaraoke ? 'spells' : ($showSongbook ? 'songs' : ($showKit ? '
             <span class="tab__icon">🧚</span>
             <span class="tab__label" id="characterTabLabel">Character</span>
           </button>
+          <button class="tab" role="tab" data-section="soundboard" aria-selected="false" data-tooltip="Recorded battle clips — tap a pad to play">
+            <span class="tab__icon">🔊</span>
+            <span class="tab__label">Sounds</span>
+          </button>
         </div>
         <div class="toolbar__utilities">
           <button type="button" id="partyFxBtn" class="btn btn--secondary btn--compact" data-tooltip="Critters, punches, runes, and wild-magic sparkles" aria-pressed="true">FX on</button>
           <button type="button" id="d20SoundBtn" class="btn btn--secondary btn--compact" data-tooltip="Play a cue on crit or fumble" aria-pressed="false">Sound off</button>
           <button type="button" id="historyBtn" class="btn btn--secondary btn--compact" data-tooltip="Recently used items (Press H)">History</button>
+          <button type="button" id="whatsNewBtn" class="btn btn--secondary btn--compact" data-tooltip="Changelog of update toasts" aria-haspopup="dialog">News</button>
           <button type="button" id="settingsBtn" class="btn btn--secondary btn--compact" data-tooltip="Edit, data, dark mode, personality" aria-haspopup="dialog">Settings</button>
         </div>
       </div>
@@ -205,6 +212,10 @@ $defaultTab = $showKaraoke ? 'spells' : ($showSongbook ? 'songs' : ($showKit ? '
               <input type="text" id="workflowMoodInput" class="workflow__name-input" placeholder="Or type a mood…" maxlength="80" autocomplete="off" />
               <div class="workflow__question workflow__rating-label">How adult? <span class="workflow__hint">(optional — click again to clear)</span></div>
               <div class="chips chips--pills" id="workflowRatingChips" role="group" aria-label="Content rating"></div>
+              <div class="workflow__slider-row">
+                <label class="workflow__question" for="workflowHumorSlider">Humor <span class="workflow__hint" id="workflowHumorHint">(how hard the joke swings)</span></label>
+                <input type="range" id="workflowHumorSlider" min="1" max="5" step="1" />
+              </div>
             </div>
           </div>
           <div class="workflow__step" id="workflowPaceStep">
@@ -275,6 +286,8 @@ $defaultTab = $showKaraoke ? 'spells' : ($showSongbook ? 'songs' : ($showKit ? '
               <div class="workflow__question" id="workflowTargetLabel">3. Who or what is the focus? <span class="workflow__hint">(optional)</span></div>
               <div class="chips chips--pills workflow__targets" id="workflowTargetChips" role="group" aria-label="Targets"></div>
               <div class="workflow__name-block" id="workflowNameBlock" hidden>
+                <div class="workflow__scene-group-label" id="workflowYelpStarsLabel" hidden>Stars <span class="workflow__hint" id="workflowYelpStarsHint">(the rating in the review)</span></div>
+                <div class="chips chips--pills workflow__yelp-stars" id="workflowYelpStars" role="group" aria-label="Yelp star rating" hidden></div>
                 <div class="workflow__scene-group-label" id="workflowSituationLabel" hidden>Situation <span class="workflow__hint">(optional)</span></div>
                 <div class="chips chips--pills" id="workflowSituationChips" role="group" aria-label="Situation" hidden></div>
                 <div class="workflow__scene-group-label" id="workflowAudienceLabel" hidden>Audience</div>
@@ -304,6 +317,7 @@ $defaultTab = $showKaraoke ? 'spells' : ($showSongbook ? 'songs' : ($showKit ? '
         <option value="mockery">Vicious Mockery</option>
         <option value="outcomes">Scene Outcomes</option>
         <option value="character">Character</option>
+        <option value="soundboard">Sounds</option>
         <option value="actions">What's Your Character Doing?</option>
         <option value="criticalHits">Critical Hit Description</option>
         <option value="criticalFailures">Critical Failure Description</option>
@@ -345,6 +359,13 @@ $defaultTab = $showKaraoke ? 'spells' : ($showSongbook ? 'songs' : ($showKit ? '
           </div>
         </section>
         <section class="settings-section">
+          <h3 class="settings-section__label">Updates</h3>
+          <p class="settings-section__hint">Every shipped toast stays here after you tap Got it.</p>
+          <div class="settings-actions">
+            <button type="button" id="settingsChangelogBtn" class="btn">Changelog</button>
+          </div>
+        </section>
+        <section class="settings-section">
           <h3 class="settings-section__label">Voice</h3>
           <p class="settings-section__hint">Standing Claude personality. Mood (on Outcomes) colors each batch.</p>
           <div class="settings-actions">
@@ -354,6 +375,20 @@ $defaultTab = $showKaraoke ? 'spells' : ($showSongbook ? 'songs' : ($showKit ? '
       </div>
       <div class="modal__footer">
         <button type="button" id="settingsCloseBtn" class="btn">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="changelogModal" class="modal" role="dialog" aria-labelledby="changelogTitle" aria-hidden="true">
+    <div class="modal__content changelog-modal">
+      <div class="modal__header">
+        <h2 id="changelogTitle">What's new</h2>
+        <button type="button" class="modal__close" id="changelogModalClose" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal__body" id="changelogBody"></div>
+      <div class="modal__footer">
+        <button type="button" id="changelogMarkReadBtn" class="btn btn--secondary">Mark all read</button>
+        <button type="button" id="changelogCloseBtn" class="btn">Close</button>
       </div>
     </div>
   </div>
@@ -528,6 +563,7 @@ $defaultTab = $showKaraoke ? 'spells' : ($showSongbook ? 'songs' : ($showKit ? '
   <script src="js/storage-utils.js?v=<?php echo $versions['storage-utils.js']; ?>"></script>
   <script src="js/ui-utils.js?v=<?php echo $versions['ui-utils.js']; ?>"></script>
   <script src="js/site-identity.js?v=<?php echo $versions['site-identity.js']; ?>"></script>
+  <script src="js/whats-new.js?v=<?php echo $versions['whats-new.js']; ?>"></script>
 
   <!-- Tab navigation -->
   <script src="js/tab-navigation.js?v=<?php echo $versions['tab-navigation.js']; ?>"></script>
@@ -557,6 +593,8 @@ $defaultTab = $showKaraoke ? 'spells' : ($showSongbook ? 'songs' : ($showKit ? '
   <script src="js/vadania-fx.js?v=<?php echo $versions['vadania-fx.js']; ?>"></script>
   <script src="js/brawn-fx.js?v=<?php echo $versions['brawn-fx.js']; ?>"></script>
   <script src="js/d20-roll.js?v=<?php echo $versions['d20-roll.js']; ?>"></script>
+  <script>window.SoundboardConfig = {};</script>
+  <script src="js/soundboard.js?v=<?php echo $versions['soundboard.js']; ?>"></script>
   <script>window.WorkflowCatalogConfig = { app: 'blingus', storageKey: 'blingusWorkflowCatalogV1', partyKey: 'blingusPartyMembersV1', defaultParty: ['Blingus', 'Bruck', "Brawn O'Neil", 'Puck Pinewhistle', 'Vadania Amakiir', 'Bo'] };</script>
   <script src="js/workflow-catalog.js?v=<?php echo $versions['workflow-catalog.js']; ?>"></script>
   <script src="js/action-workflow.js?v=<?php echo $versions['action-workflow.js']; ?>"></script>

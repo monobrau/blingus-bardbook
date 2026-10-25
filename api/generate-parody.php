@@ -138,9 +138,16 @@ $kind = $section === 'spells'
     ? 'D&D spell parody'
     : ($section === 'bardic' ? 'bardic inspiration parody' : 'vicious mockery / roast parody');
 
-$exampleBlock = count($examples)
-    ? "- Match this house style (short, hook-faithful, usable at the table):\n- " . implode("\n- ", $examples)
-    : '- Keep it to one short sung couplet, about one or two sentences.';
+$goldenExamples = [
+    "Ah, ah, ah, ah, stayin' alive, stayin' alive; ah, ah, ah, ah, pass that save, stayin' alive.",
+    "It's the eye of the tiger, it's the thrill of the fight; risin' up to the swing of the night.",
+    "Never gonna give you up, never gonna let you down; never gonna run this pitch aground.",
+    "Hello darkness, my old friend; I've come to sneak with you again.",
+    "I get knocked down, but I get up again; you're never gonna keep this save down.",
+    "You can't touch this, you can't touch this; I minus this. Hammer time.",
+];
+$styleExamples = array_values(array_unique(array_merge($goldenExamples, $examples)));
+$exampleBlock = "- Match this house style (sung on the real hook, not a rhyming caption):\n- " . implode("\n- ", $styleExamples);
 
 $guidanceBlock = $guidance !== ''
     ? "PLAYER GUIDANCE (honor this):\n{$guidance}"
@@ -176,11 +183,11 @@ USR;
     $temperature = 0.2;
 } else {
     $system = <<<SYS
-You write one karaoke-bard song parody lyric as Blingus the Wayfarer, a College of Lore fairy bard.
+You write one karaoke-bard song parody lyric as Blingus the Wayfarer, a College of Lore fairy bard. He SINGS this at the table.
 
 HOUSE RULES:
 - Return ONLY a JSON object: {"lyrics":"...","song":"...","artist":"..."} with no markdown fences and no commentary.
-- The lyrics are what Blingus sings at the table for this {$kind}.
+- The lyrics are what Blingus sings for this {$kind}.
 - Category / list: {$category}
 - Player typed song: {$song}
 - Player typed artist: {$artist}
@@ -189,11 +196,24 @@ HOUSE RULES:
 - If the typed artist recorded a well-known version of this song, KEEP that artist even if another version is more famous.
 - If you are not reasonably sure, keep the player's artist.
 - Fix only clear song-title typos. Do not rename it to a different track.
-- Rewrite the real, well-known song so the lyrics fit this category. Keep the original hook recognizable (same cadence, famous phrases twisted).
-- Do NOT quote the original lyrics verbatim. Do NOT name the song or artist in the lyric.
-- Fantasy / D&D table talk is welcome (HP, slots, saves). Avoid modern gadgets, cars, phones, neon, science labs.
+
+SINGABLE PARODY (fail and rewrite if any rule breaks):
+- Mentally recite the real chorus or most famous sung line first. Count its syllables and stressed beats.
+- The new lyric must be singable ON TOP of that line. Same syllable count on the hook. Same stresses. If you cannot hum the real hook while saying your line, it is wrong.
+- Twist 2 to 4 famous words into the D&D beat for this category. The joke is a substitution inside a melody people already know.
+- Do NOT dump the song title, then explain the mechanic after a semicolon. That is a caption, not a parody.
+- BAD: "Thunderstruck? Nah, thunder-smacked; roll that boom, get impact."
+- BAD: "Survivor, I'm a survivor; pass that save, come out a thriver, a survivor."
+- BAD: "Boom boom pow, extra oomph now; numbers bow, the swing lands now."
+- GOOD: "Thunder, thunder, thunderstruck; thunder that swing, now you're in luck."
+- GOOD: "I'm a survivor, I'm not gon' give up; I'm not gon' stop, I'm gon' work this save up."
+- GOOD: "Ah, ah, ah, ah, stayin' alive, stayin' alive; ah, ah, ah, ah, pass that save, stayin' alive."
+- Ban filler: oomph, trope, hymn, that's the call, that's the crime, that's the primer, numbers bow, extra oomph, that's the thrill.
+- Do NOT quote a whole original verse verbatim. Keep the hook recognizable, then twist it.
+- Do NOT name the song or artist in the lyric.
+- Fantasy / D&D table talk is welcome (HP, slots, saves) only inside the melody. Avoid modern gadgets, cars, phones, neon, science labs.
 - Never use em dashes or en dashes. Always capitalize the pronoun I.
-- One complete option only. Not a verse, not a numbered list.
+- One complete sung couplet only. Six seconds at the table. Not a verse, not a numbered list.
 {$exampleBlock}
 {$ratingBlock}
 SYS;
@@ -202,12 +222,14 @@ Write one parody lyric for "{$song}" by {$artist}, for the {$kind} list "{$categ
 
 First confirm the recording. Correct a wrong or misspelled artist. Keep the artist if they recorded a real version of this song.
 
+If the line cannot be sung on the original chorus or famous hook, rewrite it before you answer.
+
 {$guidanceBlock}
 
 Respond with {"lyrics":"...","song":"...","artist":"..."} only.
 USR;
     $maxTokens = 400;
-    $temperature = 0.95;
+    $temperature = 0.65;
 }
 
 $model = getenv('ANTHROPIC_MODEL') ?: 'claude-sonnet-4-6';

@@ -278,6 +278,12 @@ function scoreParody(item) {
   }
   if (/contain 'em.*sustain 'em/i.test(t)) score -= 3;
   if (/story checks out|checks out/i.test(t) && !/no diggity/i.test(tNorm)) score -= 1;
+  if (/;\s*(bonus|add the|pass that|I minus|I tax|I shave|I dock|that's the|now you're|numbers bow)/i.test(t)) {
+    score -= 3;
+  }
+  if (/\b(oomph|trope|hymn|that's the call|that's the crime|that's the primer|extra oomph|numbers bow)\b/i.test(t)) {
+    score -= 3;
+  }
 
   return score;
 }

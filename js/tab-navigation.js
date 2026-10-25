@@ -193,13 +193,13 @@
       window.ActionWorkflow.applyTabPreset(section);
     } else if (window.ActionWorkflow) {
       window.ActionWorkflow.showPanel(false);
-      if (section === 'character') {
+      if (section === 'character' || section === 'soundboard') {
         const chipsRow = document.getElementById('categoryChipsRow');
         if (chipsRow) chipsRow.style.display = 'none';
       } else {
         updateCategoryChips(section);
       }
-    } else if (section === 'character') {
+    } else if (section === 'character' || section === 'soundboard') {
       const chipsRow = document.getElementById('categoryChipsRow');
       if (chipsRow) chipsRow.style.display = 'none';
     } else {

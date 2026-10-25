@@ -22,7 +22,9 @@ grep -q 'Fairy-twin insult bit with Puck' $ROOT/js/outcome-generate.js
 grep -q 'Fairy-twin insult bit with Blingus' $ROOT/js/outcome-generate.js
 grep -q 'Fairy-twin insult bit' $ROOT/api/generate-outcome.php
 grep -q 'Oh well!' $ROOT/js/outcome-generate.js
+grep -q 'Did I do that?' $ROOT/js/outcome-generate.js
 grep -q 'Oh well!' $ROOT/api/generate-outcome.php
+grep -q 'Did I do that?' $ROOT/api/generate-outcome.php
 grep -q meanwhileHabits $ROOT/api/generate-outcome.php
 echo shipped
 EOS
