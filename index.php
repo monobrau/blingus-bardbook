@@ -26,6 +26,7 @@ $moduleFiles = [
   'brawn-fx.js',
   'ddb-sheet-import.js',
   'd20-roll.js',
+  'soundboard-clips.js',
   'soundboard.js',
   'workflow-catalog.js',
   'karaoke-manager.js',
@@ -594,6 +595,7 @@ $defaultTab = $showKaraoke ? 'spells' : ($showSongbook ? 'songs' : ($showKit ? '
   <script src="js/brawn-fx.js?v=<?php echo $versions['brawn-fx.js']; ?>"></script>
   <script src="js/d20-roll.js?v=<?php echo $versions['d20-roll.js']; ?>"></script>
   <script>window.SoundboardConfig = {};</script>
+  <script src="js/soundboard-clips.js?v=<?php echo $versions['soundboard-clips.js']; ?>"></script>
   <script src="js/soundboard.js?v=<?php echo $versions['soundboard.js']; ?>"></script>
   <script>window.WorkflowCatalogConfig = { app: 'blingus', storageKey: 'blingusWorkflowCatalogV1', partyKey: 'blingusPartyMembersV1', defaultParty: ['Blingus', 'Bruck', "Brawn O'Neil", 'Puck Pinewhistle', 'Vadania Amakiir', 'Bo'] };</script>
   <script src="js/workflow-catalog.js?v=<?php echo $versions['workflow-catalog.js']; ?>"></script>

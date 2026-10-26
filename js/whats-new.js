@@ -148,6 +148,14 @@
         'Sounds tab: Undead ×2. "And as always, undead take times two damage to fire!"',
       ],
     },
+    {
+      id: '2026-10-25-e-youtube-clips',
+      date: '2026-10-25',
+      who: null,
+      lines: [
+        'Sounds tab: search YouTube, trim a clip, and add it to this character\'s board. Clips are saved on the server.',
+      ],
+    },
   ];
 
   function currentWho() {

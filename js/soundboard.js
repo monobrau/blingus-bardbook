@@ -137,8 +137,27 @@
     return KITS[kitId()] || KITS.blingus;
   }
 
+  let customPads = [];
+  let renderToken = 0;
+
   function pads() {
-    return kit().pads;
+    return customPads.concat(kit().pads);
+  }
+
+  function clipsToPads(characterId, clips) {
+    if (!window.SoundboardClips || !Array.isArray(clips)) return [];
+    return clips.map((clip) => ({
+      id: 'clip:' + clip.id,
+      clipId: clip.id,
+      characterId: characterId,
+      group: 'Your clips',
+      label: clip.label || 'Clip',
+      icon: clip.icon || '🔊',
+      src: window.SoundboardClips.fileUrl(characterId, clip.id),
+      loop: !!clip.loop,
+      custom: true,
+      sourceTitle: clip.title || '',
+    }));
   }
 
   function volKey() {
@@ -230,7 +249,7 @@
     return node;
   }
 
-  function render(host) {
+  function paint(host) {
     if (!host) return;
     lastHost = host;
     host.innerHTML = '';
@@ -266,7 +285,7 @@
     head.appendChild(controls);
     root.appendChild(head);
 
-    const all = current.pads;
+    const all = pads();
     const groups = [];
     all.forEach((pad) => {
       if (groups.indexOf(pad.group) === -1) groups.push(pad.group);
@@ -279,6 +298,7 @@
         const btn = el('button', 'soundboard__pad', '');
         btn.type = 'button';
         btn.setAttribute('data-sound-id', pad.id);
+        if (pad.sourceTitle) btn.title = pad.sourceTitle;
         if (pad.loop) btn.setAttribute('aria-pressed', 'false');
         btn.appendChild(el('span', 'soundboard__pad-icon', pad.icon));
         btn.appendChild(el('span', 'soundboard__pad-label', pad.label));
@@ -289,15 +309,66 @@
           setTimeout(() => btn.classList.remove('is-on'), 160);
           if (pad.loop) btn.setAttribute('aria-pressed', loops[pad.id] ? 'true' : 'false');
         });
-        grid.appendChild(btn);
+        if (!pad.custom) {
+          grid.appendChild(btn);
+          return;
+        }
+        const wrap = el('div', 'soundboard__pad-wrap');
+        const remove = el('button', 'soundboard__pad-remove', '×');
+        remove.type = 'button';
+        remove.setAttribute('aria-label', 'Remove ' + pad.label);
+        remove.addEventListener('click', (ev) => {
+          ev.preventDefault();
+          ev.stopPropagation();
+          if (!window.confirm('Remove ' + pad.label + ' from this board?')) return;
+          window.SoundboardClips.remove(pad.characterId, pad.clipId).then(() => {
+            if (lastHost) render(lastHost);
+          }).catch((err) => {
+            if (window.UIUtils && window.UIUtils.showToast) {
+              window.UIUtils.showToast(err.message || 'Could not remove clip');
+            }
+          });
+        });
+        wrap.appendChild(btn);
+        wrap.appendChild(remove);
+        grid.appendChild(wrap);
       });
       card.appendChild(grid);
       root.appendChild(card);
     });
 
-    root.appendChild(el('p', 'soundboard__hint', 'CC0 recordings. Same clip library, different kit per book.'));
+    if (window.SoundboardClips) {
+      const editor = el('section', 'sheet-card soundboard-clips');
+      root.appendChild(editor);
+      window.SoundboardClips.mount(editor, {
+        characterId: kitId(),
+        onSaved: () => { if (lastHost) render(lastHost); },
+      });
+    }
+
+    root.appendChild(el('p', 'soundboard__hint', 'Built-in pads stay with the book. Clips you add are saved on this server for this character.'));
     host.appendChild(root);
     syncLoopButtons();
+  }
+
+  function render(host) {
+    if (!host) return;
+    const token = ++renderToken;
+    lastHost = host;
+    const id = kitId();
+    host.innerHTML = '';
+    host.classList.add('content--soundboard');
+    host.appendChild(el('p', 'soundboard__hint', 'Loading sounds…'));
+    const finish = (clips) => {
+      if (token !== renderToken) return;
+      customPads = clipsToPads(id, clips);
+      paint(host);
+    };
+    if (!window.SoundboardClips) {
+      finish([]);
+      return;
+    }
+    window.SoundboardClips.list(id).then(finish).catch(() => finish([]));
   }
 
   document.addEventListener('blingus-character-change', () => {
