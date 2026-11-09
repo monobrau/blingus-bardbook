@@ -20,12 +20,15 @@ $moduleFiles = [
   'keyboard-shortcuts.js',
   'action-workflow.js',
   'outcome-generate.js',
+  'speak.js',
+  'sheet-clips.js',
   'character-sheet.js',
   'puck-fx.js',
   'vadania-fx.js',
   'brawn-fx.js',
   'ddb-sheet-import.js',
   'd20-roll.js',
+  'soundboard-clips.js',
   'soundboard.js',
   'workflow-catalog.js',
   'karaoke-manager.js',
@@ -174,7 +177,7 @@ $defaultTab = $showKaraoke ? 'spells' : ($showSongbook ? 'songs' : ($showKit ? '
           </button>
           <button class="tab" role="tab" data-section="soundboard" aria-selected="false" data-tooltip="Recorded battle clips — tap a pad to play">
             <span class="tab__icon">🔊</span>
-            <span class="tab__label">Sounds</span>
+            <span class="tab__label">Sound Board</span>
           </button>
         </div>
         <div class="toolbar__utilities">
@@ -317,7 +320,7 @@ $defaultTab = $showKaraoke ? 'spells' : ($showSongbook ? 'songs' : ($showKit ? '
         <option value="mockery">Vicious Mockery</option>
         <option value="outcomes">Scene Outcomes</option>
         <option value="character">Character</option>
-        <option value="soundboard">Sounds</option>
+        <option value="soundboard">Sound Board</option>
         <option value="actions">What's Your Character Doing?</option>
         <option value="criticalHits">Critical Hit Description</option>
         <option value="criticalFailures">Critical Failure Description</option>
@@ -371,6 +374,14 @@ $defaultTab = $showKaraoke ? 'spells' : ($showSongbook ? 'songs' : ($showKit ? '
           <div class="settings-actions">
             <button type="button" id="settingsPersonalityBtn" class="btn">Edit personality</button>
           </div>
+        </section>
+        <section class="settings-section">
+          <h3 class="settings-section__label">ElevenLabs</h3>
+          <p class="settings-section__hint">Voice ID for Speak. Leave blank to keep Blingus’s voice. <a href="https://elevenlabs.io/app/voices" target="_blank" rel="noopener noreferrer">ElevenLabs voices</a></p>
+          <label class="settings-voice">
+            Voice ID
+            <input type="text" id="elevenVoiceId" spellcheck="false" autocomplete="off" placeholder="Paste a voice ID" maxlength="120">
+          </label>
         </section>
       </div>
       <div class="modal__footer">
@@ -505,6 +516,7 @@ $defaultTab = $showKaraoke ? 'spells' : ($showSongbook ? 'songs' : ($showKit ? '
           <p id="parodyAiStatus" class="parody-ai__status" hidden></p>
           <div id="parodyAiReview" class="parody-ai__review" hidden>
             <button type="button" id="keepParodyBtn" class="btn">✅ Keep</button>
+            <button type="button" id="speakParodyBtn" class="btn btn--secondary">🔊 Speak</button>
             <button type="button" id="editParodyBtn" class="btn btn--secondary">✏️ Edit</button>
           </div>
         </div>
@@ -588,17 +600,20 @@ $defaultTab = $showKaraoke ? 'spells' : ($showSongbook ? 'songs' : ($showKit ? '
 
   <!-- Action workflow + Claude outcome generation (after data modules) -->
   <script src="js/ddb-sheet-import.js?v=<?php echo $versions['ddb-sheet-import.js']; ?>"></script>
+  <script src="js/sheet-clips.js?v=<?php echo $versions['sheet-clips.js']; ?>"></script>
   <script src="js/character-sheet.js?v=<?php echo $versions['character-sheet.js']; ?>"></script>
   <script src="js/puck-fx.js?v=<?php echo $versions['puck-fx.js']; ?>"></script>
   <script src="js/vadania-fx.js?v=<?php echo $versions['vadania-fx.js']; ?>"></script>
   <script src="js/brawn-fx.js?v=<?php echo $versions['brawn-fx.js']; ?>"></script>
   <script src="js/d20-roll.js?v=<?php echo $versions['d20-roll.js']; ?>"></script>
   <script>window.SoundboardConfig = {};</script>
+  <script src="js/soundboard-clips.js?v=<?php echo $versions['soundboard-clips.js']; ?>"></script>
   <script src="js/soundboard.js?v=<?php echo $versions['soundboard.js']; ?>"></script>
   <script>window.WorkflowCatalogConfig = { app: 'blingus', storageKey: 'blingusWorkflowCatalogV1', partyKey: 'blingusPartyMembersV1', defaultParty: ['Blingus', 'Bruck', "Brawn O'Neil", 'Puck Pinewhistle', 'Vadania Amakiir', 'Bo'] };</script>
   <script src="js/workflow-catalog.js?v=<?php echo $versions['workflow-catalog.js']; ?>"></script>
   <script src="js/action-workflow.js?v=<?php echo $versions['action-workflow.js']; ?>"></script>
   <script src="js/outcome-generate.js?v=<?php echo $versions['outcome-generate.js']; ?>"></script>
+  <script src="js/speak.js?v=<?php echo $versions['speak.js']; ?>"></script>
 
   <!-- Main application script -->
   <script src="script.js?v=<?php echo $versions['script.js']; ?>"></script>

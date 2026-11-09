@@ -46,6 +46,7 @@ MODULE_FILES = [
     "keyboard-shortcuts.js",
     "action-workflow.js",
     "outcome-generate.js",
+    "speak.js",
     "karaoke-manager.js",
     "data/spells-data.js",
     "data/bardic-data.js",
@@ -134,6 +135,81 @@ def load_anthropic_key() -> str:
     if key_file.is_file():
         return key_file.read_text(encoding="utf-8").strip()
     return ""
+
+
+def load_secret_file(env_name: str, filename: str) -> str:
+    value = (os.environ.get(env_name) or "").strip()
+    if value:
+        return value
+    path = ROOT / "api" / filename
+    if path.is_file():
+        return path.read_text(encoding="utf-8").strip()
+    return ""
+
+
+def elevenlabs_error_message(raw: str, status: int) -> str:
+    message = f"Speech failed (HTTP {status})"
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError:
+        return message
+    detail = parsed.get("detail") if isinstance(parsed, dict) else None
+    if isinstance(detail, dict) and detail.get("message"):
+        return str(detail["message"])
+    if isinstance(detail, str) and detail:
+        return detail
+    return message
+
+
+CHARACTER_VOICES = {
+    "blingus": "NJf2N7XT2iBE8xJ0XHlo",
+}
+
+
+def voice_for_speaker(speaker: str) -> str:
+    speaker = re.sub(r"[^a-z0-9]", "", (speaker or "").strip().lower())[:32]
+    if speaker in CHARACTER_VOICES:
+        return CHARACTER_VOICES[speaker]
+    return load_secret_file("ELEVENLABS_VOICE_ID", ".elevenlabs_voice") or "JBFqnCBsd6RMkjVDRZzb"
+
+
+def call_elevenlabs(text: str, speaker: str = "") -> bytes:
+    key = load_secret_file("ELEVENLABS_API_KEY", ".elevenlabs_key")
+    if not key:
+        raise RuntimeError("ElevenLabs API key not configured. Set ELEVENLABS_API_KEY or create api/.elevenlabs_key")
+    voice = voice_for_speaker(speaker)
+    if not re.fullmatch(r"[A-Za-z0-9]{8,40}", voice):
+        raise RuntimeError("Invalid ElevenLabs voice id")
+    model = (os.environ.get("ELEVENLABS_MODEL") or "eleven_multilingual_v2").strip()
+    if not re.fullmatch(r"[A-Za-z0-9_]{3,64}", model):
+        model = "eleven_multilingual_v2"
+    payload = json.dumps({"text": text, "model_id": model}).encode("utf-8")
+    req = urllib.request.Request(
+        f"https://api.elevenlabs.io/v1/text-to-speech/{voice}",
+        data=payload,
+        headers={
+            "xi-api-key": key,
+            "Content-Type": "application/json",
+            "Accept": "audio/mpeg",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            return resp.read()
+    except urllib.error.HTTPError as exc:
+        raw = exc.read().decode("utf-8", errors="replace")
+        raise RuntimeError(elevenlabs_error_message(raw, exc.code)) from exc
+
+
+def blingus_authorized(headers: Any) -> bool:
+    expected = (os.environ.get("BLINGUS_API_KEY") or "").strip()
+    if not expected:
+        return True
+    provided = headers.get("Authorization") or ""
+    if provided.lower().startswith("bearer "):
+        provided = provided[7:].strip()
+    return provided == expected
 
 
 def file_versions() -> dict[str, int]:
@@ -670,12 +746,19 @@ class BardbookHandler(BaseHTTPRequestHandler):
             self._send_json(405, {"success": False, "error": "POST required"})
             return
 
+        if path == "/api/speak.php":
+            self._send_json(405, {"success": False, "error": "POST required"})
+            return
+
         rel = path.lstrip("/")
         if ".." in Path(rel).parts:
             self._send_json(400, {"success": False, "error": "Bad path"})
             return
         file_path = (ROOT / rel).resolve()
         if not str(file_path).startswith(str(ROOT)) or not file_path.is_file():
+            self.send_error(404, "Not found")
+            return
+        if file_path.name in {".anthropic_key", ".elevenlabs_key", ".elevenlabs_voice", ".elevenlabs_sfx_key"}:
             self.send_error(404, "Not found")
             return
 
@@ -697,6 +780,29 @@ class BardbookHandler(BaseHTTPRequestHandler):
             body = self._read_json()
         except ValueError as exc:
             self._send_json(400, {"success": False, "error": str(exc)})
+            return
+
+        if path == "/api/speak.php":
+            if not blingus_authorized(self.headers):
+                self._send_json(401, {"success": False, "error": "Unauthorized"})
+                return
+            text = str(body.get("text") or "").strip()
+            if not text:
+                self._send_json(400, {"success": False, "error": "Text required"})
+                return
+            if len(text) > 5000:
+                self._send_json(400, {"success": False, "error": "Text is too long to speak (5000 character max)"})
+                return
+            try:
+                audio = call_elevenlabs(text, str(body.get("speaker") or ""))
+            except RuntimeError as exc:
+                code = 503 if "API key" in str(exc) else 502
+                self._send_json(code, {"success": False, "error": str(exc)})
+                return
+            except urllib.error.URLError as exc:
+                self._send_json(502, {"success": False, "error": f"Speech request failed: {exc.reason}"})
+                return
+            self._send(200, audio, "audio/mpeg")
             return
 
         if path == "/api/generate-outcome.php":
@@ -767,6 +873,11 @@ def run_python_server(host: str, port: int, open_browser: bool) -> int:
     if not load_anthropic_key():
         print(
             "Note: no Anthropic key yet. Outcomes generate needs ANTHROPIC_API_KEY or api/.anthropic_key",
+            flush=True,
+        )
+    if not load_secret_file("ELEVENLABS_API_KEY", ".elevenlabs_key"):
+        print(
+            "Note: no ElevenLabs key yet. Speak needs ELEVENLABS_API_KEY or api/.elevenlabs_key",
             flush=True,
         )
     print("Press Ctrl+C to stop.\n", flush=True)

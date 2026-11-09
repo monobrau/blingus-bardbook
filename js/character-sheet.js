@@ -1785,7 +1785,16 @@
       bindText(name, (v) => { sheet[key][index].name = v.trim() || 'Untitled'; });
       const notes = notesInput(row.notes, 'Notes');
       bindText(notes, (v) => { sheet[key][index].notes = v; });
-      rowEl.appendChild(name);
+      if (key === 'skills' && window.SheetClips && window.SheetClips.enabled(activeId)) {
+        const nameWrap = el('div', 'sheet-name');
+        nameWrap.dataset.clipKind = 'skill';
+        nameWrap.dataset.clipId = window.SheetClips.slug(row.name);
+        nameWrap.dataset.clipLabel = row.name || 'skill';
+        nameWrap.appendChild(name);
+        rowEl.appendChild(nameWrap);
+      } else {
+        rowEl.appendChild(name);
+      }
 
       if (options.showAttackType) {
         const type = el('select', 'sheet-input sheet-input--select');
@@ -1934,6 +1943,16 @@
     soundBtn.type = 'button';
     if (window.D20Roll?.bindSoundToggle) window.D20Roll.bindSoundToggle(soundBtn);
     actions.appendChild(soundBtn);
+    if (window.SheetClips && window.SheetClips.enabled(activeId)) {
+      const clipsBtn = el('button', 'btn btn--secondary btn--compact', 'Clips');
+      clipsBtn.type = 'button';
+      clipsBtn.title = 'Speak a line onto ability scores and skills';
+      clipsBtn.addEventListener('click', () => {
+        const names = (sheet.skills || []).map((row) => row && row.name);
+        window.SheetClips.open(activeId, names);
+      });
+      actions.appendChild(clipsBtn);
+    }
     const resetBtn = el('button', 'btn btn--secondary btn--compact', 'Reset this sheet');
     resetBtn.type = 'button';
     resetBtn.addEventListener('click', () => {
@@ -2057,7 +2076,16 @@
         saveImmediate(sheet);
         render(host);
       }, { min: '1', max: '30' }));
-      abGrid.appendChild(wrap);
+      if (window.SheetClips && window.SheetClips.enabled(activeId)) {
+        const cell = el('div', 'sheet-ability');
+        cell.dataset.clipKind = 'ability';
+        cell.dataset.clipId = key;
+        cell.dataset.clipLabel = key.toUpperCase();
+        cell.appendChild(wrap);
+        abGrid.appendChild(cell);
+      } else {
+        abGrid.appendChild(wrap);
+      }
     });
     abCard.appendChild(abGrid);
 
@@ -2112,6 +2140,9 @@
 
     host.appendChild(root);
     renderSwitcher(switcher);
+    if (window.SheetClips && window.SheetClips.enabled(activeId)) {
+      window.SheetClips.decorate(root, activeId);
+    }
   }
 
   function updateCharacterTabLabel() {

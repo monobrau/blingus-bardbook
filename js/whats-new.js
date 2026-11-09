@@ -8,7 +8,9 @@
  *
  * Id format: YYYY-MM-DD-letter-slug  (letter keeps same-day order stable).
  * who: null = every book. Or ['blingus'], ['puck'], ['bruck'], ['vadania'].
- * Do not mark an id seen until the user taps Got it.
+ * Do not mark an id seen until the user taps Got it. On a phone, or any
+ * short window, the unread notes open in the What's New dialog instead,
+ * and Close there counts as Got it.
  */
 (function () {
   'use strict';
@@ -148,6 +150,49 @@
         'Sounds tab: Undead ×2. "And as always, undead take times two damage to fire!"',
       ],
     },
+    {
+      id: '2026-11-08-a-sound-board',
+      date: '2026-11-08',
+      who: null,
+      lines: [
+        'The Sounds tab is now Sound Board.',
+      ],
+      linesByWho: {
+        blingus: 'On your sheet, Clips attaches your own audio to each ability and skill. A play mark shows up only after a clip is saved. Files stay in this browser.',
+      },
+    },
+    {
+      id: '2026-11-08-b-speak-lines',
+      date: '2026-11-08',
+      who: null,
+      lines: [
+        'Generated lines and lyric drafts have a Speak button. It reads that text aloud. The speech key stays on the server.',
+      ],
+    },
+    {
+      id: '2026-11-08-c-sound-effects',
+      date: '2026-11-08',
+      who: null,
+      lines: [
+        'Sound Board can create a sound effect from a description, beside the YouTube clip tool. The effect key stays on the server.',
+      ],
+    },
+    {
+      id: '2026-11-08-d-blingus-clip-lines',
+      date: '2026-11-08',
+      who: ['blingus'],
+      lines: [
+        'Clips on your sheet already has a Blingus line for each ability score and skill. Edit any of them, then Save.',
+      ],
+    },
+    {
+      id: '2026-11-08-e-spoken-board-clips',
+      date: '2026-11-08',
+      who: null,
+      lines: [
+        'Sound Board can speak a line in the character\'s voice and save it as a pad, next to sound effects and YouTube clips.',
+      ],
+    },
   ];
 
   function currentWho() {
@@ -210,6 +255,30 @@
     return root;
   }
 
+  let autoDismiss = null;
+
+  function preferNewsModal() {
+    return window.matchMedia('(max-width: 768px), (max-height: 700px)').matches;
+  }
+
+  function fitChangelog() {
+    const modal = document.getElementById('changelogModal');
+    if (!modal) return;
+    const vv = window.visualViewport;
+    const open = modal.classList.contains('show');
+    if (!open || !vv || !preferNewsModal()) {
+      modal.style.top = '';
+      modal.style.left = '';
+      modal.style.width = '';
+      modal.style.height = '';
+      return;
+    }
+    modal.style.top = vv.offsetTop + 'px';
+    modal.style.left = vv.offsetLeft + 'px';
+    modal.style.width = vv.width + 'px';
+    modal.style.height = vv.height + 'px';
+  }
+
   function hideBanner() {
     const root = document.getElementById('whatsNewBanner');
     if (root) root.classList.remove('is-open');
@@ -253,6 +322,10 @@
     const unseen = pending(who);
     syncNewsButton(who);
     if (!unseen.length) return;
+    if (preferNewsModal()) {
+      showLog({ auto: true });
+      return;
+    }
     showBanner(unseen, who);
   }
 
@@ -328,15 +401,24 @@
     syncNewsButton(who);
   }
 
-  function showLog() {
+  function showLog(opts) {
+    autoDismiss = (opts && opts.auto) ? pending(currentWho()).slice() : null;
     hideBanner();
     closeModal(document.getElementById('settingsModal'));
     renderChangelog();
     openModal(document.getElementById('changelogModal'));
+    fitChangelog();
   }
 
   function hideLog() {
+    const dismiss = autoDismiss;
+    autoDismiss = null;
     closeModal(document.getElementById('changelogModal'));
+    fitChangelog();
+    if (dismiss && dismiss.length) {
+      markSeen(dismiss);
+      syncNewsButton();
+    }
   }
 
   function markAllRead() {
@@ -363,6 +445,11 @@
         if (e.target === modal) hideLog();
       });
     }
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', fitChangelog);
+      window.visualViewport.addEventListener('scroll', fitChangelog);
+    }
+    window.addEventListener('resize', fitChangelog);
     syncNewsButton();
   }
 

@@ -25,9 +25,15 @@ __pycache__/
 *.sqlite
 *.sqlite3
 
-# Anthropic API key (server-local only — never commit)
+# API keys (server-local only — never commit)
 api/.anthropic_key
 **/.anthropic_key
+api/.elevenlabs_key
+api/.elevenlabs_voice
+api/.elevenlabs_sfx_key
+**/.elevenlabs_key
+**/.elevenlabs_voice
+**/.elevenlabs_sfx_key
 
 # Local/private campaign notes (never commit)
 /private/

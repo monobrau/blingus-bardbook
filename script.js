@@ -127,6 +127,7 @@
   const parodyAiReview = $('#parodyAiReview');
   const keepParodyBtn = $('#keepParodyBtn');
   const editParodyBtn = $('#editParodyBtn');
+  const speakParodyBtn = $('#speakParodyBtn');
   // const adultLabel = $('#adultLabel'); // Removed: adult content UI removed
   const modalClose = $('.modal__close', editModal);
   const youtubePlayerModal = $('#youtubePlayerModal');
@@ -2773,6 +2774,17 @@
         copyToClipboard(item, section || 'outcomes', category || selection.detail || selection.outcome);
       });
 
+      const speakBtn = document.createElement('button');
+      speakBtn.type = 'button';
+      speakBtn.className = 'card__speak';
+      speakBtn.textContent = 'Speak';
+      speakBtn.title = 'Read this line aloud';
+      speakBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        speakGenerated(item, speakBtn);
+      });
+
       card.addEventListener('click', () => {
         content.querySelectorAll(`.${cardClass}`).forEach((c) => c.classList.remove('highlighted'));
         copyToClipboard(item, section || 'outcomes', category || selection.detail || selection.outcome);
@@ -2812,7 +2824,9 @@
         ? `🎤 Song Parody — ${modalPrefix || '🎲'} ${metaLabel || 'Outcome'} — ${selection.summary}`
         : `${modalPrefix || '🎲'} ${metaLabel || 'Outcome'} — ${selection.summary}`;
 
+      card.appendChild(speakBtn);
       card.appendChild(copyBtn);
+      p.style.paddingRight = '128px';
       card.appendChild(p);
       card.appendChild(meta);
       content.appendChild(card);
@@ -4110,6 +4124,18 @@
     toastTimer = setTimeout(() => toast.classList.remove('show'), TOAST_AUTO_HIDE_DURATION_MS);
   }
 
+  async function speakGenerated(text, btn) {
+    if (!window.BlingusSpeak) {
+      showToast('Speech player failed to load');
+      return;
+    }
+    try {
+      await window.BlingusSpeak.speak(text, btn);
+    } catch (err) {
+      showToast(err?.message || 'Speech failed');
+    }
+  }
+
   // Modal functions
   function openEditModal(section, category, item, userIndex) {
     currentEditingSection = section;
@@ -4891,6 +4917,12 @@
         return;
       }
       saveEditItem();
+    });
+  }
+  if (speakParodyBtn) {
+    speakParodyBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      speakGenerated(editText?.value || '', speakParodyBtn);
     });
   }
   if (editParodyBtn) {

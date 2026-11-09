@@ -54,7 +54,8 @@ window.BlingusConstants = (function() {
     KARAOKE_ENDPOINT: '/api/karaoke.php',
     DATA_ENDPOINT: '/api/blingus-data.php',
     GENERATE_ENDPOINT: '/api/generate-outcome.php',
-    GENERATE_PARODY_ENDPOINT: '/api/generate-parody.php'
+    GENERATE_PARODY_ENDPOINT: '/api/generate-parody.php',
+    SPEAK_ENDPOINT: '/api/speak.php'
   };
 
   // Keyboard shortcuts

@@ -116,6 +116,8 @@ python3 scripts/local_server.py
 - Otherwise uses **Python 3** (stdlib only) for the app, Claude Outcomes, and JSON data save/load
 - Options: `--port 9000`, `--no-browser`, `--engine php|python|auto`
 - Claude generate needs `ANTHROPIC_API_KEY` or `api/.anthropic_key`
+- Speak needs `ELEVENLABS_API_KEY` or `api/.elevenlabs_key` (optional voice id in `ELEVENLABS_VOICE_ID` or `api/.elevenlabs_voice`)
+- Sound Board effects need a separate key: `ELEVENLABS_SFX_KEY` or `api/.elevenlabs_sfx_key`
 
 Do **not** open `index.html` via `file://` — Outcomes and APIs need the local server.
 
