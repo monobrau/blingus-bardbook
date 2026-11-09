@@ -38,7 +38,12 @@ function jsonFail($message, $code = 400) {
 
 function cleanVoiceId($raw) {
     $raw = trim((string) $raw);
-    if (preg_match('/voiceId=([A-Za-z0-9]{8,40})/', $raw, $m)) {
+    $raw = preg_replace('/^["\']|["\']$/', '', $raw);
+    $raw = trim($raw);
+    if (preg_match('/[?&]voiceId=([A-Za-z0-9]{8,40})/', $raw, $m)) {
+        return $m[1];
+    }
+    if (preg_match('/\/voice\/([A-Za-z0-9]{8,40})/', $raw, $m)) {
         return $m[1];
     }
     if (preg_match('/^[A-Za-z0-9]{8,40}$/', $raw)) {
