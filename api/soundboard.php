@@ -710,7 +710,12 @@ function sbTtsKey() {
 
 function sbCleanServerVoice($raw) {
     $raw = trim((string) $raw);
-    if (preg_match('/voiceId=([A-Za-z0-9]{8,40})/', $raw, $m)) {
+    $raw = preg_replace('/^["\']|["\']$/', '', $raw);
+    $raw = trim($raw);
+    if (preg_match('/[?&]voiceId=([A-Za-z0-9]{8,40})/', $raw, $m)) {
+        return $m[1];
+    }
+    if (preg_match('/\/voice\/([A-Za-z0-9]{8,40})/', $raw, $m)) {
         return $m[1];
     }
     if (preg_match('/^[A-Za-z0-9]{8,40}$/', $raw)) {
@@ -811,6 +816,7 @@ function sbSaveSpeech(array $input) {
     $icon = sbCleanIcon($input['icon'] ?? '🗣️');
     $loop = !empty($input['loop']);
     $title = sbCleanText($text, 140, '');
+    $voiceId = isset($input['voiceId']) ? sbCleanServerVoice($input['voiceId']) : '';
 
     $dir = sbCharacterDir($character);
     $existing = sbReadClipsFile($dir . 'clips.json');
@@ -818,7 +824,9 @@ function sbSaveSpeech(array $input) {
         throw new Exception('This character already has 40 clips. Remove one first.');
     }
 
-    $audio = sbGenerateSpeech($text, sbCharacterVoice($character));
+    $defaultVoice = sbCharacterVoice($character);
+    $effectiveVoice = $voiceId !== '' ? $voiceId : $defaultVoice;
+    $audio = sbGenerateSpeech($text, $effectiveVoice);
     $id = bin2hex(random_bytes(6));
     $tmp = $dir . '.tmp-' . $id . '.mp3';
     $final = $dir . $id . '.mp3';

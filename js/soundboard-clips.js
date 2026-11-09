@@ -26,6 +26,15 @@ window.SoundboardClips = (function () {
     }
   }
 
+  function voiceId() {
+    try {
+      const raw = String(localStorage.getItem('elevenLabsVoiceId') || '').trim();
+      return /^[A-Za-z0-9]{8,40}$/.test(raw) ? raw : '';
+    } catch (e) {
+      return '';
+    }
+  }
+
   function authHeaders() {
     const headers = { 'Content-Type': 'application/json' };
     const key = getApiKey();
@@ -325,6 +334,7 @@ window.SoundboardClips = (function () {
         label: nameInput.value,
         icon: icons.current(),
         loop: loopInput.checked,
+        voiceId: voiceId(),
       }).then(() => {
         if (gen !== mountGen) return;
         toast('Added to the board');
