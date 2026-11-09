@@ -380,7 +380,7 @@ $defaultTab = $showKaraoke ? 'spells' : ($showSongbook ? 'songs' : ($showKit ? '
           <p class="settings-section__hint">Voice ID for Speak. Leave blank to keep Blingus’s voice. <a href="https://elevenlabs.io/app/voices" target="_blank" rel="noopener noreferrer">ElevenLabs voices</a></p>
           <label class="settings-voice">
             Voice ID
-            <input type="text" id="elevenVoiceId" spellcheck="false" autocomplete="off" placeholder="Paste a voice ID" maxlength="120">
+            <input type="text" id="elevenVoiceId" spellcheck="false" autocomplete="off" placeholder="Paste a voice ID or URL" maxlength="120">
           </label>
         </section>
       </div>
