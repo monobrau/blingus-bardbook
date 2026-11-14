@@ -213,6 +213,16 @@
         'Every clip type works: uploaded audio, YouTube clips, sound effects, and spoken lines. Export/Import work everywhere; direct copy needs server setup.',
       ],
     },
+    {
+      id: '2026-11-14-c-soundboard-revamp',
+      date: '2026-11-14',
+      who: null,
+      lines: [
+        'Sound Board now shows only your custom clips. Built-in preset sounds have been removed.',
+        'New Categories button: create, rename, delete, and reorder categories. Move clips between categories with a dropdown on each clip.',
+        'Categories are saved server-side and included in exported clip bundles. Imported clips keep their category if it exists.',
+      ],
+    },
   ];
 
   function currentWho() {

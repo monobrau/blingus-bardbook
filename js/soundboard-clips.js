@@ -96,6 +96,14 @@ window.SoundboardClips = (function () {
     return Array.isArray(data.clips) ? data.clips : [];
   }
 
+  async function listWithCategories(characterId) {
+    const data = await apiGet({ action: 'listWithCategories', character: characterId });
+    return {
+      clips: Array.isArray(data.clips) ? data.clips : [],
+      categories: Array.isArray(data.categories) ? data.categories : [],
+    };
+  }
+
   function remove(characterId, clipId) {
     return apiPost({ action: 'delete', character: characterId, id: clipId });
   }
@@ -720,6 +728,7 @@ window.SoundboardClips = (function () {
 
   return {
     list: list,
+    listWithCategories: listWithCategories,
     remove: remove,
     fileUrl: fileUrl,
     mount: mount,
