@@ -223,6 +223,15 @@
         'Categories are saved server-side and included in exported clip bundles. Imported clips keep their category if it exists.',
       ],
     },
+    {
+      id: '2026-11-14-d-soundboard-fixes',
+      date: '2026-11-14',
+      who: null,
+      lines: [
+        'Fixed: Imported speech clips now generate audio on first play without wasting credits or creating duplicates.',
+        'Fixed: Volume slider now saves correctly per character.',
+      ],
+    },
   ];
 
   function currentWho() {
