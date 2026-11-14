@@ -927,21 +927,12 @@ function sbSaveSpeech(array $input) {
     $providedId = isset($input['id']) && is_string($input['id']) ? trim($input['id']) : '';
     $existingClip = null;
     $updateExisting = false;
-    $existingAudioFile = null;
     
     if ($providedId !== '' && preg_match('/^[a-f0-9]{12}$/', $providedId)) {
         foreach ($existing as $clip) {
             if (($clip['id'] ?? '') === $providedId && ($clip['source'] ?? '') === 'speech') {
-                $hasAudio = false;
-                foreach (SB_AUDIO_EXTS as $ext) {
-                    $audioPath = $dir . $providedId . '.' . $ext;
-                    if (is_file($audioPath)) {
-                        $hasAudio = true;
-                        $existingAudioFile = $audioPath;
-                        break;
-                    }
-                }
-                if (!$hasAudio) {
+                $existingAudioPath = sbClipFile($character, $providedId);
+                if ($existingAudioPath === null) {
                     $existingClip = $clip;
                     $updateExisting = true;
                 }
@@ -955,22 +946,18 @@ function sbSaveSpeech(array $input) {
     }
 
     $id = $updateExisting ? $providedId : bin2hex(random_bytes(6));
-    $lockFile = $dir . '.lock-' . $id;
-    $lock = fopen($lockFile, 'c');
-    if (!$lock) {
-        throw new Exception('Could not acquire lock.');
+    $lockFile = $dir . 'locks/';
+    if (!is_dir($lockFile)) {
+        @mkdir($lockFile, 0755, true);
     }
+    $lockFile .= $id . '.lock';
     
-    try {
-        if (!flock($lock, LOCK_EX)) {
-            throw new Exception('Could not lock resource.');
-        }
-        
-        if ($updateExisting && $existingAudioFile && is_file($existingAudioFile)) {
-            flock($lock, LOCK_UN);
-            fclose($lock);
-            @unlink($lockFile);
-            return sbPublicClip($existingClip);
+    return sbWithLock($lockFile, function () use ($character, $id, $updateExisting, $existingClip, $text, $title, $label, $icon, $loop, $voiceId, $dir, $existing) {
+        if ($updateExisting) {
+            $recheckPath = sbClipFile($character, $id);
+            if ($recheckPath !== null) {
+                return sbPublicClip($existingClip);
+            }
         }
         
         $defaultVoice = sbCharacterVoice($character);
@@ -991,9 +978,9 @@ function sbSaveSpeech(array $input) {
             
             if ($updateExisting) {
                 if ($voiceId !== '') {
-                    sbUpdateClips($character, function ($clips) use ($providedId, $voiceId) {
+                    sbUpdateClips($character, function ($clips) use ($id, $voiceId) {
                         foreach ($clips as $i => $clip) {
-                            if (($clip['id'] ?? '') === $providedId) {
+                            if (($clip['id'] ?? '') === $id) {
                                 $clips[$i]['voiceId'] = $voiceId;
                                 break;
                             }
@@ -1040,11 +1027,7 @@ function sbSaveSpeech(array $input) {
                 @unlink($final);
             }
         }
-    } finally {
-        flock($lock, LOCK_UN);
-        fclose($lock);
-        @unlink($lockFile);
-    }
+    });
 }
 
 function sbDeleteClip($character, $id) {
