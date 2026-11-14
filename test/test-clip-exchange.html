@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clip Exchange Test - Blingus</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #1a1410;
+      color: #d4b45a;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    h1, h2 {
+      margin: 20px 0 10px;
+      color: #f0d070;
+    }
+    
+    button {
+      background: #d4b45a;
+      color: #1a1410;
+      border: none;
+      padding: 10px 20px;
+      margin: 5px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    button:hover {
+      background: #f0d070;
+    }
+    
+    button.secondary {
+      background: transparent;
+      border: 1px solid #d4b45a;
+      color: #d4b45a;
+    }
+    
+    button.secondary:hover {
+      background: rgba(212, 180, 90, 0.1);
+    }
+    
+    .test-section {
+      background: rgba(212, 180, 90, 0.05);
+      border: 1px solid rgba(212, 180, 90, 0.2);
+      border-radius: 8px;
+      padding: 15px;
+      margin: 20px 0;
+    }
+    
+    .result {
+      background: #2a2410;
+      border: 1px solid rgba(212, 180, 90, 0.3);
+      border-radius: 4px;
+      padding: 10px;
+      margin: 10px 0;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    
+    .result.success {
+      border-color: #4a8;
+      color: #4a8;
+    }
+    
+    .result.error {
+      border-color: #c44;
+      color: #c44;
+    }
+    
+    input[type="file"] {
+      margin: 10px 0;
+    }
+    
+    .checkbox-list {
+      margin: 10px 0;
+    }
+    
+    .checkbox-list label {
+      display: block;
+      padding: 5px;
+      cursor: pointer;
+    }
+    
+    .checkbox-list input[type="checkbox"] {
+      margin-right: 8px;
+    }
+    
+    .info {
+      background: rgba(74, 170, 136, 0.1);
+      border-left: 3px solid #4aa;
+      padding: 10px;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎵 Clip Exchange Test - Blingus</h1>
+    <p>Test the soundboard clip export/import and cross-app exchange feature.</p>
+    
+    <div class="info">
+      <strong>API Endpoint:</strong> <code>/api/soundboard.php</code><br>
+      <strong>Character:</strong> <span id="currentChar">blingus</span><br>
+      <strong>Exchange Enabled:</strong> <span id="exchangeStatus">Checking...</span>
+    </div>
+    
+    <div class="test-section">
+      <h2>1. Ping Test</h2>
+      <button onclick="testPing()">Test API Ping</button>
+      <div id="pingResult" class="result" style="display:none;"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2>2. List Clips</h2>
+      <button onclick="testList()">List Current Clips</button>
+      <div id="listResult" class="result" style="display:none;"></div>
+      <div id="clipCheckboxes" class="checkbox-list"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2>3. Export Clips</h2>
+      <p>Select clips above, then export them as a JSON bundle.</p>
+      <button onclick="testExport()">Export Selected Clips</button>
+      <div id="exportResult" class="result" style="display:none;"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2>4. Import Bundle</h2>
+      <p>Import a JSON bundle file (like the Galen test fixture).</p>
+      <input type="file" id="importFile" accept=".json">
+      <button onclick="testImport()">Import Bundle</button>
+      <div id="importResult" class="result" style="display:none;"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2>5. Send to Galen (Direct)</h2>
+      <p>Send selected clips to Galen's inbox (requires exchange directory).</p>
+      <button onclick="testSendToGalen()">Send to Galen</button>
+      <div id="sendResult" class="result" style="display:none;"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2>6. Incoming Clips</h2>
+      <button onclick="testIncoming()">Check Incoming</button>
+      <div id="incomingResult" class="result" style="display:none;"></div>
+      <div id="incomingActions" style="margin-top: 10px;"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2>7. Import Galen Fixture</h2>
+      <p>Quick test: import the included Galen test fixture.</p>
+      <button onclick="importGalenFixture()">Import Galen Fixture</button>
+      <div id="fixtureResult" class="result" style="display:none;"></div>
+    </div>
+  </div>
+  
+  <script>
+    const ENDPOINT = '/api/soundboard.php';
+    const CHARACTER = 'blingus';
+    
+    let clips = [];
+    let exchangeEnabled = false;
+    
+    function getSelectedClips() {
+      const checkboxes = document.querySelectorAll('#clipCheckboxes input[type="checkbox"]:checked');
+      return Array.from(checkboxes).map(cb => cb.value);
+    }
+    
+    function showResult(id, content, success = null) {
+      const el = document.getElementById(id);
+      el.style.display = 'block';
+      el.textContent = typeof content === 'string' ? content : JSON.stringify(content, null, 2);
+      el.className = 'result' + (success === true ? ' success' : success === false ? ' error' : '');
+    }
+    
+    async function apiPost(body) {
+      const res = await fetch(ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        throw new Error('Invalid JSON response: ' + text.substring(0, 200));
+      }
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Request failed');
+      }
+      return data;
+    }
+    
+    async function apiGet(params) {
+      const qs = new URLSearchParams(params).toString();
+      const res = await fetch(ENDPOINT + '?' + qs);
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        throw new Error('Invalid JSON response');
+      }
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Request failed');
+      }
+      return data;
+    }
+    
+    async function testPing() {
+      try {
+        const data = await apiGet({ action: 'ping' });
+        exchangeEnabled = data.exchangeEnabled || false;
+        document.getElementById('exchangeStatus').textContent = exchangeEnabled ? 'Yes ✅' : 'No (Export/Import only)';
+        showResult('pingResult', data, true);
+      } catch (e) {
+        showResult('pingResult', 'Error: ' + e.message, false);
+      }
+    }
+    
+    async function testList() {
+      try {
+        const data = await apiGet({ action: 'list', character: CHARACTER });
+        clips = data.clips || [];
+        showResult('listResult', data, true);
+        
+        const container = document.getElementById('clipCheckboxes');
+        container.innerHTML = '';
+        
+        if (clips.length === 0) {
+          container.innerHTML = '<p style="opacity:0.6;">No clips found. Create some clips first in the Sound Board.</p>';
+        } else {
+          clips.forEach(clip => {
+            const label = document.createElement('label');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = clip.id;
+            label.appendChild(checkbox);
+            label.appendChild(document.createTextNode(' ' + (clip.icon || '🔊') + ' ' + clip.label + ' (' + clip.source + ')'));
+            container.appendChild(label);
+          });
+        }
+      } catch (e) {
+        showResult('listResult', 'Error: ' + e.message, false);
+      }
+    }
+    
+    async function testExport() {
+      const selected = getSelectedClips();
+      if (selected.length === 0) {
+        showResult('exportResult', 'No clips selected. Select clips above first.', false);
+        return;
+      }
+      
+      try {
+        const res = await fetch(ENDPOINT + '?action=export', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ character: CHARACTER, clipIds: selected }),
+        });
+        
+        if (!res.ok) {
+          throw new Error('Export failed: ' + res.status);
+        }
+        
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'blingus-test-export.json';
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        showResult('exportResult', 'Exported ' + selected.length + ' clip(s). Check your downloads.', true);
+      } catch (e) {
+        showResult('exportResult', 'Error: ' + e.message, false);
+      }
+    }
+    
+    async function testImport() {
+      const fileInput = document.getElementById('importFile');
+      if (!fileInput.files || !fileInput.files[0]) {
+        showResult('importResult', 'No file selected', false);
+        return;
+      }
+      
+      try {
+        const file = fileInput.files[0];
+        const text = await file.text();
+        const bundle = JSON.parse(text);
+        
+        const data = await apiPost({
+          action: 'import',
+          character: CHARACTER,
+          bundle: bundle,
+        });
+        
+        showResult('importResult', 'Imported ' + data.imported + ' clip(s), skipped ' + data.skipped, true);
+        await testList();
+      } catch (e) {
+        showResult('importResult', 'Error: ' + e.message, false);
+      }
+    }
+    
+    async function testSendToGalen() {
+      const selected = getSelectedClips();
+      if (selected.length === 0) {
+        showResult('sendResult', 'No clips selected', false);
+        return;
+      }
+      
+      try {
+        const data = await apiPost({
+          action: 'sendTo',
+          character: CHARACTER,
+          clipIds: selected,
+          targetApp: 'galen',
+        });
+        
+        showResult('sendResult', 'Sent ' + selected.length + ' clip(s) to Galen. Bundle ID: ' + data.bundleId, true);
+      } catch (e) {
+        showResult('sendResult', 'Error: ' + e.message, false);
+      }
+    }
+    
+    async function testIncoming() {
+      try {
+        const data = await apiGet({ action: 'incoming', app: 'blingus' });
+        const bundles = data.bundles || [];
+        
+        showResult('incomingResult', data, true);
+        
+        const actionsDiv = document.getElementById('incomingActions');
+        actionsDiv.innerHTML = '';
+        
+        if (bundles.length === 0) {
+          actionsDiv.innerHTML = '<p style="opacity:0.6;">No incoming bundles</p>';
+        } else {
+          bundles.forEach(bundle => {
+            const div = document.createElement('div');
+            div.style.margin = '10px 0';
+            div.style.padding = '10px';
+            div.style.border = '1px solid rgba(212, 180, 90, 0.3)';
+            div.style.borderRadius = '4px';
+            
+            const preview = bundle.preview || {};
+            div.innerHTML = '<strong>Bundle: ' + bundle.bundleId.substring(0, 8) + '...</strong><br>' +
+                          'From: ' + (preview.sourceApp || 'unknown') + '<br>' +
+                          'Clips: ' + (preview.clipCount || 0) + '<br>' +
+                          'Received: ' + new Date(bundle.receivedAt).toLocaleString();
+            
+            const importBtn = document.createElement('button');
+            importBtn.textContent = 'Import';
+            importBtn.onclick = () => importIncomingBundle(bundle.bundleId);
+            div.appendChild(importBtn);
+            
+            const discardBtn = document.createElement('button');
+            discardBtn.className = 'secondary';
+            discardBtn.textContent = 'Discard';
+            discardBtn.onclick = () => discardIncomingBundle(bundle.bundleId);
+            div.appendChild(discardBtn);
+            
+            actionsDiv.appendChild(div);
+          });
+        }
+      } catch (e) {
+        showResult('incomingResult', 'Error: ' + e.message, false);
+      }
+    }
+    
+    async function importIncomingBundle(bundleId) {
+      try {
+        const data = await apiPost({
+          action: 'importIncoming',
+          character: CHARACTER,
+          bundleId: bundleId,
+        });
+        
+        alert('Imported ' + data.imported + ' clip(s), skipped ' + data.skipped);
+        await testIncoming();
+        await testList();
+      } catch (e) {
+        alert('Import failed: ' + e.message);
+      }
+    }
+    
+    async function discardIncomingBundle(bundleId) {
+      if (!confirm('Discard this bundle?')) return;
+      
+      try {
+        await apiPost({
+          action: 'discardIncoming',
+          bundleId: bundleId,
+        });
+        
+        alert('Bundle discarded');
+        await testIncoming();
+      } catch (e) {
+        alert('Discard failed: ' + e.message);
+      }
+    }
+    
+    async function importGalenFixture() {
+      try {
+        const res = await fetch('/test/galen-clips-fixture.json');
+        const bundle = await res.json();
+        
+        const data = await apiPost({
+          action: 'import',
+          character: CHARACTER,
+          bundle: bundle,
+        });
+        
+        showResult('fixtureResult', 'Imported ' + data.imported + ' clip(s) from Galen fixture, skipped ' + data.skipped, true);
+        await testList();
+      } catch (e) {
+        showResult('fixtureResult', 'Error: ' + e.message, false);
+      }
+    }
+    
+    // Auto-run ping on load
+    window.addEventListener('load', testPing);
+  </script>
+</body>
+</html>
