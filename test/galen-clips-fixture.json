@@ -1,0 +1,53 @@
+{
+  "format": "knospe-soundboard-clips",
+  "version": 1,
+  "sourceApp": "galen",
+  "exportedAt": "2026-11-14T16:00:00Z",
+  "clips": [
+    {
+      "type": "speech",
+      "kind": "speech",
+      "name": "Greetings from Galen",
+      "displayName": "Welcome",
+      "text": "Welcome to my humble abode!",
+      "voiceId": null,
+      "tags": {
+        "icon": "👋",
+        "loop": false
+      },
+      "mime": null,
+      "audioBase64": null,
+      "sourceId": "galen-001"
+    },
+    {
+      "type": "favorite",
+      "kind": "speech",
+      "name": "Galen's wisdom",
+      "displayName": "Ancient Knowledge",
+      "text": "The stars align in your favor tonight.",
+      "voiceId": null,
+      "tags": {
+        "icon": "✨",
+        "loop": false
+      },
+      "mime": null,
+      "audioBase64": null,
+      "sourceId": "galen-fav-001"
+    },
+    {
+      "type": "audio",
+      "kind": "audio",
+      "name": "Bell chime",
+      "displayName": null,
+      "text": null,
+      "voiceId": null,
+      "tags": {
+        "icon": "🔔",
+        "loop": false
+      },
+      "mime": "audio/mpeg",
+      "audioBase64": "//uQxAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAADhgCWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaW////////////////////////////////////////////AAAAAExBTUUzLjk4cgGRAAAAAAAAAAAUICQCQyEAADgAAA",
+      "sourceId": "galen-audio-001"
+    }
+  ]
+}

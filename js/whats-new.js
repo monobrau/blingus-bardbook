@@ -203,6 +203,16 @@
         'The setting is saved in this browser only. Clear errors show when ElevenLabs is out of credits or the voice isn\'t found.',
       ],
     },
+    {
+      id: '2026-11-14-b-clip-exchange',
+      date: '2026-11-14',
+      who: null,
+      lines: [
+        'Sound Board has a Manage clips button: select any clips, Export to download a bundle file, or Import a bundle from another character or app.',
+        'Copy to Galen sends clips directly to Galen\'s inbox when both apps share the same server. Incoming clips appear at the top for quick Import.',
+        'Every clip type works: uploaded audio, YouTube clips, sound effects, and spoken lines. Export/Import work everywhere; direct copy needs server setup.',
+      ],
+    },
   ];
 
   function currentWho() {
