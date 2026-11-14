@@ -842,6 +842,7 @@ function sbCharacterVoice($character) {
     return $override !== '' ? $override : 'JBFqnCBsd6RMkjVDRZzb';
 }
 
+if (!function_exists('sbGenerateSpeech')) {
 function sbGenerateSpeech($text, $voice) {
     $key = sbTtsKey();
     if ($key === '') {
@@ -906,6 +907,7 @@ function sbGenerateSpeech($text, $voice) {
         throw new Exception(sbUpstreamMessage($audio, $httpCode));
     }
     return $audio;
+}
 }
 
 function sbSaveSpeech(array $input) {

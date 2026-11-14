@@ -5,9 +5,22 @@
  * Must assert: only ONE TTS API call, no duplicate records.
  */
 
-require_once __DIR__ . '/../api/soundboard.php';
+// Safety check: MUST run in temp directory only
+if (getenv('SOUNDBOARD_DIR') !== false && strpos(getenv('SOUNDBOARD_DIR'), sys_get_temp_dir()) !== 0) {
+    echo "❌ FAIL: SOUNDBOARD_DIR is already set to a non-temp directory.\n";
+    echo "This test must use a temporary directory to avoid overwriting production data.\n";
+    echo "Unset SOUNDBOARD_DIR before running this test.\n";
+    exit(1);
+}
 
-// Mock TTS generation
+// Setup test environment BEFORE loading production code
+$testRoot = sys_get_temp_dir() . '/soundboard-test-' . bin2hex(random_bytes(4));
+mkdir($testRoot, 0755, true);
+putenv('SOUNDBOARD_DIR=' . $testRoot);
+
+echo "Test environment: $testRoot\n\n";
+
+// Mock TTS generation - define BEFORE loading production code
 $GLOBALS['ttsCallCount'] = 0;
 $GLOBALS['ttsCallArgs'] = [];
 
@@ -18,10 +31,9 @@ function sbGenerateSpeech($text, $voice) {
     return hex2bin('494433040000000000');
 }
 
-// Setup test environment
-$testRoot = sys_get_temp_dir() . '/soundboard-test-' . bin2hex(random_bytes(4));
-mkdir($testRoot, 0755, true);
-putenv('SOUNDBOARD_ROOT=' . $testRoot);
+// Load production code AFTER defining mock
+// Production code has function_exists check, so our mock takes precedence
+require_once __DIR__ . '/../api/soundboard.php';
 
 function cleanup() {
     global $testRoot;
