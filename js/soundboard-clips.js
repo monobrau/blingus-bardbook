@@ -697,7 +697,7 @@ window.SoundboardClips = (function () {
     }
   }
 
-  const generatingClips = new Set();
+  const generatingClips = new Map();
 
   async function speakAndCache(characterId, clipId, text, clipVoiceId) {
     const url = fileUrl(characterId, clipId);
@@ -706,37 +706,40 @@ window.SoundboardClips = (function () {
     try {
       const checkRes = await fetch(url, { method: 'HEAD' });
       if (checkRes.ok) {
-        return url + '?t=' + Date.now();
+        return url + '&t=' + Date.now();
       }
     } catch (e) {
       // File doesn't exist, generate it
     }
     
     if (generatingClips.has(lockKey)) {
-      throw new Error('Audio generation already in progress');
+      return generatingClips.get(lockKey);
     }
     
-    generatingClips.add(lockKey);
-    
-    try {
-      const vid = clipVoiceId || voiceId();
-      const body = {
-        action: 'speak',
-        character: characterId,
-        text: text,
-        id: clipId,
-      };
-      
-      if (vid) {
-        body.voiceId = vid;
+    const promise = (async () => {
+      try {
+        const vid = clipVoiceId || voiceId();
+        const body = {
+          action: 'speak',
+          character: characterId,
+          text: text,
+          id: clipId,
+        };
+        
+        if (vid) {
+          body.voiceId = vid;
+        }
+        
+        await apiPost(body);
+        
+        return url + '&t=' + Date.now();
+      } finally {
+        generatingClips.delete(lockKey);
       }
-      
-      await apiPost(body);
-      
-      return url + '?t=' + Date.now();
-    } finally {
-      generatingClips.delete(lockKey);
-    }
+    })();
+    
+    generatingClips.set(lockKey, promise);
+    return promise;
   }
 
   return {

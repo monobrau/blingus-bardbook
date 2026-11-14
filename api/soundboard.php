@@ -927,16 +927,25 @@ function sbSaveSpeech(array $input) {
     $providedId = isset($input['id']) && is_string($input['id']) ? trim($input['id']) : '';
     $existingClip = null;
     $updateExisting = false;
+    $existingAudioFile = null;
     
     if ($providedId !== '' && preg_match('/^[a-f0-9]{12}$/', $providedId)) {
         foreach ($existing as $clip) {
             if (($clip['id'] ?? '') === $providedId && ($clip['source'] ?? '') === 'speech') {
-                $audioPath = $dir . $providedId . '.mp3';
-                if (!is_file($audioPath)) {
+                $hasAudio = false;
+                foreach (SB_AUDIO_EXTS as $ext) {
+                    $audioPath = $dir . $providedId . '.' . $ext;
+                    if (is_file($audioPath)) {
+                        $hasAudio = true;
+                        $existingAudioFile = $audioPath;
+                        break;
+                    }
+                }
+                if (!$hasAudio) {
                     $existingClip = $clip;
                     $updateExisting = true;
-                    break;
                 }
+                break;
             }
         }
     }
@@ -945,65 +954,96 @@ function sbSaveSpeech(array $input) {
         throw new Exception('This character already has 40 clips. Remove one first.');
     }
 
-    $defaultVoice = sbCharacterVoice($character);
-    $effectiveVoice = $voiceId !== '' ? $voiceId : $defaultVoice;
-    $audio = sbGenerateSpeech($text, $effectiveVoice);
-    
     $id = $updateExisting ? $providedId : bin2hex(random_bytes(6));
-    $tmp = $dir . '.tmp-' . $id . '.mp3';
-    $final = $dir . $id . '.mp3';
-    $stored = false;
+    $lockFile = $dir . '.lock-' . $id;
+    $lock = fopen($lockFile, 'c');
+    if (!$lock) {
+        throw new Exception('Could not acquire lock.');
+    }
+    
     try {
-        if (file_put_contents($tmp, $audio) === false) {
-            throw new Exception('Could not store the clip.');
-        }
-        if (!rename($tmp, $final)) {
-            throw new Exception('Could not store the clip.');
+        if (!flock($lock, LOCK_EX)) {
+            throw new Exception('Could not lock resource.');
         }
         
-        if ($updateExisting) {
-            if (isset($existingClip['voiceId'])) {
-                $existingClip['voiceId'] = $voiceId !== '' ? $voiceId : $existingClip['voiceId'];
-            } else if ($voiceId !== '') {
-                $existingClip['voiceId'] = $voiceId;
-            }
-            $stored = true;
+        if ($updateExisting && $existingAudioFile && is_file($existingAudioFile)) {
+            flock($lock, LOCK_UN);
+            fclose($lock);
+            @unlink($lockFile);
             return sbPublicClip($existingClip);
         }
         
-        $record = [
-            'id' => $id,
-            'label' => $label,
-            'icon' => $icon,
-            'loop' => $loop,
-            'videoId' => '',
-            'start' => 0,
-            'end' => 0,
-            'title' => $title,
-            'source' => 'speech',
-            'createdAt' => gmdate('c'),
-        ];
+        $defaultVoice = sbCharacterVoice($character);
+        $effectiveVoice = $voiceId !== '' ? $voiceId : ($existingClip['voiceId'] ?? $defaultVoice);
+        $fullText = $existingClip['title'] ?? $text;
+        $audio = sbGenerateSpeech($fullText, $effectiveVoice);
         
-        if ($voiceId !== '') {
-            $record['voiceId'] = $voiceId;
-        }
-        
-        sbUpdateClips($character, function ($clips) use ($record) {
-            if (count($clips) >= SB_MAX_CLIPS) {
-                throw new Exception('This character already has 40 clips. Remove one first.');
+        $tmp = $dir . '.tmp-' . $id . '.mp3';
+        $final = $dir . $id . '.mp3';
+        $stored = false;
+        try {
+            if (file_put_contents($tmp, $audio) === false) {
+                throw new Exception('Could not store the clip.');
             }
-            $clips[] = $record;
-            return $clips;
-        });
-        $stored = true;
-        return sbPublicClip($record);
+            if (!rename($tmp, $final)) {
+                throw new Exception('Could not store the clip.');
+            }
+            
+            if ($updateExisting) {
+                if ($voiceId !== '') {
+                    sbUpdateClips($character, function ($clips) use ($providedId, $voiceId) {
+                        foreach ($clips as $i => $clip) {
+                            if (($clip['id'] ?? '') === $providedId) {
+                                $clips[$i]['voiceId'] = $voiceId;
+                                break;
+                            }
+                        }
+                        return $clips;
+                    });
+                    $existingClip['voiceId'] = $voiceId;
+                }
+                $stored = true;
+                return sbPublicClip($existingClip);
+            }
+            
+            $record = [
+                'id' => $id,
+                'label' => $label,
+                'icon' => $icon,
+                'loop' => $loop,
+                'videoId' => '',
+                'start' => 0,
+                'end' => 0,
+                'title' => $title,
+                'source' => 'speech',
+                'createdAt' => gmdate('c'),
+            ];
+            
+            if ($voiceId !== '') {
+                $record['voiceId'] = $voiceId;
+            }
+            
+            sbUpdateClips($character, function ($clips) use ($record) {
+                if (count($clips) >= SB_MAX_CLIPS) {
+                    throw new Exception('This character already has 40 clips. Remove one first.');
+                }
+                $clips[] = $record;
+                return $clips;
+            });
+            $stored = true;
+            return sbPublicClip($record);
+        } finally {
+            if (is_file($tmp)) {
+                @unlink($tmp);
+            }
+            if (!$stored && is_file($final)) {
+                @unlink($final);
+            }
+        }
     } finally {
-        if (is_file($tmp)) {
-            @unlink($tmp);
-        }
-        if (!$stored && is_file($final)) {
-            @unlink($final);
-        }
+        flock($lock, LOCK_UN);
+        fclose($lock);
+        @unlink($lockFile);
     }
 }
 
