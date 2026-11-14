@@ -353,7 +353,7 @@ function sbPublicClip($clip) {
     if ($source !== 'elevenlabs' && $source !== 'speech') {
         $source = 'youtube';
     }
-    return [
+    $result = [
         'id' => $clip['id'],
         'label' => sbCleanLabel($clip['label'] ?? ''),
         'icon' => sbCleanIcon($clip['icon'] ?? ''),
@@ -364,6 +364,13 @@ function sbPublicClip($clip) {
         'title' => sbCleanText($clip['title'] ?? '', 140, ''),
         'source' => $source,
     ];
+    if (isset($clip['category']) && is_string($clip['category'])) {
+        $result['category'] = sbCleanText($clip['category'], 50, '');
+    }
+    if (isset($clip['voiceId']) && is_string($clip['voiceId'])) {
+        $result['voiceId'] = $clip['voiceId'];
+    }
+    return $result;
 }
 
 function sbSfxKey() {
@@ -487,6 +494,29 @@ function sbUpdateClips($character, $mutator) {
     });
 }
 
+function sbReadCategoriesFile($path) {
+    if (!is_file($path)) {
+        return [];
+    }
+    $raw = file_get_contents($path);
+    if ($raw === false) {
+        return [];
+    }
+    $data = json_decode($raw, true);
+    return is_array($data) ? $data : [];
+}
+
+function sbWriteCategoriesFile($path, array $categories) {
+    $tmp = $path . '.tmp';
+    if (file_put_contents($tmp, json_encode($categories, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) === false) {
+        throw new Exception('Could not write categories file');
+    }
+    if (!rename($tmp, $path)) {
+        @unlink($tmp);
+        throw new Exception('Could not finalize categories file');
+    }
+}
+
 function sbListClips($character) {
     $character = sbRequireCharacter($character);
     $dir = sbCharacterDir($character);
@@ -500,6 +530,77 @@ function sbListClips($character) {
         }
     }
     return $public;
+}
+
+function sbListWithCategories($character) {
+    $character = sbRequireCharacter($character);
+    $dir = sbCharacterDir($character);
+    $clips = sbListClips($character);
+    $categories = sbReadCategoriesFile($dir . 'categories.json');
+    return [
+        'clips' => $clips,
+        'categories' => $categories,
+    ];
+}
+
+function sbSaveCategories(array $request) {
+    $character = sbRequireCharacter($request['character'] ?? '');
+    $categories = $request['categories'] ?? null;
+    
+    if (!is_array($categories)) {
+        throw new Exception('Categories must be an array');
+    }
+    
+    $clean = [];
+    foreach ($categories as $cat) {
+        if (!is_array($cat)) {
+            continue;
+        }
+        $name = sbCleanText($cat['name'] ?? '', 50, '');
+        if ($name === '') {
+            continue;
+        }
+        $clean[] = [
+            'id' => isset($cat['id']) && preg_match('/^[a-f0-9]{8}$/', $cat['id']) 
+                ? $cat['id'] 
+                : bin2hex(random_bytes(4)),
+            'name' => $name,
+            'order' => (int)($cat['order'] ?? 0),
+        ];
+    }
+    
+    usort($clean, function ($a, $b) {
+        return $a['order'] - $b['order'];
+    });
+    
+    $dir = sbCharacterDir($character);
+    sbWriteCategoriesFile($dir . 'categories.json', $clean);
+    
+    return $clean;
+}
+
+function sbUpdateClipCategory(array $request) {
+    $character = sbRequireCharacter($request['character'] ?? '');
+    $clipId = sbRequireClipId($request['id'] ?? '');
+    $category = is_string($request['category'] ?? null) 
+        ? sbCleanText($request['category'], 50, '') 
+        : null;
+    
+    sbUpdateClips($character, function ($clips) use ($clipId, $category) {
+        foreach ($clips as $i => $clip) {
+            if (($clip['id'] ?? '') === $clipId) {
+                if ($category === null || $category === '') {
+                    unset($clips[$i]['category']);
+                } else {
+                    $clips[$i]['category'] = $category;
+                }
+                break;
+            }
+        }
+        return $clips;
+    });
+    
+    return ['updated' => true];
 }
 
 function sbTrimAudio($source, $start, $end, $dest) {
@@ -1156,14 +1257,19 @@ function sbExportClips(array $request) {
             $source = 'youtube';
         }
         
+        $tags = ['icon' => (string)($clip['icon'] ?? '🔊'), 'loop' => !empty($clip['loop'])];
+        if (isset($clip['category']) && is_string($clip['category'])) {
+            $tags['category'] = sbCleanText($clip['category'], 50, '');
+        }
+        
         $entry = [
             'type' => $source,
             'kind' => ($source === 'speech' || $source === 'elevenlabs') ? 'speech' : 'audio',
             'name' => (string)($clip['label'] ?? ''),
             'displayName' => null,
             'text' => null,
-            'voiceId' => null,
-            'tags' => ['icon' => (string)($clip['icon'] ?? '🔊'), 'loop' => !empty($clip['loop'])],
+            'voiceId' => isset($clip['voiceId']) ? (string)$clip['voiceId'] : null,
+            'tags' => $tags,
             'mime' => null,
             'audioBase64' => null,
             'sourceId' => $clipId,
@@ -1252,6 +1358,16 @@ function sbImportBundle(array $request) {
             $tags = is_array($clipData['tags']) ? $clipData['tags'] : [];
             $icon = sbCleanIcon($tags['icon'] ?? '🔊');
             $loop = !empty($tags['loop']);
+            $importCategory = isset($tags['category']) && is_string($tags['category']) 
+                ? sbCleanText($tags['category'], 50, '') 
+                : null;
+            
+            $dir = sbCharacterDir($character);
+            $existingCategories = sbReadCategoriesFile($dir . 'categories.json');
+            $categoryNames = array_map(function ($c) { return $c['name'] ?? ''; }, $existingCategories);
+            $category = ($importCategory && in_array($importCategory, $categoryNames, true)) 
+                ? $importCategory 
+                : null;
             
             $newId = bin2hex(random_bytes(6));
             
@@ -1315,6 +1431,10 @@ function sbImportBundle(array $request) {
                     $record['voiceId'] = sbCleanServerVoice($voiceId);
                 }
                 
+                if ($category !== null) {
+                    $record['category'] = $category;
+                }
+                
                 $imported[] = $record;
             
             } elseif ($kind === 'audio') {
@@ -1369,6 +1489,10 @@ function sbImportBundle(array $request) {
                     'sourceApp' => $sourceApp,
                     'createdAt' => gmdate('c'),
                 ];
+                
+                if ($category !== null) {
+                    $record['category'] = $category;
+                }
                 
                 $imported[] = $record;
             } else {
@@ -1628,6 +1752,16 @@ function sbDispatch($requireAuth, $API_KEY, array $allowedOrigins) {
                     'clips' => sbListClips($character),
                 ]);
 
+            case 'listWithCategories':
+                $character = $_GET['character'] ?? ($request['character'] ?? '');
+                $data = sbListWithCategories($character);
+                sbJson([
+                    'success' => true,
+                    'character' => sbRequireCharacter($character),
+                    'clips' => $data['clips'],
+                    'categories' => $data['categories'],
+                ]);
+
             case 'save':
                 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
                     throw new Exception('POST required.');
@@ -1717,8 +1851,22 @@ function sbDispatch($requireAuth, $API_KEY, array $allowedOrigins) {
                 $result = sbDiscardIncoming($request);
                 sbJson(['success' => true] + $result);
 
+            case 'saveCategories':
+                if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+                    throw new Exception('POST required.');
+                }
+                $categories = sbSaveCategories($request);
+                sbJson(['success' => true, 'categories' => $categories]);
+
+            case 'updateClipCategory':
+                if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+                    throw new Exception('POST required.');
+                }
+                $result = sbUpdateClipCategory($request);
+                sbJson(['success' => true] + $result);
+
             default:
-                throw new Exception('Invalid action. Use: ping, search, prepare, preview, list, save, effect, speak, delete, file, export, import, sendTo, incoming, importIncoming, discardIncoming');
+                throw new Exception('Invalid action. Use: ping, search, prepare, preview, list, listWithCategories, save, effect, speak, delete, file, export, import, sendTo, incoming, importIncoming, discardIncoming, saveCategories, updateClipCategory');
         }
     } catch (Exception $e) {
         sbJson(['success' => false, 'error' => $e->getMessage()], 400);
