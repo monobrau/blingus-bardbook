@@ -282,6 +282,16 @@
     stopBtn.type = 'button';
     stopBtn.addEventListener('click', stopAll);
     controls.appendChild(stopBtn);
+    
+    if (window.SoundboardClips) {
+      const manageBtn = el('button', 'btn btn--secondary btn--compact', 'Manage clips');
+      manageBtn.type = 'button';
+      manageBtn.addEventListener('click', () => {
+        if (window.SoundboardClipManager) window.SoundboardClipManager.open(kitId());
+      });
+      controls.appendChild(manageBtn);
+    }
+    
     head.appendChild(controls);
     root.appendChild(head);
 
