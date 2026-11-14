@@ -17,7 +17,7 @@
       },
       "mime": null,
       "audioBase64": null,
-      "sourceId": "galen-001"
+      "sourceId": "galen-speech-001"
     },
     {
       "type": "favorite",
@@ -48,6 +48,21 @@
       "mime": "audio/mpeg",
       "audioBase64": "//uQxAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAADhgCWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaW////////////////////////////////////////////AAAAAExBTUUzLjk4cgGRAAAAAAAAAAAUICQCQyEAADgAAA",
       "sourceId": "galen-audio-001"
+    },
+    {
+      "type": "speech",
+      "kind": "speech",
+      "name": "Text-only speech test",
+      "displayName": null,
+      "text": "This is a test of text-only speech import without cached audio.",
+      "voiceId": null,
+      "tags": {
+        "icon": "🗣️",
+        "loop": false
+      },
+      "mime": null,
+      "audioBase64": null,
+      "sourceId": "galen-speech-text-only"
     }
   ]
 }

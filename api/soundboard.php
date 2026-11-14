@@ -1224,52 +1224,119 @@ function sbImportBundle(array $request) {
     }
     
     $imported = [];
-    foreach ($clips as $clipData) {
-        if (!is_array($clipData)) {
-            continue;
-        }
-        
-        $sourceId = (string)($clipData['sourceId'] ?? '');
-        $sourceApp = (string)($bundle['sourceApp'] ?? 'unknown');
-        $sourceKey = $sourceApp . ':' . $sourceId;
-        
-        if (isset($existingIds[$sourceKey])) {
-            continue;
-        }
-        
-        if (count($existing) + count($imported) >= SB_MAX_CLIPS) {
-            break;
-        }
-        
-        $kind = (string)($clipData['kind'] ?? 'audio');
-        $name = sbCleanText($clipData['name'] ?? '', 40, 'Imported Clip');
-        $text = $clipData['text'] ?? null;
-        $voiceId = $clipData['voiceId'] ?? null;
-        $tags = is_array($clipData['tags']) ? $clipData['tags'] : [];
-        $icon = sbCleanIcon($tags['icon'] ?? '🔊');
-        $loop = !empty($tags['loop']);
-        
-        $newId = bin2hex(random_bytes(6));
-        $audioStored = false;
-        
-        if ($kind === 'speech' && is_string($text) && $text !== '') {
-            $cleanText = sbCleanText($text, 500, '');
-            if ($cleanText === '') {
+    $errors = [];
+    
+    foreach ($clips as $clipIndex => $clipData) {
+        try {
+            if (!is_array($clipData)) {
+                $errors[] = "Clip $clipIndex: not an array";
                 continue;
             }
             
-            if (!empty($clipData['audioBase64'])) {
+            $sourceId = (string)($clipData['sourceId'] ?? '');
+            $sourceApp = (string)($bundle['sourceApp'] ?? 'unknown');
+            $sourceKey = $sourceApp . ':' . $sourceId;
+            
+            if (isset($existingIds[$sourceKey])) {
+                continue;
+            }
+            
+            if (count($existing) + count($imported) >= SB_MAX_CLIPS) {
+                break;
+            }
+            
+            $kind = (string)($clipData['kind'] ?? 'audio');
+            $name = sbCleanText($clipData['name'] ?? '', 40, 'Imported Clip');
+            $text = $clipData['text'] ?? null;
+            $voiceId = $clipData['voiceId'] ?? null;
+            $tags = is_array($clipData['tags']) ? $clipData['tags'] : [];
+            $icon = sbCleanIcon($tags['icon'] ?? '🔊');
+            $loop = !empty($tags['loop']);
+            
+            $newId = bin2hex(random_bytes(6));
+            
+            if ($kind === 'speech' && is_string($text) && $text !== '') {
+                $cleanText = sbCleanText($text, 500, '');
+                if ($cleanText === '') {
+                    $errors[] = "Clip $sourceId: empty text after cleaning";
+                    continue;
+                }
+                
+                if (!empty($clipData['audioBase64'])) {
+                    $audioData = base64_decode($clipData['audioBase64'], true);
+                    if ($audioData === false) {
+                        $errors[] = "Clip $sourceId: invalid base64 audio";
+                        continue;
+                    }
+                    
+                    if (strlen($audioData) > SB_EXCHANGE_MAX_BUNDLE_BYTES) {
+                        $errors[] = "Clip $sourceId: audio too large";
+                        continue;
+                    }
+                    
+                    $mime = (string)($clipData['mime'] ?? '');
+                    if (!in_array($mime, SB_ALLOWED_IMPORT_MIMES, true)) {
+                        $errors[] = "Clip $sourceId: unsupported MIME type";
+                        continue;
+                    }
+                    
+                    $ext = ($mime === 'audio/mp4' || $mime === 'audio/m4a') ? 'm4a' : 'mp3';
+                    $tmpPath = $dir . '.tmp-' . $newId . '.' . $ext;
+                    $finalPath = $dir . $newId . '.' . $ext;
+                    
+                    if (file_put_contents($tmpPath, $audioData) === false) {
+                        $errors[] = "Clip $sourceId: failed to write audio file";
+                        continue;
+                    }
+                    
+                    if (!rename($tmpPath, $finalPath)) {
+                        @unlink($tmpPath);
+                        $errors[] = "Clip $sourceId: failed to rename audio file";
+                        continue;
+                    }
+                }
+                
+                $record = [
+                    'id' => $newId,
+                    'label' => $name,
+                    'icon' => $icon,
+                    'loop' => $loop,
+                    'videoId' => '',
+                    'start' => 0,
+                    'end' => 0,
+                    'title' => $cleanText,
+                    'source' => 'speech',
+                    'sourceId' => $sourceId,
+                    'sourceApp' => $sourceApp,
+                    'createdAt' => gmdate('c'),
+                ];
+                
+                if (is_string($voiceId) && $voiceId !== '') {
+                    $record['voiceId'] = sbCleanServerVoice($voiceId);
+                }
+                
+                $imported[] = $record;
+            
+            } elseif ($kind === 'audio') {
+                if (empty($clipData['audioBase64'])) {
+                    $errors[] = "Clip $sourceId: audio kind requires audioBase64";
+                    continue;
+                }
+                
                 $audioData = base64_decode($clipData['audioBase64'], true);
                 if ($audioData === false) {
+                    $errors[] = "Clip $sourceId: invalid base64 audio";
                     continue;
                 }
                 
                 if (strlen($audioData) > SB_EXCHANGE_MAX_BUNDLE_BYTES) {
+                    $errors[] = "Clip $sourceId: audio too large";
                     continue;
                 }
                 
                 $mime = (string)($clipData['mime'] ?? '');
                 if (!in_array($mime, SB_ALLOWED_IMPORT_MIMES, true)) {
+                    $errors[] = "Clip $sourceId: unsupported MIME type";
                     continue;
                 }
                 
@@ -1278,78 +1345,37 @@ function sbImportBundle(array $request) {
                 $finalPath = $dir . $newId . '.' . $ext;
                 
                 if (file_put_contents($tmpPath, $audioData) === false) {
+                    $errors[] = "Clip $sourceId: failed to write audio file";
                     continue;
                 }
                 
                 if (!rename($tmpPath, $finalPath)) {
                     @unlink($tmpPath);
+                    $errors[] = "Clip $sourceId: failed to rename audio file";
                     continue;
                 }
                 
-                $audioStored = true;
+                $record = [
+                    'id' => $newId,
+                    'label' => $name,
+                    'icon' => $icon,
+                    'loop' => $loop,
+                    'videoId' => '',
+                    'start' => 0,
+                    'end' => 0,
+                    'title' => sbCleanText($clipData['displayName'] ?? $name, 140, ''),
+                    'source' => 'youtube',
+                    'sourceId' => $sourceId,
+                    'sourceApp' => $sourceApp,
+                    'createdAt' => gmdate('c'),
+                ];
+                
+                $imported[] = $record;
+            } else {
+                $errors[] = "Clip $sourceId: unsupported kind '$kind' or missing required data";
             }
-            
-            $record = [
-                'id' => $newId,
-                'label' => $name,
-                'icon' => $icon,
-                'loop' => $loop,
-                'videoId' => '',
-                'start' => 0,
-                'end' => 0,
-                'title' => $cleanText,
-                'source' => 'speech',
-                'sourceId' => $sourceId,
-                'sourceApp' => $sourceApp,
-                'createdAt' => gmdate('c'),
-            ];
-            
-            $imported[] = $record;
-            
-        } elseif ($kind === 'audio' && !empty($clipData['audioBase64'])) {
-            $audioData = base64_decode($clipData['audioBase64'], true);
-            if ($audioData === false) {
-                continue;
-            }
-            
-            if (strlen($audioData) > SB_EXCHANGE_MAX_BUNDLE_BYTES) {
-                continue;
-            }
-            
-            $mime = (string)($clipData['mime'] ?? '');
-            if (!in_array($mime, SB_ALLOWED_IMPORT_MIMES, true)) {
-                continue;
-            }
-            
-            $ext = ($mime === 'audio/mp4' || $mime === 'audio/m4a') ? 'm4a' : 'mp3';
-            $tmpPath = $dir . '.tmp-' . $newId . '.' . $ext;
-            $finalPath = $dir . $newId . '.' . $ext;
-            
-            if (file_put_contents($tmpPath, $audioData) === false) {
-                continue;
-            }
-            
-            if (!rename($tmpPath, $finalPath)) {
-                @unlink($tmpPath);
-                continue;
-            }
-            
-            $record = [
-                'id' => $newId,
-                'label' => $name,
-                'icon' => $icon,
-                'loop' => $loop,
-                'videoId' => '',
-                'start' => 0,
-                'end' => 0,
-                'title' => sbCleanText($clipData['displayName'] ?? $name, 140, ''),
-                'source' => 'youtube',
-                'sourceId' => $sourceId,
-                'sourceApp' => $sourceApp,
-                'createdAt' => gmdate('c'),
-            ];
-            
-            $imported[] = $record;
+        } catch (Exception $e) {
+            $errors[] = "Clip $sourceId: " . $e->getMessage();
         }
     }
     
@@ -1359,10 +1385,16 @@ function sbImportBundle(array $request) {
         });
     }
     
-    return [
+    $result = [
         'imported' => count($imported),
         'skipped' => count($clips) - count($imported),
     ];
+    
+    if (!empty($errors)) {
+        $result['errors'] = $errors;
+    }
+    
+    return $result;
 }
 
 function sbSendToApp(array $request) {

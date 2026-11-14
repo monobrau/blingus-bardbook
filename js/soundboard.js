@@ -157,6 +157,9 @@
       loop: !!clip.loop,
       custom: true,
       sourceTitle: clip.title || '',
+      clipSource: clip.source || '',
+      clipText: clip.title || '',
+      clipVoiceId: clip.voiceId || '',
     }));
   }
 
@@ -214,10 +217,36 @@
     syncLoopButtons();
   }
 
-  function playPad(id) {
+  async function playPad(id) {
     const pad = pads().find((p) => p.id === id);
     if (!pad) return;
     pruneLive();
+    
+    if (pad.clipSource === 'speech' && pad.clipText && window.SoundboardClips) {
+      try {
+        const audioUrl = await window.SoundboardClips.speakAndCache(
+          pad.characterId,
+          pad.clipId,
+          pad.clipText,
+          pad.clipVoiceId
+        );
+        if (pad.loop) {
+          if (loops[id]) {
+            stopAudio(loops[id]);
+            delete loops[id];
+          } else {
+            loops[id] = playSrc(audioUrl, { loop: true });
+          }
+          syncLoopButtons();
+        } else {
+          playSrc(audioUrl);
+        }
+        return;
+      } catch (e) {
+        console.error('Speech generation failed:', e);
+      }
+    }
+    
     if (pad.loop) {
       if (loops[id]) {
         stopAudio(loops[id]);

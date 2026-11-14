@@ -689,10 +689,40 @@ window.SoundboardClips = (function () {
     }
   }
 
+  async function speakAndCache(characterId, clipId, text, clipVoiceId) {
+    const url = fileUrl(characterId, clipId);
+    
+    try {
+      const checkRes = await fetch(url, { method: 'HEAD' });
+      if (checkRes.ok) {
+        return url;
+      }
+    } catch (e) {
+      // File doesn't exist, generate it
+    }
+    
+    const vid = clipVoiceId || voiceId();
+    const body = {
+      action: 'speak',
+      character: characterId,
+      text: text,
+      id: clipId,
+    };
+    
+    if (vid) {
+      body.voiceId = vid;
+    }
+    
+    await apiPost(body);
+    
+    return url + '&t=' + Date.now();
+  }
+
   return {
     list: list,
     remove: remove,
     fileUrl: fileUrl,
     mount: mount,
+    speakAndCache: speakAndCache,
   };
 })();
