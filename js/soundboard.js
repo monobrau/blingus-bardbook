@@ -40,7 +40,11 @@
 
   function volKey() {
     if (CFG.kit === 'galen') return CFG.volKey || 'galenSoundboardVol';
-    return kitId() + 'SoundboardVol';
+    const characterId = window.BlingusSite?.themeCharacterId?.()
+      || window.BlingusSite?.lockedCharacterId?.()
+      || window.CharacterSheet?.getActiveId?.()
+      || 'blingus';
+    return characterId + 'SoundboardVol';
   }
 
   function loadVol() {
@@ -159,7 +163,8 @@
     host.innerHTML = '';
     host.classList.add('content--soundboard');
 
-    const characterId = window.BlingusSite?.lockedCharacterId?.()
+    const characterId = window.BlingusSite?.themeCharacterId?.()
+      || window.BlingusSite?.lockedCharacterId?.()
       || window.CharacterSheet?.getActiveId?.()
       || 'blingus';
 
@@ -285,7 +290,8 @@
     if (!host) return;
     const token = ++renderToken;
     lastHost = host;
-    const characterId = window.BlingusSite?.lockedCharacterId?.()
+    const characterId = window.BlingusSite?.themeCharacterId?.()
+      || window.BlingusSite?.lockedCharacterId?.()
       || window.CharacterSheet?.getActiveId?.()
       || 'blingus';
     host.innerHTML = '';

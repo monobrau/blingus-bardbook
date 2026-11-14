@@ -697,33 +697,46 @@ window.SoundboardClips = (function () {
     }
   }
 
+  const generatingClips = new Set();
+
   async function speakAndCache(characterId, clipId, text, clipVoiceId) {
     const url = fileUrl(characterId, clipId);
+    const lockKey = characterId + ':' + clipId;
     
     try {
       const checkRes = await fetch(url, { method: 'HEAD' });
       if (checkRes.ok) {
-        return url;
+        return url + '?t=' + Date.now();
       }
     } catch (e) {
       // File doesn't exist, generate it
     }
     
-    const vid = clipVoiceId || voiceId();
-    const body = {
-      action: 'speak',
-      character: characterId,
-      text: text,
-      id: clipId,
-    };
-    
-    if (vid) {
-      body.voiceId = vid;
+    if (generatingClips.has(lockKey)) {
+      throw new Error('Audio generation already in progress');
     }
     
-    await apiPost(body);
+    generatingClips.add(lockKey);
     
-    return url + '&t=' + Date.now();
+    try {
+      const vid = clipVoiceId || voiceId();
+      const body = {
+        action: 'speak',
+        character: characterId,
+        text: text,
+        id: clipId,
+      };
+      
+      if (vid) {
+        body.voiceId = vid;
+      }
+      
+      await apiPost(body);
+      
+      return url + '?t=' + Date.now();
+    } finally {
+      generatingClips.delete(lockKey);
+    }
   }
 
   return {

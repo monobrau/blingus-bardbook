@@ -923,14 +923,33 @@ function sbSaveSpeech(array $input) {
 
     $dir = sbCharacterDir($character);
     $existing = sbReadClipsFile($dir . 'clips.json');
-    if (count($existing) >= SB_MAX_CLIPS) {
+    
+    $providedId = isset($input['id']) && is_string($input['id']) ? trim($input['id']) : '';
+    $existingClip = null;
+    $updateExisting = false;
+    
+    if ($providedId !== '' && preg_match('/^[a-f0-9]{12}$/', $providedId)) {
+        foreach ($existing as $clip) {
+            if (($clip['id'] ?? '') === $providedId && ($clip['source'] ?? '') === 'speech') {
+                $audioPath = $dir . $providedId . '.mp3';
+                if (!is_file($audioPath)) {
+                    $existingClip = $clip;
+                    $updateExisting = true;
+                    break;
+                }
+            }
+        }
+    }
+    
+    if (!$updateExisting && count($existing) >= SB_MAX_CLIPS) {
         throw new Exception('This character already has 40 clips. Remove one first.');
     }
 
     $defaultVoice = sbCharacterVoice($character);
     $effectiveVoice = $voiceId !== '' ? $voiceId : $defaultVoice;
     $audio = sbGenerateSpeech($text, $effectiveVoice);
-    $id = bin2hex(random_bytes(6));
+    
+    $id = $updateExisting ? $providedId : bin2hex(random_bytes(6));
     $tmp = $dir . '.tmp-' . $id . '.mp3';
     $final = $dir . $id . '.mp3';
     $stored = false;
@@ -941,6 +960,17 @@ function sbSaveSpeech(array $input) {
         if (!rename($tmp, $final)) {
             throw new Exception('Could not store the clip.');
         }
+        
+        if ($updateExisting) {
+            if (isset($existingClip['voiceId'])) {
+                $existingClip['voiceId'] = $voiceId !== '' ? $voiceId : $existingClip['voiceId'];
+            } else if ($voiceId !== '') {
+                $existingClip['voiceId'] = $voiceId;
+            }
+            $stored = true;
+            return sbPublicClip($existingClip);
+        }
+        
         $record = [
             'id' => $id,
             'label' => $label,
@@ -953,6 +983,11 @@ function sbSaveSpeech(array $input) {
             'source' => 'speech',
             'createdAt' => gmdate('c'),
         ];
+        
+        if ($voiceId !== '') {
+            $record['voiceId'] = $voiceId;
+        }
+        
         sbUpdateClips($character, function ($clips) use ($record) {
             if (count($clips) >= SB_MAX_CLIPS) {
                 throw new Exception('This character already has 40 clips. Remove one first.');
