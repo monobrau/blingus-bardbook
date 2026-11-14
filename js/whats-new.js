@@ -193,6 +193,16 @@
         'Sound Board can speak a line in the character\'s voice and save it as a pad, next to sound effects and YouTube clips.',
       ],
     },
+    {
+      id: '2026-11-14-a-voice-id-everywhere',
+      date: '2026-11-14',
+      who: null,
+      lines: [
+        'Your pasted ElevenLabs voice ID now works for every spoken line: Speak, sheet clips, and Sound Board.',
+        'Paste a voice link or ID (quotes and spaces are fine). A "Voice saved" confirmation appears.',
+        'The setting is saved in this browser only. Clear errors show when ElevenLabs is out of credits or the voice isn\'t found.',
+      ],
+    },
   ];
 
   function currentWho() {
