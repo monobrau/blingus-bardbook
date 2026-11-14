@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>What's New - Voice ID Update</title>
+  <link rel="stylesheet" href="../styles.css">
+  <style>
+    body {
+      padding: 20px;
+      background: var(--paper);
+    }
+    .demo-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .demo-container h1 {
+      color: var(--accent);
+      margin-top: 0;
+    }
+    .demo-container p {
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-container">
+    <h1>ElevenLabs Voice ID Improvements</h1>
+    <p><strong>What's New (2026-11-14):</strong></p>
+    <ul>
+      <li>Your pasted ElevenLabs voice ID now works for every spoken line</li>
+      <li>Paste a voice link or ID - quotes and spaces are fine</li>
+      <li>Clear error messages when ElevenLabs is out of credits</li>
+    </ul>
+    
+    <p>The banner above shows the actual What's New notification that users will see when this update is deployed.</p>
+  </div>
+
+  <!-- What's New Banner (automatically shown) -->
+  <aside id="whatsNewBanner" class="whats-new is-open" role="dialog" aria-label="What's new" aria-live="polite">
+    <div class="whats-new__title">What's new</div>
+    <ul class="whats-new__list">
+      <li>Your pasted ElevenLabs voice ID now works for every spoken line: Speak, sheet clips, and Sound Board.</li>
+      <li>Paste a voice link or ID (quotes and spaces are fine). A "Voice saved" confirmation appears.</li>
+      <li>The setting is saved in this browser only. Clear errors show when ElevenLabs is out of credits or the voice isn't found.</li>
+    </ul>
+    <button type="button" class="whats-new__got-it" onclick="document.getElementById('whatsNewBanner').classList.remove('is-open')">Got it</button>
+  </aside>
+
+  <script src="../js/whats-new.js"></script>
+</body>
+</html>
