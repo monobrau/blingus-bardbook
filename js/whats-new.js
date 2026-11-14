@@ -193,6 +193,45 @@
         'Sound Board can speak a line in the character\'s voice and save it as a pad, next to sound effects and YouTube clips.',
       ],
     },
+    {
+      id: '2026-11-14-a-voice-id-everywhere',
+      date: '2026-11-14',
+      who: null,
+      lines: [
+        'Your pasted ElevenLabs voice ID now works for every spoken line: Speak, sheet clips, and Sound Board.',
+        'Paste a voice link or ID (quotes and spaces are fine). A "Voice saved" confirmation appears.',
+        'The setting is saved in this browser only. Clear errors show when ElevenLabs is out of credits or the voice isn\'t found.',
+      ],
+    },
+    {
+      id: '2026-11-14-b-clip-exchange',
+      date: '2026-11-14',
+      who: null,
+      lines: [
+        'Sound Board has a Manage clips button: select any clips, Export to download a bundle file, or Import a bundle from another character or app.',
+        'Copy to Galen sends clips directly to Galen\'s inbox when both apps share the same server. Incoming clips appear at the top for quick Import.',
+        'Every clip type works: uploaded audio, YouTube clips, sound effects, and spoken lines. Export/Import work everywhere; direct copy needs server setup.',
+      ],
+    },
+    {
+      id: '2026-11-14-c-soundboard-revamp',
+      date: '2026-11-14',
+      who: null,
+      lines: [
+        'Sound Board now shows only your custom clips. Built-in preset sounds have been removed.',
+        'New Categories button: create, rename, delete, and reorder categories. Move clips between categories with a dropdown on each clip.',
+        'Categories are saved server-side and included in exported clip bundles. Imported clips keep their category if it exists.',
+      ],
+    },
+    {
+      id: '2026-11-14-d-soundboard-fixes',
+      date: '2026-11-14',
+      who: null,
+      lines: [
+        'Fixed: Imported speech clips now generate audio on first play without wasting credits or creating duplicates.',
+        'Fixed: Volume slider now saves correctly per character.',
+      ],
+    },
   ];
 
   function currentWho() {

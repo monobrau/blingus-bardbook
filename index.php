@@ -29,6 +29,8 @@ $moduleFiles = [
   'ddb-sheet-import.js',
   'd20-roll.js',
   'soundboard-clips.js',
+  'soundboard-clip-manager.js',
+  'soundboard-category-manager.js',
   'soundboard.js',
   'workflow-catalog.js',
   'karaoke-manager.js',
@@ -380,7 +382,7 @@ $defaultTab = $showKaraoke ? 'spells' : ($showSongbook ? 'songs' : ($showKit ? '
           <p class="settings-section__hint">Voice ID for Speak. Leave blank to keep Blingus’s voice. <a href="https://elevenlabs.io/app/voices" target="_blank" rel="noopener noreferrer">ElevenLabs voices</a></p>
           <label class="settings-voice">
             Voice ID
-            <input type="text" id="elevenVoiceId" spellcheck="false" autocomplete="off" placeholder="Paste a voice ID" maxlength="120">
+            <input type="text" id="elevenVoiceId" spellcheck="false" autocomplete="off" placeholder="Paste a voice ID or URL" maxlength="120">
           </label>
         </section>
       </div>
@@ -608,6 +610,8 @@ $defaultTab = $showKaraoke ? 'spells' : ($showSongbook ? 'songs' : ($showKit ? '
   <script src="js/d20-roll.js?v=<?php echo $versions['d20-roll.js']; ?>"></script>
   <script>window.SoundboardConfig = {};</script>
   <script src="js/soundboard-clips.js?v=<?php echo $versions['soundboard-clips.js']; ?>"></script>
+  <script src="js/soundboard-clip-manager.js?v=<?php echo $versions['soundboard-clip-manager.js']; ?>"></script>
+  <script src="js/soundboard-category-manager.js?v=<?php echo $versions['soundboard-category-manager.js']; ?>"></script>
   <script src="js/soundboard.js?v=<?php echo $versions['soundboard.js']; ?>"></script>
   <script>window.WorkflowCatalogConfig = { app: 'blingus', storageKey: 'blingusWorkflowCatalogV1', partyKey: 'blingusPartyMembersV1', defaultParty: ['Blingus', 'Bruck', "Brawn O'Neil", 'Puck Pinewhistle', 'Vadania Amakiir', 'Bo'] };</script>
   <script src="js/workflow-catalog.js?v=<?php echo $versions['workflow-catalog.js']; ?>"></script>

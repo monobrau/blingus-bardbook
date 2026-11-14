@@ -26,6 +26,15 @@ window.SoundboardClips = (function () {
     }
   }
 
+  function voiceId() {
+    try {
+      const raw = String(localStorage.getItem('elevenLabsVoiceId') || '').trim();
+      return /^[A-Za-z0-9]{8,40}$/.test(raw) ? raw : '';
+    } catch (e) {
+      return '';
+    }
+  }
+
   function authHeaders() {
     const headers = { 'Content-Type': 'application/json' };
     const key = getApiKey();
@@ -85,6 +94,14 @@ window.SoundboardClips = (function () {
   async function list(characterId) {
     const data = await apiGet({ action: 'list', character: characterId });
     return Array.isArray(data.clips) ? data.clips : [];
+  }
+
+  async function listWithCategories(characterId) {
+    const data = await apiGet({ action: 'listWithCategories', character: characterId });
+    return {
+      clips: Array.isArray(data.clips) ? data.clips : [],
+      categories: Array.isArray(data.categories) ? data.categories : [],
+    };
   }
 
   function remove(characterId, clipId) {
@@ -325,6 +342,7 @@ window.SoundboardClips = (function () {
         label: nameInput.value,
         icon: icons.current(),
         loop: loopInput.checked,
+        voiceId: voiceId(),
       }).then(() => {
         if (gen !== mountGen) return;
         toast('Added to the board');
@@ -679,10 +697,57 @@ window.SoundboardClips = (function () {
     }
   }
 
+  const generatingClips = new Map();
+
+  async function speakAndCache(characterId, clipId, text, clipVoiceId) {
+    const url = fileUrl(characterId, clipId);
+    const lockKey = characterId + ':' + clipId;
+    
+    try {
+      const checkRes = await fetch(url, { method: 'HEAD' });
+      if (checkRes.ok) {
+        return url + '&t=' + Date.now();
+      }
+    } catch (e) {
+      // File doesn't exist, generate it
+    }
+    
+    if (generatingClips.has(lockKey)) {
+      return generatingClips.get(lockKey);
+    }
+    
+    const promise = (async () => {
+      try {
+        const vid = clipVoiceId || voiceId();
+        const body = {
+          action: 'speak',
+          character: characterId,
+          text: text,
+          id: clipId,
+        };
+        
+        if (vid) {
+          body.voiceId = vid;
+        }
+        
+        await apiPost(body);
+        
+        return url + '&t=' + Date.now();
+      } finally {
+        generatingClips.delete(lockKey);
+      }
+    })();
+    
+    generatingClips.set(lockKey, promise);
+    return promise;
+  }
+
   return {
     list: list,
+    listWithCategories: listWithCategories,
     remove: remove,
     fileUrl: fileUrl,
     mount: mount,
+    speakAndCache: speakAndCache,
   };
 })();

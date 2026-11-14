@@ -9,9 +9,13 @@
   let current = null;
 
   function cleanVoiceId(raw) {
-    const text = String(raw || '').trim();
-    const fromUrl = text.match(/[?&]voiceId=([A-Za-z0-9]{8,40})/);
-    if (fromUrl) return fromUrl[1];
+    let text = String(raw || '').trim();
+    text = text.replace(/^["']|["']$/g, '');
+    text = text.trim();
+    const fromQueryParam = text.match(/[?&]voiceId=([A-Za-z0-9]{8,40})/);
+    if (fromQueryParam) return fromQueryParam[1];
+    const fromPath = text.match(/\/voice\/([A-Za-z0-9]{8,40})/);
+    if (fromPath) return fromPath[1];
     return /^[A-Za-z0-9]{8,40}$/.test(text) ? text : '';
   }
 
@@ -28,19 +32,29 @@
     if (!input || input.dataset.bound === '1') return;
     input.dataset.bound = '1';
     input.value = voiceId();
-    input.addEventListener('change', () => {
+    
+    function save() {
       const cleaned = cleanVoiceId(input.value);
       if (input.value.trim() && !cleaned) {
         input.value = voiceId();
-        if (typeof window.showToast === 'function') window.showToast('Paste an ElevenLabs voice ID');
+        if (typeof window.showToast === 'function') window.showToast('Paste an ElevenLabs voice ID or URL');
         return;
       }
       input.value = cleaned;
       try {
-        if (cleaned) localStorage.setItem(VOICE_KEY, cleaned);
-        else localStorage.removeItem(VOICE_KEY);
+        if (cleaned) {
+          localStorage.setItem(VOICE_KEY, cleaned);
+          if (typeof window.showToast === 'function') window.showToast('Voice saved');
+        } else {
+          localStorage.removeItem(VOICE_KEY);
+          if (typeof window.showToast === 'function') window.showToast('Voice cleared');
+        }
       } catch (e) { /* ignore */ }
-    });
+    }
+    
+    input.addEventListener('change', save);
+    input.addEventListener('input', save);
+    input.addEventListener('paste', save);
   }
 
   function authHeaders() {
