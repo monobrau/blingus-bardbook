@@ -105,6 +105,8 @@ if (strlen($text) > 5000) {
 }
 
 $voice = cleanVoiceId($body['voiceId'] ?? '');
+$voiceSource = $voice !== '' ? 'settings-override' : '';
+$speaker = '';
 if ($voice === '') {
     // A host locked to one character always speaks as that character;
     // unlocked hosts use the speaker the page sends.
@@ -116,12 +118,30 @@ if ($voice === '') {
         }
     }
     $voice = knospeCharacterVoice($speaker);
+    $voiceSource = $voice !== '' ? 'character-map' : '';
 }
 if ($voice === '') {
     $voice = loadSecret('ELEVENLABS_VOICE_ID', __DIR__ . '/.elevenlabs_voice');
+    $voiceSource = $voice !== '' ? 'server-default-file' : '';
 }
 if ($voice === '') {
     $voice = 'JBFqnCBsd6RMkjVDRZzb';
+    $voiceSource = 'stock-fallback';
+}
+// Non-secret diagnostics: which voice was used and why (no text, no keys).
+header('X-Speak-Voice: ' . preg_replace('/[^A-Za-z0-9]/', '', $voice));
+header('X-Speak-Voice-Source: ' . $voiceSource);
+error_log(sprintf('speak.php voice host=%s speaker=%s sent_speaker=%s source=%s voice=%s',
+    preg_replace('/[^a-z0-9.:-]/', '', strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''))),
+    $speaker,
+    preg_replace('/[^a-z0-9]/', '', strtolower((string) ($body['speaker'] ?? ''))),
+    $voiceSource,
+    preg_replace('/[^A-Za-z0-9]/', '', $voice)));
+if (!empty($body['dryRun'])) {
+    // Resolve the voice only; never calls ElevenLabs.
+    header('Content-Type: application/json');
+    echo json_encode(['success' => true, 'dryRun' => true, 'voice' => $voice, 'source' => $voiceSource, 'speaker' => $speaker]);
+    exit;
 }
 if (!preg_match('/^[A-Za-z0-9]{8,40}$/', $voice)) {
     jsonFail('Invalid ElevenLabs voice id on server', 500);
