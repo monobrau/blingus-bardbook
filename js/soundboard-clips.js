@@ -170,6 +170,41 @@ window.SoundboardClips = (function () {
     };
   }
 
+  // Category dropdown for new clips: existing categories, Uncategorized, or "+ New category...".
+  function categoryField(characterId) {
+    const row = el('label', 'soundboard-clips__category');
+    row.appendChild(document.createTextNode('Category '));
+    let select = null;
+    if (window.CategorySelector && window.CategorySelector.createSelector) {
+      window.CategorySelector.createSelector(characterId, null, null).then((node) => {
+        select = node;
+        select.setAttribute('aria-label', 'Category for the new clip');
+        row.appendChild(select);
+      }).catch(() => {});
+    }
+    return {
+      row: row,
+      value: () => {
+        const v = select ? select.value : '';
+        return v && v !== '__new_category__' ? v : '';
+      },
+      setDisabled: (on) => { if (select) select.disabled = on; },
+    };
+  }
+
+  // After a clip is created, file it under the chosen category (if any).
+  function applyCategory(characterId, data, field) {
+    const category = field ? field.value() : '';
+    const clipId = data && data.clip && data.clip.id;
+    if (!category || !clipId) return Promise.resolve(data);
+    return apiPost({ action: 'updateClipCategory', character: characterId, id: clipId, category: category })
+      .then(() => data)
+      .catch(() => {
+        toast('Saved, but the category could not be set');
+        return data;
+      });
+  }
+
   function mountEffect(host, characterId, who, gen, opts) {
     const wrap = el('section', 'soundboard-clips__effect');
     const title = el('h3', 'sheet-card__title', 'Create a sound effect');
@@ -201,6 +236,7 @@ window.SoundboardClips = (function () {
     nameRow.appendChild(secondsInput);
 
     const icons = iconPicker();
+    const category = categoryField(characterId);
 
     const loopLabel = el('label', 'soundboard-clips__loop');
     const loopInput = document.createElement('input');
@@ -249,7 +285,7 @@ window.SoundboardClips = (function () {
         body.duration = duration;
       }
       setBusy(true, 'Creating the sound effect…');
-      apiPost(body).then(() => {
+      apiPost(body).then((data) => applyCategory(characterId, data, category)).then(() => {
         if (gen !== mountGen) return;
         toast('Added to the board');
         if (opts && opts.onSaved) opts.onSaved();
@@ -265,6 +301,7 @@ window.SoundboardClips = (function () {
     wrap.appendChild(prompt);
     wrap.appendChild(nameRow);
     wrap.appendChild(icons.row);
+    wrap.appendChild(category.row);
     wrap.appendChild(loopLabel);
     wrap.appendChild(createBtn);
     host.appendChild(wrap);
@@ -305,6 +342,7 @@ window.SoundboardClips = (function () {
     nameRow.appendChild(nameInput);
 
     const icons = iconPicker('🗣️');
+    const category = categoryField(characterId);
 
     const loopLabel = el('label', 'soundboard-clips__loop');
     const loopInput = document.createElement('input');
@@ -343,7 +381,7 @@ window.SoundboardClips = (function () {
         icon: icons.current(),
         loop: loopInput.checked,
         voiceId: voiceId(),
-      }).then(() => {
+      }).then((data) => applyCategory(characterId, data, category)).then(() => {
         if (gen !== mountGen) return;
         toast('Added to the board');
         if (opts && opts.onSaved) opts.onSaved();
@@ -359,6 +397,7 @@ window.SoundboardClips = (function () {
     wrap.appendChild(prompt);
     wrap.appendChild(nameRow);
     wrap.appendChild(icons.row);
+    wrap.appendChild(category.row);
     wrap.appendChild(loopLabel);
     wrap.appendChild(saveBtn);
     host.appendChild(wrap);
@@ -638,6 +677,7 @@ window.SoundboardClips = (function () {
       loopInput.type = 'checkbox';
       loopLabel.appendChild(loopInput);
       loopLabel.appendChild(document.createTextNode(' Loop until tapped again'));
+      const ytCategory = categoryField(characterId);
 
       const saveRow = el('div', 'soundboard-clips__save');
       const saveBtn = el('button', 'btn', 'Add to board');
@@ -666,7 +706,7 @@ window.SoundboardClips = (function () {
           icon: icon,
           loop: loopInput.checked,
           title: row.title || '',
-        }).then(() => {
+        }).then((data) => applyCategory(characterId, data, ytCategory)).then(() => {
           if (gen !== mountGen) return;
           toast('Added to the board');
           if (opts && opts.onSaved) opts.onSaved();
@@ -691,6 +731,7 @@ window.SoundboardClips = (function () {
       trimHost.appendChild(markRow);
       trimHost.appendChild(nameRow);
       trimHost.appendChild(iconRow);
+      trimHost.appendChild(ytCategory.row);
       trimHost.appendChild(loopLabel);
       trimHost.appendChild(saveRow);
       paintRange();

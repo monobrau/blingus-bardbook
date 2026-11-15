@@ -2760,7 +2760,7 @@
     for (let i = 0; i < lines.length; i++) {
       const item = lines[i];
       const card = document.createElement('article');
-      card.className = `card ${cardClass}`;
+      card.className = `card card--outcome ${cardClass}`;
       card.style.cursor = 'pointer';
       card.style.borderLeft = '4px solid var(--accent)';
       card.style.position = 'relative';
@@ -2821,10 +2821,10 @@
           ].join(';');
           card.appendChild(badge);
         });
-        card.style.paddingLeft = `${28 + badges.length * 26}px`;
       }
 
       const p = document.createElement('div');
+      p.className = 'card__text';
       p.textContent = item;
       p.style.fontSize = '16px';
       p.style.lineHeight = '1.6';
@@ -2838,7 +2838,6 @@
       card.appendChild(speakBtn);
       card.appendChild(favoriteBtn);
       card.appendChild(copyBtn);
-      p.style.paddingRight = '176px';
       card.appendChild(p);
       card.appendChild(meta);
       content.appendChild(card);

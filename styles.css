@@ -3879,3 +3879,31 @@ body.dark-mode .soundboard__pad {
   min-width: 0;
   max-width: 100%;
 }
+
+.soundboard-clips__category {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 8px 0;
+}
+
+.soundboard-clips__category select {
+  max-width: 100%;
+}
+
+/* Generated outcome cards: one per row at full column width, text not squeezed by the buttons. */
+.content > .card--outcome {
+  grid-column: 1 / -1;
+}
+
+.card--outcome .card__text {
+  max-width: none;
+  padding: 0;
+}
+
+@media (max-width: 520px) {
+  .card.card--outcome {
+    padding-top: 56px;
+  }
+}
