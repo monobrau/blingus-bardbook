@@ -3867,3 +3867,15 @@ body.dark-mode .soundboard__pad {
 .modal__footer {
   flex-wrap: wrap;
 }
+.clip-manager__copy-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+}
+
+.clip-manager__copy-select {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
+}
