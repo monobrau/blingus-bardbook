@@ -12,7 +12,7 @@ if (!function_exists('knospeCharacterVoices')) {
             'vadania' => '9O1whMWG8xvHut3tc0HB',
             'bruck' => 'bEkOilmQ8FPV078ZTGFo',
             'brawn' => 'bEkOilmQ8FPV078ZTGFo',
-            'puck' => 'Bx8c7yYtFWUdHzKnzHgT',
+            'puck' => 'IGykQRPzLW2RrLffb37w',
         ];
     }
 
