@@ -10,6 +10,8 @@ window.SoundboardClipManager = (function () {
   let selectedClips = new Set();
   let exchangeEnabled = false;
   let incomingBundles = [];
+  let appId = 'blingus';
+  let availableApps = [];
 
   function getApiKey() {
     try {
@@ -89,13 +91,24 @@ window.SoundboardClipManager = (function () {
     return data.clips || [];
   }
 
+  async function fetchAppInfo() {
+    try {
+      const data = await apiGet({ action: 'ping', character: characterId });
+      appId = data.appId || 'blingus';
+      availableApps = data.availableApps || [];
+      exchangeEnabled = data.exchangeEnabled || false;
+    } catch (e) {
+      appId = 'blingus';
+      availableApps = [];
+      exchangeEnabled = false;
+    }
+  }
+
   async function checkIncoming() {
     try {
-      const data = await apiGet({ action: 'incoming', app: 'blingus' });
-      exchangeEnabled = data.exchangeEnabled || false;
+      const data = await apiGet({ action: 'incoming' });
       incomingBundles = data.bundles || [];
     } catch (e) {
-      exchangeEnabled = false;
       incomingBundles = [];
     }
   }
@@ -179,7 +192,7 @@ window.SoundboardClipManager = (function () {
     input.click();
   }
 
-  async function copyToGalen() {
+  async function copyToApp(targetApp) {
     if (selectedClips.size === 0) {
       toast('Select clips to copy');
       return;
@@ -197,10 +210,11 @@ window.SoundboardClipManager = (function () {
         action: 'sendTo',
         character: characterId,
         clipIds: clipIds,
-        targetApp: 'galen',
+        targetApp: targetApp,
       });
 
-      toast('Sent ' + clipIds.length + ' clip(s) to Galen');
+      const appName = targetApp.charAt(0).toUpperCase() + targetApp.slice(1);
+      toast('Sent ' + clipIds.length + ' clip(s) to ' + appName);
       selectedClips.clear();
       render();
     } catch (e) {
@@ -305,7 +319,11 @@ window.SoundboardClipManager = (function () {
 
       if (incomingBundles.length > 0) {
         const incomingSection = el('section', 'clip-manager__incoming');
-        incomingSection.appendChild(el('h3', 'clip-manager__title', '📥 Incoming clips from Galen'));
+        const sources = Array.from(new Set(incomingBundles.map(b => {
+          const src = (b.preview && b.preview.sourceApp) || 'other apps';
+          return src.charAt(0).toUpperCase() + src.slice(1);
+        }))).join(', ');
+        incomingSection.appendChild(el('h3', 'clip-manager__title', '📥 Incoming clips from ' + sources));
         
         incomingBundles.forEach((bundle) => {
           const item = el('div', 'clip-manager__incoming-item');
@@ -414,6 +432,7 @@ window.SoundboardClipManager = (function () {
     characterId = charId;
     selectedClips.clear();
     
+    await fetchAppInfo();
     await checkIncoming();
 
     let modal = document.getElementById('clipManagerModal');
@@ -454,10 +473,35 @@ window.SoundboardClipManager = (function () {
     importBtn.addEventListener('click', showImportDialog);
     footer.appendChild(importBtn);
 
-    if (exchangeEnabled) {
-      const copyBtn = el('button', 'btn clip-manager__action', 'Copy to Galen');
+    if (exchangeEnabled && availableApps.length > 0) {
+      const copyLabel = el('label', 'clip-manager__copy-label', 'Copy to: ');
+      const copySelect = document.createElement('select');
+      copySelect.className = 'clip-manager__copy-select';
+      
+      const defaultOption = document.createElement('option');
+      defaultOption.value = '';
+      defaultOption.textContent = '-- Select app --';
+      copySelect.appendChild(defaultOption);
+      
+      availableApps.forEach(app => {
+        const option = document.createElement('option');
+        option.value = app;
+        option.textContent = app.charAt(0).toUpperCase() + app.slice(1);
+        copySelect.appendChild(option);
+      });
+      
+      const copyBtn = el('button', 'btn clip-manager__action', 'Send');
       copyBtn.type = 'button';
-      copyBtn.addEventListener('click', copyToGalen);
+      copyBtn.addEventListener('click', () => {
+        if (copySelect.value) {
+          copyToApp(copySelect.value);
+        } else {
+          toast('Select a destination app');
+        }
+      });
+      
+      copyLabel.appendChild(copySelect);
+      footer.appendChild(copyLabel);
       footer.appendChild(copyBtn);
     }
 
