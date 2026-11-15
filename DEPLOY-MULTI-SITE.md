@@ -25,8 +25,8 @@ sudo mkdir -p /var/lib/knospe-soundboard-exchange/inbox/brawn
 sudo mkdir -p /var/lib/knospe-soundboard-exchange/inbox/puck
 sudo mkdir -p /var/lib/knospe-soundboard-exchange/inbox/galen
 
-# Set ownership to web server user
-sudo chown -R www-data:www-data /var/lib/knospe-soundboard-exchange
+# Set ownership to web server user (web-php on this server)
+sudo chown -R web-php:web-php /var/lib/knospe-soundboard-exchange
 
 # Set permissions (0770 for web-php access)
 sudo chmod 770 /var/lib/knospe-soundboard-exchange/inbox/blingus
@@ -41,11 +41,11 @@ ls -la /var/lib/knospe-soundboard-exchange/inbox/
 
 **Expected output:**
 ```
-drwxrwx--- 2 www-data www-data 4096 Nov 15 18:00 blingus
-drwxrwx--- 2 www-data www-data 4096 Nov 15 18:00 vadania
-drwxrwx--- 2 www-data www-data 4096 Nov 15 18:00 brawn
-drwxrwx--- 2 www-data www-data 4096 Nov 15 18:00 puck
-drwxrwx--- 2 www-data www-data 4096 Nov 15 18:00 galen
+drwxrwx--- 2 web-php web-php 4096 Nov 15 18:00 blingus
+drwxrwx--- 2 web-php web-php 4096 Nov 15 18:00 vadania
+drwxrwx--- 2 web-php web-php 4096 Nov 15 18:00 brawn
+drwxrwx--- 2 web-php web-php 4096 Nov 15 18:00 puck
+drwxrwx--- 2 web-php web-php 4096 Nov 15 18:00 galen
 ```
 
 ### 2. Existing Bundles (Backward Compatibility)
@@ -66,7 +66,7 @@ Favorites directories will be auto-created by PHP on first save:
 
 Ensure `/data/soundboard/` is writable:
 ```bash
-sudo chown -R www-data:www-data /data/soundboard
+sudo chown -R web-php:web-php /data/soundboard
 sudo chmod 755 /data/soundboard
 ```
 
@@ -119,7 +119,7 @@ scp styles.css user@server:/var/www/html/
 scp index.php user@server:/var/www/html/
 
 # Set permissions
-sudo chown -R www-data:www-data /var/www/html
+sudo chown -R web-php:web-php /var/www/html
 sudo chmod 644 /var/www/html/api/soundboard.php
 sudo chmod 644 /var/www/html/js/*.js
 sudo chmod 644 /var/www/html/styles.css
@@ -131,7 +131,7 @@ sudo chmod 644 /var/www/html/index.php
 ```bash
 # Check soundboard data directory
 ls -la /data/soundboard/
-sudo chown -R www-data:www-data /data/soundboard
+sudo chown -R web-php:web-php /data/soundboard
 
 # Check exchange directory
 ls -la /var/lib/knospe-soundboard-exchange/inbox/

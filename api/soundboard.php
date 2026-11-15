@@ -841,23 +841,22 @@ function sbCleanServerVoice($raw) {
 }
 
 function sbCharacterVoice($character) {
-    // Per-character default ElevenLabs voices
-    // These are placeholder defaults from ElevenLabs' public premade voice library
+    // Per-character default ElevenLabs voices (public premade voice library)
+    // Blingus keeps its original default; others are new additions
     // Players can override by pasting their preferred voice ID in Settings
     $voices = [
-        // Blingus: Fairy bard with sharp wit and reluctant approval style
-        // Voice: George - Warm British narrator with expressive delivery
+        // Blingus: UNCHANGED - keeps original server default
         'blingus' => 'NJf2N7XT2iBE8xJ0XHlo',
         
         // Vadania: Elven ranger, observant and cautious ("the one who notices the door")
-        // Voice: Charlotte - Clear, steady female voice with a measured tone
+        // Voice: Charlotte - Clear, steady female voice with measured tone
         'vadania' => 'XB0fDUnXU5powFXDhCwa',
         
         // Bruck/Brawn: Dwarven monk, disciplined and focused (ki strikes and patience)
         // Voice: Clyde - Deep, resonant male voice with authority
         'bruck' => 'iP95p4xoKVk53GoZ742B',
         
-        // Puck: Fairy wild magic sorcerer, chaotic and mischievous (fairy mischief)
+        // Puck: Fairy wild magic sorcerer, chaotic and mischievous (wild magic surges)
         // Voice: Dorothy - Light, playful female voice with youthful energy
         'puck' => 'ThT5KcBeYPX3keUQqHPh',
     ];
