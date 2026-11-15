@@ -244,8 +244,8 @@
       },
       lines: [
         'Per-app clip exchange: Manage clips → select clips → pick destination (Blingus, Vadania, Brawn, Puck, or Galen). Each site has its own inbox.',
-        'Per-character default voices: Blingus (George), Vadania (Charlotte), Brawn (Clyde), Puck (Dorothy). Settings voice ID still overrides.',
-        'Category management: Categories button on Sound Board for organizing clips. Bulk assignment in Manage clips.',
+        'Category dropdowns: Select from existing categories when adding/editing clips. No more typo'd category names. Bulk assign in Manage clips.',
+        'Per-character default voices: Vadania (Charlotte), Brawn (Clyde), Puck (Dorothy). Blingus keeps its original voice. Settings voice ID still overrides.',
       ],
     },
   ];
