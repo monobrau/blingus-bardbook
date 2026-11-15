@@ -38,6 +38,7 @@ if (!function_exists('knospeCharacterVoices')) {
         $models = [
             'bruck' => 'eleven_v4',
             'brawn' => 'eleven_v4',
+            'puck' => 'eleven_v4',
         ];
         $character = strtolower(trim((string) $character));
         return $models[$character] ?? '';
