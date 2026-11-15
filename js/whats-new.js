@@ -232,6 +232,22 @@
         'Fixed: Volume slider now saves correctly per character.',
       ],
     },
+    {
+      id: '2026-11-15-multi-site-enhancements',
+      date: '2026-11-15',
+      who: null,
+      linesByWho: {
+        blingus: 'Your Bardbook Sound Board now works per-site.',
+        vadania: 'Your Trailbook Sound Board now works per-site.',
+        bruck: 'Your Brawlbook Sound Board now works per-site.',
+        puck: 'Your Surgebook Sound Board now works per-site.',
+      },
+      lines: [
+        'Per-app clip exchange: Manage clips → select clips → pick destination (Blingus, Vadania, Brawn, Puck, or Galen). Each site has its own inbox.',
+        'Per-character default voices: Blingus (George), Vadania (Charlotte), Brawn (Clyde), Puck (Dorothy). Settings voice ID still overrides.',
+        'Category management: Categories button on Sound Board for organizing clips. Bulk assignment in Manage clips.',
+      ],
+    },
   ];
 
   function currentWho() {

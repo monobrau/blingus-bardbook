@@ -15,7 +15,7 @@ $moduleFiles = [
   'storage-utils.js',
   'ui-utils.js',
   'site-identity.js',
-  'whats-new.js',
+  'whats-new.js', // v1.15.0: Multi-site enhancements entry
   'tab-navigation.js',
   'keyboard-shortcuts.js',
   'action-workflow.js',
@@ -29,7 +29,7 @@ $moduleFiles = [
   'ddb-sheet-import.js',
   'd20-roll.js',
   'soundboard-clips.js',
-  'soundboard-clip-manager.js',
+  'soundboard-clip-manager.js', // v1.15.0: App picker, dynamic app ID
   'soundboard-category-manager.js',
   'soundboard.js',
   'workflow-catalog.js',
@@ -44,7 +44,7 @@ $moduleFiles = [
   'data/skillchecks-data.js',
   'data/scene-outcomes.js',
   'script.js',
-  'styles.css'
+  'styles.css' // v1.15.0: App picker dropdown styles
 ];
 
 $versions = [];
