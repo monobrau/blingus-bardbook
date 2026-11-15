@@ -29,6 +29,20 @@ if (!function_exists('knospeCharacterVoices')) {
         return $map[$host] ?? '';
     }
 
+    /**
+     * Model per character voice. Brawn's voice was made with Voice Design v3, which only
+     * sounds right on eleven_v3; on eleven_multilingual_v2 it comes out as a generic British male.
+     * '' means the default model.
+     */
+    function knospeCharacterModel($character) {
+        $models = [
+            'bruck' => 'eleven_v3',
+            'brawn' => 'eleven_v3',
+        ];
+        $character = strtolower(trim((string) $character));
+        return $models[$character] ?? '';
+    }
+
     function knospeCharacterVoice($character) {
         $voices = knospeCharacterVoices();
         $character = strtolower(trim((string) $character));

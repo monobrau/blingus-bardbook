@@ -128,29 +128,36 @@ if ($voice === '') {
     $voice = 'JBFqnCBsd6RMkjVDRZzb';
     $voiceSource = 'stock-fallback';
 }
+$model = getenv('ELEVENLABS_MODEL') ?: 'eleven_multilingual_v2';
+if ($voiceSource === 'character-map' && knospeCharacterModel($speaker) !== '') {
+    $model = knospeCharacterModel($speaker);
+}
+if (!preg_match('/^[A-Za-z0-9_]{3,64}$/', $model)) {
+    $model = 'eleven_multilingual_v2';
+}
+header('X-Speak-Model: ' . $model);
+
 // Non-secret diagnostics: which voice was used and why (no text, no keys).
 header('X-Speak-Voice: ' . preg_replace('/[^A-Za-z0-9]/', '', $voice));
 header('X-Speak-Voice-Source: ' . $voiceSource);
-error_log(sprintf('speak.php voice host=%s speaker=%s sent_speaker=%s source=%s voice=%s',
+error_log(sprintf('speak.php voice host=%s speaker=%s sent_speaker=%s source=%s voice=%s model=%s',
     preg_replace('/[^a-z0-9.:-]/', '', strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''))),
     $speaker,
     preg_replace('/[^a-z0-9]/', '', strtolower((string) ($body['speaker'] ?? ''))),
     $voiceSource,
-    preg_replace('/[^A-Za-z0-9]/', '', $voice)));
+    preg_replace('/[^A-Za-z0-9]/', '', $voice),
+    $model));
 if (!empty($body['dryRun'])) {
     // Resolve the voice only; never calls ElevenLabs.
     header('Content-Type: application/json');
-    echo json_encode(['success' => true, 'dryRun' => true, 'voice' => $voice, 'source' => $voiceSource, 'speaker' => $speaker]);
+    echo json_encode(['success' => true, 'dryRun' => true, 'voice' => $voice, 'source' => $voiceSource, 'speaker' => $speaker, 'model' => $model]);
     exit;
 }
 if (!preg_match('/^[A-Za-z0-9]{8,40}$/', $voice)) {
     jsonFail('Invalid ElevenLabs voice id on server', 500);
 }
 
-$model = getenv('ELEVENLABS_MODEL') ?: 'eleven_multilingual_v2';
-if (!preg_match('/^[A-Za-z0-9_]{3,64}$/', $model)) {
-    $model = 'eleven_multilingual_v2';
-}
+
 
 $payload = json_encode([
     'text' => $text,

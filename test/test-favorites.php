@@ -51,6 +51,8 @@ check(sbCharacterVoice('vadania') === '9O1whMWG8xvHut3tc0HB', 'vadania');
 check(sbCharacterVoice('bruck') === 'bEkOilmQ8FPV078ZTGFo', 'bruck (brawn)');
 check(sbCharacterVoice('puck') === 'Bx8c7yYtFWUdHzKnzHgT', 'puck');
 check(sbCharacterVoice('brawn') === 'bEkOilmQ8FPV078ZTGFo', 'brawn alias');
+check(knospeCharacterModel('bruck') === 'eleven_v3' && knospeCharacterModel('brawn') === 'eleven_v3', 'brawn uses eleven_v3');
+check(knospeCharacterModel('puck') === '' && knospeCharacterModel('vadania') === '' && knospeCharacterModel('blingus') === '', 'others keep the default model');
 // speak.php shares the same map and locks the speaker to the host's character
 check(knospeHostCharacter('puck.knospe.org') === 'puck', 'host puck');
 check(knospeHostCharacter('brawn.knospe.org:443') === 'bruck', 'host brawn -> bruck');

@@ -862,7 +862,7 @@ function sbCharacterVoice($character) {
 }
 
 if (!function_exists('sbGenerateSpeech')) {
-function sbGenerateSpeech($text, $voice) {
+function sbGenerateSpeech($text, $voice, $model = '') {
     $key = sbTtsKey();
     if ($key === '') {
         throw new Exception('Speech key is not configured on this server.');
@@ -872,7 +872,7 @@ function sbGenerateSpeech($text, $voice) {
     }
     $payload = json_encode([
         'text' => $text,
-        'model_id' => 'eleven_multilingual_v2',
+        'model_id' => (is_string($model) && preg_match('/^[A-Za-z0-9_]{3,64}$/', $model)) ? $model : 'eleven_multilingual_v2',
     ]);
     if ($payload === false) {
         throw new Exception('Could not build the speech request.');
@@ -986,7 +986,9 @@ function sbSaveSpeech(array $input) {
         $defaultVoice = sbCharacterVoice($character);
         $effectiveVoice = $voiceId !== '' ? $voiceId : ($existingClip['voiceId'] ?? $defaultVoice);
         $fullText = $existingClip['title'] ?? $text;
-        $audio = sbGenerateSpeech($fullText, $effectiveVoice);
+        // The character's own voice may need its own model (Brawn: eleven_v3).
+        $model = $effectiveVoice === $defaultVoice ? knospeCharacterModel($character) : '';
+        $audio = sbGenerateSpeech($fullText, $effectiveVoice, $model);
         
         $tmp = $dir . '.tmp-' . $id . '.mp3';
         $final = $dir . $id . '.mp3';
