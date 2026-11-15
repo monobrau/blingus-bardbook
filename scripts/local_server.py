@@ -180,9 +180,9 @@ def call_elevenlabs(text: str, speaker: str = "") -> bytes:
     voice = voice_for_speaker(speaker)
     if not re.fullmatch(r"[A-Za-z0-9]{8,40}", voice):
         raise RuntimeError("Invalid ElevenLabs voice id")
-    model = (os.environ.get("ELEVENLABS_MODEL") or "eleven_multilingual_v2").strip()
+    model = (os.environ.get("ELEVENLABS_MODEL") or "eleven_v4").strip()
     if not re.fullmatch(r"[A-Za-z0-9_]{3,64}", model):
-        model = "eleven_multilingual_v2"
+        model = "eleven_v4"
     payload = json.dumps({"text": text, "model_id": model}).encode("utf-8")
     req = urllib.request.Request(
         f"https://api.elevenlabs.io/v1/text-to-speech/{voice}",

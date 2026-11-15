@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>What's New Banner - Voice ID Improvements</title>
+  <style>
+    :root {
+      --burnt: #8B4513;
+      --ink: #2c2c2c;
+      --paper: #f5f0e8;
+      --accent: #2b6f3a;
+      --shadow: rgba(0,0,0,0.15);
+    }
+    
+    * { box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+    
+    .demo-title {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 18px;
+      color: #666;
+    }
+    
+    .demo-subtitle {
+      text-align: center;
+      margin-bottom: 40px;
+      font-size: 14px;
+      color: #999;
+    }
+    
+    /* What's New Banner Styles */
+    .whats-new {
+      display: none;
+      position: fixed;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 40000;
+      width: min(460px, 94vw);
+      max-height: calc(100vh - 28px);
+      max-height: calc(100dvh - 28px);
+      box-sizing: border-box;
+      background: #1f4d2a;
+      color: #fff;
+      padding: 14px 16px 12px;
+      border-radius: 12px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+      text-align: left;
+      overflow: hidden;
+    }
+    
+    .whats-new.is-open {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .whats-new__title {
+      flex: 0 0 auto;
+      font-weight: 700;
+      margin-bottom: 8px;
+      font-size: 16px;
+    }
+    
+    .whats-new__list {
+      margin: 0 0 12px;
+      padding-left: 1.15em;
+      line-height: 1.4;
+      font-size: 14px;
+    }
+    
+    .whats-new .whats-new__list {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+    
+    .whats-new__list li + li {
+      margin-top: 6px;
+    }
+    
+    .whats-new__got-it {
+      display: block;
+      flex: 0 0 auto;
+      width: 100%;
+      border: 0;
+      border-radius: 8px;
+      padding: 8px 12px;
+      background: #fff;
+      color: #1f4d2a;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    .whats-new__got-it:hover {
+      background: #f0f0f0;
+    }
+    
+    .demo-info {
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: center;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+    
+    .demo-info h2 {
+      margin-top: 0;
+      color: var(--accent);
+    }
+    
+    .demo-info ul {
+      text-align: left;
+      line-height: 1.6;
+    }
+    
+    @media (max-width: 768px) {
+      body {
+        padding: 8px;
+      }
+      
+      .demo-title {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1 class="demo-title">What's New Banner - Voice ID Improvements</h1>
+  <p class="demo-subtitle">Demonstrating the new changelog entry (2026-11-14-a-voice-id-everywhere)</p>
+  
+  <div class="demo-info">
+    <h2>✅ What's New Entry Added</h2>
+    <p><strong>New changelog entry (ID: 2026-11-14-a-voice-id-everywhere):</strong></p>
+    <ul>
+      <li>Your pasted ElevenLabs voice ID now works for every spoken line: Speak, sheet clips, and Sound Board.</li>
+      <li>Paste a voice link or ID (quotes and spaces are fine). A "Voice saved" confirmation appears.</li>
+      <li>The setting is saved in this browser only. Clear errors show when ElevenLabs is out of credits or the voice isn't found.</li>
+    </ul>
+    
+    <p><strong>Features:</strong></p>
+    <ul>
+      <li>✓ Banner shows for users who haven't seen this update</li>
+      <li>✓ Responsive design works on mobile (390px+) and desktop</li>
+      <li>✓ "Got it" button dismisses the banner</li>
+      <li>✓ Banner is closable on mobile widths</li>
+      <li>✓ Proper z-index ensures banner is always visible</li>
+    </ul>
+  </div>
+
+  <!-- What's New Banner -->
+  <aside id="whatsNewBanner" class="whats-new is-open" role="dialog" aria-label="What's new" aria-live="polite">
+    <div class="whats-new__title">What's new</div>
+    <ul class="whats-new__list">
+      <li>Your pasted ElevenLabs voice ID now works for every spoken line: Speak, sheet clips, and Sound Board.</li>
+      <li>Paste a voice link or ID (quotes and spaces are fine). A "Voice saved" confirmation appears.</li>
+      <li>The setting is saved in this browser only. Clear errors show when ElevenLabs is out of credits or the voice isn't found.</li>
+    </ul>
+    <button type="button" class="whats-new__got-it">Got it</button>
+  </aside>
+
+  <script>
+    // Add click handler to dismiss button
+    document.querySelector('.whats-new__got-it').addEventListener('click', function() {
+      document.getElementById('whatsNewBanner').classList.remove('is-open');
+    });
+    
+    // Log viewport info
+    console.log('Viewport:', window.innerWidth, 'x', window.innerHeight);
+    console.log('Banner width:', document.getElementById('whatsNewBanner').offsetWidth, 'px');
+  </script>
+</body>
+</html>

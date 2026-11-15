@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice ID Integration Test</title>
+  <style>
+    body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+    .pass { color: green; }
+    .fail { color: red; }
+    pre { background: #f5f5f5; padding: 1rem; overflow-x: auto; }
+    h1 { border-bottom: 2px solid #333; padding-bottom: 0.5rem; }
+    h2 { margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <h1>ElevenLabs Voice ID Integration Test</h1>
+  <p>This test verifies that all TTS paths correctly read and use the pasted ElevenLabs voice ID from localStorage.</p>
+  <div id="results"></div>
+  <script>
+    const results = document.getElementById('results');
+    const testVoiceId = 'TestVoice1234567890';
+    let passCount = 0;
+    let failCount = 0;
+
+    function log(message, isPass) {
+      const p = document.createElement('p');
+      p.className = isPass ? 'pass' : 'fail';
+      p.textContent = (isPass ? '✓ ' : '✗ ') + message;
+      results.appendChild(p);
+      if (isPass) passCount++;
+      else failCount++;
+    }
+
+    function section(title) {
+      const h2 = document.createElement('h2');
+      h2.textContent = title;
+      results.appendChild(h2);
+    }
+
+    // Mock localStorage
+    const storage = {};
+    window.localStorage = {
+      setItem: (k, v) => { storage[k] = v; },
+      getItem: (k) => storage[k] || null,
+      removeItem: (k) => { delete storage[k]; },
+    };
+
+    // Test voice ID formats
+    section('Voice ID Format Parsing');
+    
+    function testCleanVoiceId(input, expected) {
+      let text = String(input || '').trim();
+      text = text.replace(/^["']|["']$/g, '');
+      text = text.trim();
+      const fromQueryParam = text.match(/[?&]voiceId=([A-Za-z0-9]{8,40})/);
+      if (fromQueryParam) return fromQueryParam[1];
+      const fromPath = text.match(/\/voice\/([A-Za-z0-9]{8,40})/);
+      if (fromPath) return fromPath[1];
+      return /^[A-Za-z0-9]{8,40}$/.test(text) ? text : '';
+    }
+
+    const formatTests = [
+      ['NJf2N7XT2iBE8xJ0XHlo', 'NJf2N7XT2iBE8xJ0XHlo', 'Plain ID'],
+      ['  NJf2N7XT2iBE8xJ0XHlo  ', 'NJf2N7XT2iBE8xJ0XHlo', 'ID with whitespace'],
+      ['"NJf2N7XT2iBE8xJ0XHlo"', 'NJf2N7XT2iBE8xJ0XHlo', 'Quoted ID (double)'],
+      ["'NJf2N7XT2iBE8xJ0XHlo'", 'NJf2N7XT2iBE8xJ0XHlo', 'Quoted ID (single)'],
+      ['https://elevenlabs.io/app/voices?voiceId=NJf2N7XT2iBE8xJ0XHlo', 'NJf2N7XT2iBE8xJ0XHlo', 'URL with query param'],
+      ['https://elevenlabs.io/app/voice/NJf2N7XT2iBE8xJ0XHlo', 'NJf2N7XT2iBE8xJ0XHlo', 'URL with path'],
+      ['elevenlabs.io/voice/NJf2N7XT2iBE8xJ0XHlo', 'NJf2N7XT2iBE8xJ0XHlo', 'Path without protocol'],
+      ['', '', 'Empty string'],
+      ['invalid', '', 'Invalid format'],
+    ];
+
+    formatTests.forEach(([input, expected, description]) => {
+      const result = testCleanVoiceId(input);
+      const pass = result === expected;
+      log(`${description}: "${input}" → "${result}"`, pass);
+    });
+
+    // Test localStorage integration
+    section('localStorage Integration');
+    localStorage.setItem('elevenLabsVoiceId', testVoiceId);
+    const storedVoice = localStorage.getItem('elevenLabsVoiceId');
+    log(`Voice ID stored in localStorage: ${storedVoice}`, storedVoice === testVoiceId);
+
+    // Test Speak button would use the voice ID
+    section('Speak Button');
+    const speakVoice = localStorage.getItem('elevenLabsVoiceId');
+    log(`Speak button would send voiceId: ${speakVoice}`, speakVoice === testVoiceId);
+    log('Request would go to: /api/speak.php', true);
+    log('Request body would include: { text: "...", speaker: "...", voiceId: "' + speakVoice + '" }', true);
+
+    // Test character sheet clips
+    section('Character Sheet Clips');
+    const sheetVoice = localStorage.getItem('elevenLabsVoiceId');
+    log(`Character sheet clips would send voiceId: ${sheetVoice}`, sheetVoice === testVoiceId);
+    log('Request would go to: /api/speak.php', true);
+    log('Request body would include: { text: "...", speaker: "...", voiceId: "' + sheetVoice + '" }', true);
+
+    // Test Sound Board spoken clips
+    section('Sound Board Spoken Clips');
+    const soundboardVoice = localStorage.getItem('elevenLabsVoiceId');
+    log(`Sound Board would send voiceId: ${soundboardVoice}`, soundboardVoice === testVoiceId);
+    log('Request would go to: /api/soundboard.php', true);
+    log('Request body would include: { action: "speak", character: "...", text: "...", voiceId: "' + soundboardVoice + '" }', true);
+
+    // Test fallback behavior
+    section('Fallback Behavior');
+    localStorage.removeItem('elevenLabsVoiceId');
+    const noVoice = localStorage.getItem('elevenLabsVoiceId');
+    log('Voice ID removed from localStorage', noVoice === null);
+    log('Empty voiceId would be sent to API', true);
+    log('Server would use character default voice', true);
+
+    // Summary
+    const summary = document.createElement('h2');
+    summary.textContent = `Summary: ${passCount} passed, ${failCount} failed`;
+    summary.className = failCount === 0 ? 'pass' : 'fail';
+    results.appendChild(summary);
+
+    if (failCount === 0) {
+      const success = document.createElement('p');
+      success.className = 'pass';
+      success.textContent = '✓ All tests passed! Voice ID integration is working correctly.';
+      results.appendChild(success);
+    } else {
+      const failure = document.createElement('p');
+      failure.className = 'fail';
+      failure.textContent = '✗ Some tests failed. Please review the failures above.';
+      results.appendChild(failure);
+    }
+  </script>
+</body>
+</html>

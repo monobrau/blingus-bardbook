@@ -2760,7 +2760,7 @@
     for (let i = 0; i < lines.length; i++) {
       const item = lines[i];
       const card = document.createElement('article');
-      card.className = `card ${cardClass}`;
+      card.className = `card card--outcome ${cardClass}`;
       card.style.cursor = 'pointer';
       card.style.borderLeft = '4px solid var(--accent)';
       card.style.position = 'relative';
@@ -2783,6 +2783,17 @@
         e.stopPropagation();
         e.preventDefault();
         speakGenerated(item, speakBtn);
+      });
+
+      const favoriteBtn = document.createElement('button');
+      favoriteBtn.type = 'button';
+      favoriteBtn.className = 'card__favorite';
+      favoriteBtn.textContent = '☆';
+      favoriteBtn.title = 'Save as favorite';
+      favoriteBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        await saveOutcomeFavorite(item, favoriteBtn);
       });
 
       card.addEventListener('click', () => {
@@ -2810,10 +2821,10 @@
           ].join(';');
           card.appendChild(badge);
         });
-        card.style.paddingLeft = `${28 + badges.length * 26}px`;
       }
 
       const p = document.createElement('div');
+      p.className = 'card__text';
       p.textContent = item;
       p.style.fontSize = '16px';
       p.style.lineHeight = '1.6';
@@ -2825,8 +2836,8 @@
         : `${modalPrefix || '🎲'} ${metaLabel || 'Outcome'} — ${selection.summary}`;
 
       card.appendChild(speakBtn);
+      card.appendChild(favoriteBtn);
       card.appendChild(copyBtn);
-      p.style.paddingRight = '128px';
       card.appendChild(p);
       card.appendChild(meta);
       content.appendChild(card);
@@ -4134,6 +4145,63 @@
     } catch (err) {
       showToast(err?.message || 'Speech failed');
     }
+  }
+
+  async function saveOutcomeFavorite(text, btn) {
+    if (!window.OutcomeFavorites) {
+      showToast('Favorites feature not available');
+      return;
+    }
+
+    const origText = btn.textContent;
+    btn.textContent = '...';
+    btn.disabled = true;
+
+    try {
+      // Reuse audio only if this line was already spoken this session.
+      // Starring never requests new speech; otherwise the favorite is saved as text only.
+      let audioBase64 = null;
+      let mime = null;
+      const cached = window.BlingusSpeak?.getCachedAudioBlob?.(text) || null;
+      if (cached) {
+        audioBase64 = await blobToBase64(cached);
+        mime = cached.type || 'audio/mpeg';
+      }
+
+      const result = await window.OutcomeFavorites.save(text, { audioBase64: audioBase64, mime: mime });
+
+      btn.textContent = '★';
+      btn.title = 'Favorited';
+      setTimeout(() => {
+        btn.textContent = origText;
+        btn.title = 'Save as favorite';
+      }, 2000);
+
+      showToast(result && result.created === false ? 'Already in favorites' : 'Added to favorites');
+
+      const sbHost = document.querySelector('[data-section="soundboard"]');
+      if (window.Soundboard && sbHost && sbHost.classList.contains('content--active')) {
+        window.Soundboard.render(sbHost);
+      }
+    } catch (err) {
+      btn.textContent = origText;
+      showToast(err?.message || 'Could not save favorite');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function blobToBase64(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const dataUrl = reader.result;
+        const base64 = dataUrl.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
   }
 
   // Modal functions

@@ -36,9 +36,16 @@ function jsonFail($message, $code = 400) {
     exit;
 }
 
+require_once __DIR__ . '/character-voices.php';
+
 function cleanVoiceId($raw) {
     $raw = trim((string) $raw);
-    if (preg_match('/voiceId=([A-Za-z0-9]{8,40})/', $raw, $m)) {
+    $raw = preg_replace('/^["\']|["\']$/', '', $raw);
+    $raw = trim($raw);
+    if (preg_match('/[?&]voiceId=([A-Za-z0-9]{8,40})/', $raw, $m)) {
+        return $m[1];
+    }
+    if (preg_match('/\/voice\/([A-Za-z0-9]{8,40})/', $raw, $m)) {
         return $m[1];
     }
     if (preg_match('/^[A-Za-z0-9]{8,40}$/', $raw)) {
@@ -98,30 +105,59 @@ if (strlen($text) > 5000) {
 }
 
 $voice = cleanVoiceId($body['voiceId'] ?? '');
+$voiceSource = $voice !== '' ? 'settings-override' : '';
+$speaker = '';
 if ($voice === '') {
-    $characterVoices = [
-        'blingus' => 'NJf2N7XT2iBE8xJ0XHlo',
-    ];
-    $speaker = strtolower(trim((string) ($body['speaker'] ?? '')));
-    if (!preg_match('/^[a-z0-9]{0,32}$/', $speaker)) {
-        $speaker = '';
+    // A host locked to one character always speaks as that character;
+    // unlocked hosts use the speaker the page sends.
+    $speaker = knospeHostCharacter();
+    if ($speaker === '') {
+        $speaker = strtolower(trim((string) ($body['speaker'] ?? '')));
+        if (!preg_match('/^[a-z0-9]{0,32}$/', $speaker)) {
+            $speaker = '';
+        }
     }
-    $voice = $characterVoices[$speaker] ?? '';
+    $voice = knospeCharacterVoice($speaker);
+    $voiceSource = $voice !== '' ? 'character-map' : '';
 }
 if ($voice === '') {
     $voice = loadSecret('ELEVENLABS_VOICE_ID', __DIR__ . '/.elevenlabs_voice');
+    $voiceSource = $voice !== '' ? 'server-default-file' : '';
 }
 if ($voice === '') {
     $voice = 'JBFqnCBsd6RMkjVDRZzb';
+    $voiceSource = 'stock-fallback';
+}
+$model = getenv('ELEVENLABS_MODEL') ?: 'eleven_v4';
+if ($voiceSource === 'character-map' && knospeCharacterModel($speaker) !== '') {
+    $model = knospeCharacterModel($speaker);
+}
+if (!preg_match('/^[A-Za-z0-9_]{3,64}$/', $model)) {
+    $model = 'eleven_v4';
+}
+header('X-Speak-Model: ' . $model);
+
+// Non-secret diagnostics: which voice was used and why (no text, no keys).
+header('X-Speak-Voice: ' . preg_replace('/[^A-Za-z0-9]/', '', $voice));
+header('X-Speak-Voice-Source: ' . $voiceSource);
+error_log(sprintf('speak.php voice host=%s speaker=%s sent_speaker=%s source=%s voice=%s model=%s',
+    preg_replace('/[^a-z0-9.:-]/', '', strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''))),
+    $speaker,
+    preg_replace('/[^a-z0-9]/', '', strtolower((string) ($body['speaker'] ?? ''))),
+    $voiceSource,
+    preg_replace('/[^A-Za-z0-9]/', '', $voice),
+    $model));
+if (!empty($body['dryRun'])) {
+    // Resolve the voice only; never calls ElevenLabs.
+    header('Content-Type: application/json');
+    echo json_encode(['success' => true, 'dryRun' => true, 'voice' => $voice, 'source' => $voiceSource, 'speaker' => $speaker, 'model' => $model]);
+    exit;
 }
 if (!preg_match('/^[A-Za-z0-9]{8,40}$/', $voice)) {
     jsonFail('Invalid ElevenLabs voice id on server', 500);
 }
 
-$model = getenv('ELEVENLABS_MODEL') ?: 'eleven_multilingual_v2';
-if (!preg_match('/^[A-Za-z0-9_]{3,64}$/', $model)) {
-    $model = 'eleven_multilingual_v2';
-}
+
 
 $payload = json_encode([
     'text' => $text,

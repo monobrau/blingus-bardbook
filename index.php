@@ -15,12 +15,13 @@ $moduleFiles = [
   'storage-utils.js',
   'ui-utils.js',
   'site-identity.js',
-  'whats-new.js',
+  'whats-new.js', // v1.16.0: Favorites feature entry
   'tab-navigation.js',
   'keyboard-shortcuts.js',
   'action-workflow.js',
   'outcome-generate.js',
-  'speak.js',
+  'outcome-favorites.js', // v1.16.0: Favorites API client
+  'speak.js', // v1.16.0: Added getAudioBlob for favorites
   'sheet-clips.js',
   'character-sheet.js',
   'puck-fx.js',
@@ -28,8 +29,11 @@ $moduleFiles = [
   'brawn-fx.js',
   'ddb-sheet-import.js',
   'd20-roll.js',
+  'category-selector.js',
   'soundboard-clips.js',
-  'soundboard.js',
+  'soundboard-clip-manager.js', // v1.16.0: Favorites export/import
+  'soundboard-category-manager.js',
+  'soundboard.js', // v1.16.0: Favorites section
   'workflow-catalog.js',
   'karaoke-manager.js',
   'data/spells-data.js',
@@ -41,8 +45,8 @@ $moduleFiles = [
   'data/criticals-data.js',
   'data/skillchecks-data.js',
   'data/scene-outcomes.js',
-  'script.js',
-  'styles.css'
+  'script.js', // v1.16.0: Favorite button on outcome cards
+  'styles.css' // v1.16.0: Favorite button styles, mobile-friendly at 390px
 ];
 
 $versions = [];
@@ -377,10 +381,10 @@ $defaultTab = $showKaraoke ? 'spells' : ($showSongbook ? 'songs' : ($showKit ? '
         </section>
         <section class="settings-section">
           <h3 class="settings-section__label">ElevenLabs</h3>
-          <p class="settings-section__hint">Voice ID for Speak. Leave blank to keep Blingus’s voice. <a href="https://elevenlabs.io/app/voices" target="_blank" rel="noopener noreferrer">ElevenLabs voices</a></p>
+          <p class="settings-section__hint">Voice ID for Speak. Leave blank to use this character’s own voice. <a href="https://elevenlabs.io/app/voices" target="_blank" rel="noopener noreferrer">ElevenLabs voices</a></p>
           <label class="settings-voice">
             Voice ID
-            <input type="text" id="elevenVoiceId" spellcheck="false" autocomplete="off" placeholder="Paste a voice ID" maxlength="120">
+            <input type="text" id="elevenVoiceId" spellcheck="false" autocomplete="off" placeholder="Paste a voice ID or URL" maxlength="120">
           </label>
         </section>
       </div>
@@ -607,12 +611,16 @@ $defaultTab = $showKaraoke ? 'spells' : ($showSongbook ? 'songs' : ($showKit ? '
   <script src="js/brawn-fx.js?v=<?php echo $versions['brawn-fx.js']; ?>"></script>
   <script src="js/d20-roll.js?v=<?php echo $versions['d20-roll.js']; ?>"></script>
   <script>window.SoundboardConfig = {};</script>
+  <script src="js/category-selector.js?v=<?php echo $versions['category-selector.js']; ?>"></script>
   <script src="js/soundboard-clips.js?v=<?php echo $versions['soundboard-clips.js']; ?>"></script>
+  <script src="js/soundboard-clip-manager.js?v=<?php echo $versions['soundboard-clip-manager.js']; ?>"></script>
+  <script src="js/soundboard-category-manager.js?v=<?php echo $versions['soundboard-category-manager.js']; ?>"></script>
   <script src="js/soundboard.js?v=<?php echo $versions['soundboard.js']; ?>"></script>
   <script>window.WorkflowCatalogConfig = { app: 'blingus', storageKey: 'blingusWorkflowCatalogV1', partyKey: 'blingusPartyMembersV1', defaultParty: ['Blingus', 'Bruck', "Brawn O'Neil", 'Puck Pinewhistle', 'Vadania Amakiir', 'Bo'] };</script>
   <script src="js/workflow-catalog.js?v=<?php echo $versions['workflow-catalog.js']; ?>"></script>
   <script src="js/action-workflow.js?v=<?php echo $versions['action-workflow.js']; ?>"></script>
   <script src="js/outcome-generate.js?v=<?php echo $versions['outcome-generate.js']; ?>"></script>
+  <script src="js/outcome-favorites.js?v=<?php echo $versions['outcome-favorites.js']; ?>"></script>
   <script src="js/speak.js?v=<?php echo $versions['speak.js']; ?>"></script>
 
   <!-- Main application script -->

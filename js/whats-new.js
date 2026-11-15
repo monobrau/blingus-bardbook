@@ -193,6 +193,63 @@
         'Sound Board can speak a line in the character\'s voice and save it as a pad, next to sound effects and YouTube clips.',
       ],
     },
+    {
+      id: '2026-11-14-a-voice-id-everywhere',
+      date: '2026-11-14',
+      who: null,
+      lines: [
+        'Your pasted ElevenLabs voice ID now works for every spoken line: Speak, sheet clips, and Sound Board.',
+        'Paste a voice link or ID (quotes and spaces are fine). A "Voice saved" confirmation appears.',
+        'The setting is saved in this browser only. Clear errors show when ElevenLabs is out of credits or the voice isn\'t found.',
+      ],
+    },
+    {
+      id: '2026-11-14-b-clip-exchange',
+      date: '2026-11-14',
+      who: null,
+      lines: [
+        'Sound Board has a Manage clips button: select any clips, Export to download a bundle file, or Import a bundle from another character or app.',
+        'Copy to Galen sends clips directly to Galen\'s inbox when both apps share the same server. Incoming clips appear at the top for quick Import.',
+        'Every clip type works: uploaded audio, YouTube clips, sound effects, and spoken lines. Export/Import work everywhere; direct copy needs server setup.',
+      ],
+    },
+    {
+      id: '2026-11-14-c-soundboard-revamp',
+      date: '2026-11-14',
+      who: null,
+      lines: [
+        'Sound Board now shows only your custom clips. Built-in preset sounds have been removed.',
+        'New Categories button: create, rename, delete, and reorder categories. Move clips between categories with a dropdown on each clip.',
+        'Categories are saved server-side and included in exported clip bundles. Imported clips keep their category if it exists.',
+      ],
+    },
+    {
+      id: '2026-11-14-d-soundboard-fixes',
+      date: '2026-11-14',
+      who: null,
+      lines: [
+        'Fixed: Imported speech clips now generate audio on first play without wasting credits or creating duplicates.',
+        'Fixed: Volume slider now saves correctly per character.',
+      ],
+    },
+    {
+      id: '2026-11-15-multi-site-enhancements',
+      date: '2026-11-15',
+      who: null,
+      linesByWho: {
+        blingus: 'Your Bardbook Sound Board now works per-site.',
+        vadania: 'Your Trailbook Sound Board now works per-site.',
+        bruck: 'Your Brawlbook Sound Board now works per-site.',
+        puck: 'Your Surgebook Sound Board now works per-site.',
+      },
+      lines: [
+        'Per-app clip exchange: Manage clips → select clips → pick destination (Blingus, Vadania, Brawn, Puck, or Galen). Each site has its own inbox.',
+        'Category dropdowns: pick an existing category when moving clips (type a name only when creating a new one). Bulk assign in Manage clips.',
+        'Each character now has its own default voice. A voice ID pasted in Settings still overrides it.',
+        'Download: every clip and favorite with saved audio on the Sound Board has a small ⬇ button that saves it as an audio file named after the clip.',
+        'Favorites: each generated outcome card has a star button. It saves the line, plus its audio if you already played it (starring never generates new speech). Favorites appear on the Sound Board with playback, display-name editing, and delete, and can be sent to other apps from Manage clips.',
+      ],
+    },
   ];
 
   function currentWho() {

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>What's New Banner Test</title>
+  <style>
+    :root {
+      --burnt: #8B4513;
+      --ink: #2c2c2c;
+      --paper: #f5f0e8;
+      --accent: #2b6f3a;
+      --shadow: rgba(0,0,0,0.15);
+    }
+    
+    * { box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: var(--paper);
+      color: var(--ink);
+    }
+    
+    .test-controls {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+    
+    .test-controls h2 {
+      margin-top: 0;
+    }
+    
+    .btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+    
+    .btn:hover {
+      background: #1f5d2a;
+    }
+    
+    .btn--secondary {
+      background: #666;
+    }
+    
+    .btn--secondary:hover {
+      background: #555;
+    }
+    
+    .status {
+      margin-top: 12px;
+      padding: 12px;
+      background: #f0f0f0;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 13px;
+    }
+    
+    .viewport-info {
+      margin-top: 12px;
+      padding: 8px;
+      background: #e8f5e9;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    
+    /* Copy of whats-new styles from styles.css */
+    .whats-new {
+      display: none;
+      position: fixed;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 40000;
+      width: min(460px, 94vw);
+      max-height: calc(100vh - 28px);
+      max-height: calc(100dvh - 28px);
+      box-sizing: border-box;
+      background: #1f4d2a;
+      color: #fff;
+      padding: 14px 16px 12px;
+      border-radius: 12px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+      text-align: left;
+      overflow: hidden;
+    }
+    
+    .whats-new.is-open {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .whats-new__title {
+      flex: 0 0 auto;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    
+    .whats-new__list {
+      margin: 0 0 12px;
+      padding-left: 1.15em;
+      line-height: 1.4;
+    }
+    
+    .whats-new .whats-new__list {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+    
+    .whats-new__list li + li {
+      margin-top: 6px;
+    }
+    
+    .whats-new__got-it {
+      display: block;
+      flex: 0 0 auto;
+      width: 100%;
+      border: 0;
+      border-radius: 8px;
+      padding: 8px 12px;
+      background: #fff;
+      color: #1f4d2a;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    
+    .whats-new__got-it:hover {
+      background: #f0f0f0;
+    }
+    
+    /* Mobile viewport simulation */
+    body.mobile-sim {
+      max-width: 390px;
+      margin: 0 auto;
+      padding: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-controls">
+    <h2>What's New Banner Test</h2>
+    <p>Tests the new voice ID changelog entry (2026-11-14-a-voice-id-everywhere)</p>
+    
+    <div>
+      <button class="btn" onclick="showNewBanner()">Show Banner</button>
+      <button class="btn btn--secondary" onclick="clearSeen()">Clear Seen Items</button>
+      <button class="btn btn--secondary" onclick="toggleMobile()">Toggle Mobile (390px)</button>
+    </div>
+    
+    <div class="viewport-info" id="viewportInfo"></div>
+    <div class="status" id="status"></div>
+  </div>
+
+  <script>
+    // Mock localStorage
+    const storage = {};
+    const mockLocalStorage = {
+      getItem: (key) => storage[key] || null,
+      setItem: (key, value) => { storage[key] = value; updateStatus(); },
+      removeItem: (key) => { delete storage[key]; updateStatus(); }
+    };
+    
+    // Override localStorage for testing
+    Object.defineProperty(window, 'localStorage', {
+      value: mockLocalStorage,
+      writable: false
+    });
+    
+    // The new update entry
+    const NEW_UPDATE = {
+      id: '2026-11-14-a-voice-id-everywhere',
+      date: '2026-11-14',
+      who: null,
+      lines: [
+        'Your pasted ElevenLabs voice ID now works for every spoken line: Speak, sheet clips, and Sound Board.',
+        'Paste a voice link or ID (quotes and spaces are fine). A "Voice saved" confirmation appears.',
+        'The setting is saved in this browser only. Clear errors show when ElevenLabs is out of credits or the voice isn\'t found.',
+      ],
+    };
+    
+    const STORAGE_KEY = 'blingusWhatsNewSeenV2';
+    
+    function readSeen() {
+      try {
+        const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        return Array.isArray(raw) ? raw.map(String) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+    
+    function writeSeen(ids) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+      } catch (e) {
+        /* ignore */
+      }
+    }
+    
+    function markSeen(id) {
+      const seen = new Set(readSeen());
+      seen.add(id);
+      writeSeen(Array.from(seen));
+    }
+    
+    function showNewBanner() {
+      const seen = new Set(readSeen());
+      if (seen.has(NEW_UPDATE.id)) {
+        alert('Banner has already been seen. Click "Clear Seen Items" to reset.');
+        return;
+      }
+      
+      let root = document.getElementById('whatsNewBanner');
+      if (!root) {
+        root = document.createElement('aside');
+        root.id = 'whatsNewBanner';
+        root.className = 'whats-new';
+        root.setAttribute('role', 'dialog');
+        root.setAttribute('aria-label', "What's new");
+        root.setAttribute('aria-live', 'polite');
+        document.body.appendChild(root);
+      }
+      
+      root.innerHTML = '';
+      
+      const title = document.createElement('div');
+      title.className = 'whats-new__title';
+      title.textContent = "What's new";
+      root.appendChild(title);
+      
+      const list = document.createElement('ul');
+      list.className = 'whats-new__list';
+      NEW_UPDATE.lines.forEach((line) => {
+        const item = document.createElement('li');
+        item.textContent = line;
+        list.appendChild(item);
+      });
+      root.appendChild(list);
+      
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'whats-new__got-it';
+      btn.textContent = 'Got it';
+      btn.addEventListener('click', () => {
+        markSeen(NEW_UPDATE.id);
+        root.classList.remove('is-open');
+        updateStatus();
+      });
+      root.appendChild(btn);
+      
+      root.classList.add('is-open');
+      updateStatus();
+    }
+    
+    function clearSeen() {
+      writeSeen([]);
+      const root = document.getElementById('whatsNewBanner');
+      if (root) root.classList.remove('is-open');
+      updateStatus();
+    }
+    
+    function toggleMobile() {
+      document.body.classList.toggle('mobile-sim');
+      updateViewportInfo();
+    }
+    
+    function updateStatus() {
+      const seen = readSeen();
+      const seenNew = seen.includes(NEW_UPDATE.id);
+      const status = document.getElementById('status');
+      status.innerHTML = `
+        <strong>Storage Status:</strong><br>
+        Seen IDs: ${seen.length > 0 ? seen.join(', ') : 'None'}<br>
+        New entry (${NEW_UPDATE.id}): ${seenNew ? '✓ Seen' : '✗ Not seen'}<br>
+        <br>
+        <strong>Banner State:</strong><br>
+        ${document.getElementById('whatsNewBanner')?.classList.contains('is-open') ? '✓ Banner is open' : '✗ Banner is hidden'}
+      `;
+    }
+    
+    function updateViewportInfo() {
+      const info = document.getElementById('viewportInfo');
+      info.innerHTML = `
+        <strong>Viewport:</strong> ${window.innerWidth}px × ${window.innerHeight}px
+        ${document.body.classList.contains('mobile-sim') ? '(Mobile simulation: 390px)' : '(Desktop)'}
+      `;
+    }
+    
+    // Initialize
+    updateStatus();
+    updateViewportInfo();
+    window.addEventListener('resize', updateViewportInfo);
+  </script>
+</body>
+</html>

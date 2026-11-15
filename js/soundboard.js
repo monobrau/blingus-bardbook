@@ -11,137 +11,13 @@
   const live = [];
   let lastHost = null;
 
-  const S = {
-    slash: 'sounds/slash.ogg',
-    chop: 'sounds/chop.ogg',
-    clash: 'sounds/clash.ogg',
-    thud: 'sounds/thud.ogg',
-    crit: 'sounds/crit.ogg',
-    bow: 'sounds/bow.wav',
-    block: 'sounds/block.ogg',
-    parry: 'sounds/parry.wav',
-    smite: 'sounds/smite.ogg',
-    thunder: 'sounds/thunder.ogg',
-    fire: 'sounds/fire.ogg',
-    ice: 'sounds/ice.ogg',
-    whoosh: 'sounds/whoosh.wav',
-    horn: 'sounds/horn.ogg',
-    drums: 'sounds/drums.ogg',
-    downed: 'sounds/downed.ogg',
-    panther: 'sounds/panther.ogg',
-    undead: 'sounds/undead.mp3',
-  };
-  const CRIES = ['sounds/fluch1.mp3', 'sounds/fluch2.mp3', 'sounds/fluch3.mp3', 'sounds/fluch4.mp3', 'sounds/fluch5.mp3', 'sounds/fluch6.mp3'];
-
-  const KITS = {
-    blingus: {
-      title: 'Bardboard',
-      hint: 'Blingus kit: flourishes, fanfare, and a little steel. Fanfare loops until you tap it again.',
-      pads: [
-        { id: 'flourish', group: 'Song', label: 'Flourish', icon: '🎵', src: S.whoosh },
-        { id: 'sting', group: 'Song', label: 'Sting', icon: '✨', src: S.clash },
-        { id: 'horn', group: 'Song', label: 'Horn', icon: '📯', src: S.horn },
-        { id: 'drums', group: 'Song', label: 'Fanfare', icon: '🎺', src: S.drums, loop: true },
-        { id: 'dagger', group: 'Steel', label: 'Dagger', icon: '🗡️', src: S.slash },
-        { id: 'bow', group: 'Steel', label: 'Shortbow', icon: '🏹', src: S.bow },
-        { id: 'crit', group: 'Table', label: 'Nat 20', icon: '⭐', src: S.crit },
-        { id: 'panther', group: 'Table', label: 'Sex Panther', icon: '🐆', src: S.panther },
-        { id: 'undead', group: 'Table', label: 'Undead ×2', icon: '🤓', src: S.undead },
-        { id: 'downed', group: 'Table', label: 'Downed', icon: '💀', src: S.downed },
-      ],
-    },
-    vadania: {
-      title: 'Trail sounds',
-      hint: 'Vadania kit: the bow first, then steel and the stolen horn.',
-      pads: [
-        { id: 'bow', group: 'Bow', label: 'Longbow', icon: '🏹', src: S.bow },
-        { id: 'arrow', group: 'Bow', label: 'Arrow', icon: '➡️', src: S.whoosh },
-        { id: 'crit', group: 'Bow', label: 'Redeemed shot', icon: '⭐', src: S.crit },
-        { id: 'slash', group: 'Steel', label: 'Shortsword', icon: '⚔️', src: S.slash },
-        { id: 'block', group: 'Steel', label: 'Block', icon: '🛡️', src: S.block },
-        { id: 'thud', group: 'Steel', label: 'Thud', icon: '💥', src: S.thud },
-        { id: 'horn', group: 'Trail', label: "Elidon's horn", icon: '📯', src: S.horn },
-        { id: 'panther', group: 'Trail', label: 'Sex Panther', icon: '🐆', src: S.panther },
-        { id: 'undead', group: 'Trail', label: 'Undead ×2', icon: '🤓', src: S.undead },
-        { id: 'downed', group: 'Trail', label: 'Downed', icon: '💀', src: S.downed },
-      ],
-    },
-    bruck: {
-      title: 'Brawl sounds',
-      hint: 'Brawn kit: fists, staff, and a ki step. No magic pads.',
-      pads: [
-        { id: 'punch', group: 'Fists', label: 'Punch', icon: '👊', src: S.thud },
-        { id: 'staff', group: 'Fists', label: 'Staff', icon: '🪵', src: S.clash },
-        { id: 'crit', group: 'Fists', label: 'Stunning hit', icon: '⭐', src: S.crit },
-        { id: 'block', group: 'Guard', label: 'Patient', icon: '🛡️', src: S.block },
-        { id: 'parry', group: 'Guard', label: 'Parry', icon: '🔔', src: S.parry },
-        { id: 'whoosh', group: 'Guard', label: 'Step of the Wind', icon: '💨', src: S.whoosh },
-        { id: 'panther', group: 'Table', label: 'Sex Panther', icon: '🐆', src: S.panther },
-        { id: 'undead', group: 'Table', label: 'Undead ×2', icon: '🤓', src: S.undead },
-        { id: 'downed', group: 'Table', label: 'Downed', icon: '💀', src: S.downed },
-      ],
-    },
-    puck: {
-      title: 'Surge sounds',
-      hint: 'Puck kit: fire, thunder, ice, and a fly-by. No sword pads.',
-      pads: [
-        { id: 'fire', group: 'Chaos', label: 'Fireball', icon: '🔥', src: S.fire },
-        { id: 'thunder', group: 'Chaos', label: 'Shatter', icon: '⚡', src: S.thunder },
-        { id: 'ice', group: 'Chaos', label: 'Ice', icon: '❄️', src: S.ice },
-        { id: 'whoosh', group: 'Chaos', label: 'Fly', icon: '🧚', src: S.whoosh },
-        { id: 'sting', group: 'Spark', label: 'Spark', icon: '✨', src: S.clash },
-        { id: 'block', group: 'Spark', label: 'Shield', icon: '🛡️', src: S.block },
-        { id: 'crit', group: 'Table', label: 'Surge crit', icon: '⭐', src: S.crit },
-        { id: 'panther', group: 'Table', label: 'Sex Panther', icon: '🐆', src: S.panther },
-        { id: 'undead', group: 'Table', label: 'Undead ×2', icon: '🤓', src: S.undead },
-        { id: 'downed', group: 'Table', label: 'Downed', icon: '💀', src: S.downed },
-      ],
-    },
-    galen: {
-      title: 'Halbmast sounds',
-      hint: 'Battle clips, plus guttural German swears. Fanfare loops until you tap it again.',
-      pads: [
-        { id: 'slash', group: 'Blade', label: 'Slash', icon: '⚔️', src: S.slash },
-        { id: 'crit', group: 'Blade', label: 'Crit', icon: '⭐', src: S.crit },
-        { id: 'thud', group: 'Blade', label: 'Thud', icon: '💥', src: S.thud },
-        { id: 'smite', group: 'Oath', label: 'Divine Smite', icon: '☀️', src: S.smite },
-        { id: 'thunder', group: 'Oath', label: 'Thunder', icon: '⚡', src: S.thunder },
-        { id: 'block', group: 'Oath', label: 'Block', icon: '🛡️', src: S.block },
-        { id: 'parry', group: 'Oath', label: 'Parry', icon: '🔔', src: S.parry },
-        { id: 'horn', group: 'Table', label: 'Horn', icon: '📯', src: S.horn },
-        { id: 'drums', group: 'Table', label: 'Fanfare', icon: '🥁', src: S.drums, loop: true },
-        { id: 'panther', group: 'Table', label: 'Sex Panther', icon: '🐆', src: S.panther },
-        { id: 'undead', group: 'Table', label: 'Undead ×2', icon: '🤓', src: S.undead },
-        { id: 'downed', group: 'Table', label: 'Downed', icon: '💀', src: S.downed },
-        { id: 'cryWar', group: 'Flüche', label: 'Scheiße', icon: '🗣️', src: 'sounds/fluch1.mp3' },
-        { id: 'cryCharge', group: 'Flüche', label: 'Verdammt', icon: '💢', src: 'sounds/fluch2.mp3' },
-        { id: 'cryRage', group: 'Flüche', label: 'Fick dich', icon: '😤', src: 'sounds/fluch3.mp3' },
-        { id: 'cryRoar', group: 'Flüche', label: 'Arschloch', icon: '🦁', src: 'sounds/fluch4.mp3' },
-        { id: 'cryAny', group: 'Flüche', label: 'Any fluch', icon: '🎲', srcs: CRIES },
-      ],
-    },
-  };
-
-  function kitId() {
-    if (CFG.kit && KITS[CFG.kit]) return CFG.kit;
-    const who = window.BlingusSite?.themeCharacterId?.()
-      || window.BlingusSite?.lockedCharacterId?.()
-      || window.CharacterSheet?.getActiveId?.()
-      || '';
-    if (who === 'bruck') return 'bruck';
-    if (KITS[who]) return who;
-    return 'blingus';
-  }
-
-  function kit() {
-    return KITS[kitId()] || KITS.blingus;
-  }
-
   let customPads = [];
+  let favoritePads = [];
   let renderToken = 0;
+  let categories = [];
 
   function pads() {
-    return customPads.concat(kit().pads);
+    return favoritePads.concat(customPads);
   }
 
   function clipsToPads(characterId, clips) {
@@ -150,19 +26,89 @@
       id: 'clip:' + clip.id,
       clipId: clip.id,
       characterId: characterId,
-      group: 'Your clips',
+      group: clip.category || 'Uncategorized',
       label: clip.label || 'Clip',
       icon: clip.icon || '🔊',
       src: window.SoundboardClips.fileUrl(characterId, clip.id),
       loop: !!clip.loop,
       custom: true,
       sourceTitle: clip.title || '',
+      clipSource: clip.source || '',
+      clipText: clip.title || '',
+      clipVoiceId: clip.voiceId || '',
+    }));
+  }
+
+  function shortText(text) {
+    const t = String(text || '').trim();
+    return t.length > 40 ? t.slice(0, 39) + '…' : t;
+  }
+
+  // Download through the API (path-validated file / favorite-file actions with download=1).
+  async function downloadPad(pad) {
+    const url = pad.favorite ? pad.downloadUrl : (pad.src ? pad.src + '&download=1' : null);
+    const toast = (msg) => window.UIUtils?.showToast?.(msg);
+    if (!url) {
+      toast('No audio saved for this one yet. Play it first.');
+      return;
+    }
+    try {
+      const response = await fetch(url);
+      const type = response.headers.get('Content-Type') || '';
+      if (!response.ok || type.indexOf('audio') === -1) {
+        toast(response.status === 404 ? 'No audio saved for this one yet. Play it first.' : 'Download failed');
+        return;
+      }
+      const disposition = response.headers.get('Content-Disposition') || '';
+      const star = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+      const plain = disposition.match(/filename="([^"]+)"/);
+      let filename = (pad.label || 'clip') + '.mp3';
+      try {
+        if (star) filename = decodeURIComponent(star[1]);
+        else if (plain) filename = plain[1];
+      } catch (e) { /* keep fallback */ }
+      const blob = await response.blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    } catch (e) {
+      toast('Download failed');
+    }
+  }
+
+  function favoritesToPads(favorites) {
+    if (!Array.isArray(favorites)) return [];
+    return favorites.map((fav) => ({
+      id: 'favorite:' + fav.id,
+      favoriteId: fav.id,
+      characterId: window.BlingusSite?.themeCharacterId?.()
+        || window.BlingusSite?.lockedCharacterId?.()
+        || window.CharacterSheet?.getActiveId?.()
+        || 'blingus',
+      group: 'Favorites',
+      label: fav.displayName || shortText(fav.text) || 'Favorite',
+      icon: fav.icon || '⭐',
+      displayName: fav.displayName || null,
+      text: fav.text || '',
+      audioFile: fav.audioFile || null,
+      audioUrl: fav.audioUrl || null,
+      downloadUrl: window.OutcomeFavorites?.downloadUrl?.(fav) || null,
+      sourceTitle: fav.text || '',
+      favorite: true,
     }));
   }
 
   function volKey() {
     if (CFG.kit === 'galen') return CFG.volKey || 'galenSoundboardVol';
-    return kitId() + 'SoundboardVol';
+    const characterId = window.BlingusSite?.themeCharacterId?.()
+      || window.BlingusSite?.lockedCharacterId?.()
+      || window.CharacterSheet?.getActiveId?.()
+      || 'blingus';
+    return characterId + 'SoundboardVol';
   }
 
   function loadVol() {
@@ -214,10 +160,48 @@
     syncLoopButtons();
   }
 
-  function playPad(id) {
+  async function playPad(id) {
     const pad = pads().find((p) => p.id === id);
     if (!pad) return;
     pruneLive();
+    
+    if (pad.favorite) {
+      if (pad.audioUrl) {
+        playSrc(pad.audioUrl);
+      } else if (pad.text && window.BlingusSpeak) {
+        // Text-only favorite: speak it on an explicit tap, like the outcome card's speak button.
+        window.BlingusSpeak.speak(pad.text).catch((err) => {
+          window.UIUtils?.showToast?.(err?.message || 'Speech failed');
+        });
+      }
+      return;
+    }
+    
+    if (pad.clipSource === 'speech' && pad.clipText && window.SoundboardClips) {
+      try {
+        const audioUrl = await window.SoundboardClips.speakAndCache(
+          pad.characterId,
+          pad.clipId,
+          pad.clipText,
+          pad.clipVoiceId
+        );
+        if (pad.loop) {
+          if (loops[id]) {
+            stopAudio(loops[id]);
+            delete loops[id];
+          } else {
+            loops[id] = playSrc(audioUrl, { loop: true });
+          }
+          syncLoopButtons();
+        } else {
+          playSrc(audioUrl);
+        }
+        return;
+      } catch (e) {
+        console.error('Speech generation failed:', e);
+      }
+    }
+    
     if (pad.loop) {
       if (loops[id]) {
         stopAudio(loops[id]);
@@ -249,17 +233,21 @@
     return node;
   }
 
-  function paint(host) {
+  function paint(host, clipsData) {
     if (!host) return;
     lastHost = host;
     host.innerHTML = '';
     host.classList.add('content--soundboard');
 
-    const current = kit();
+    const characterId = window.BlingusSite?.themeCharacterId?.()
+      || window.BlingusSite?.lockedCharacterId?.()
+      || window.CharacterSheet?.getActiveId?.()
+      || 'blingus';
+
     const root = el('div', 'soundboard');
     const head = el('div', 'soundboard__toolbar');
-    head.appendChild(el('h2', 'soundboard__heading', current.title));
-    head.appendChild(el('p', 'soundboard__hint', current.hint));
+    head.appendChild(el('h2', 'soundboard__heading', 'Sound Board'));
+    head.appendChild(el('p', 'soundboard__hint', 'Your custom clips and categories'));
 
     const controls = el('div', 'soundboard__controls');
     const volWrap = el('label', 'soundboard__vol');
@@ -282,6 +270,25 @@
     stopBtn.type = 'button';
     stopBtn.addEventListener('click', stopAll);
     controls.appendChild(stopBtn);
+    
+    if (window.SoundboardClips) {
+      const manageBtn = el('button', 'btn btn--secondary btn--compact', 'Manage clips');
+      manageBtn.type = 'button';
+      manageBtn.addEventListener('click', () => {
+        if (window.SoundboardClipManager) window.SoundboardClipManager.open(characterId);
+      });
+      controls.appendChild(manageBtn);
+      
+      const catBtn = el('button', 'btn btn--secondary btn--compact', 'Categories');
+      catBtn.type = 'button';
+      catBtn.addEventListener('click', () => {
+        if (window.SoundboardCategoryManager) {
+          window.SoundboardCategoryManager.open(characterId, clipsData || {});
+        }
+      });
+      controls.appendChild(catBtn);
+    }
+    
     head.appendChild(controls);
     root.appendChild(head);
 
@@ -309,28 +316,74 @@
           setTimeout(() => btn.classList.remove('is-on'), 160);
           if (pad.loop) btn.setAttribute('aria-pressed', loops[pad.id] ? 'true' : 'false');
         });
-        if (!pad.custom) {
+        if (!pad.custom && !pad.favorite) {
           grid.appendChild(btn);
           return;
         }
         const wrap = el('div', 'soundboard__pad-wrap');
+        
+        if (pad.favorite && window.OutcomeFavorites) {
+          const edit = el('button', 'soundboard__pad-edit', '✏️');
+          edit.type = 'button';
+          edit.setAttribute('aria-label', 'Edit ' + pad.label);
+          edit.title = 'Edit display name';
+          edit.addEventListener('click', (ev) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            const currentName = pad.displayName || '';
+            const newName = prompt('Display name for this favorite (leave blank to show the line):', currentName);
+            if (newName === null) return;
+            window.OutcomeFavorites.updateDisplayName(pad.favoriteId, newName.trim()).then(() => {
+              if (lastHost) render(lastHost);
+              if (window.UIUtils && window.UIUtils.showToast) {
+                window.UIUtils.showToast(newName.trim() ? 'Display name updated' : 'Display name cleared');
+              }
+            }).catch((err) => {
+              if (window.UIUtils && window.UIUtils.showToast) {
+                window.UIUtils.showToast(err.message || 'Could not update favorite');
+              }
+            });
+          });
+          wrap.appendChild(edit);
+        }
+        
         const remove = el('button', 'soundboard__pad-remove', '×');
         remove.type = 'button';
         remove.setAttribute('aria-label', 'Remove ' + pad.label);
         remove.addEventListener('click', (ev) => {
           ev.preventDefault();
           ev.stopPropagation();
-          if (!window.confirm('Remove ' + pad.label + ' from this board?')) return;
-          window.SoundboardClips.remove(pad.characterId, pad.clipId).then(() => {
-            if (lastHost) render(lastHost);
-          }).catch((err) => {
-            if (window.UIUtils && window.UIUtils.showToast) {
-              window.UIUtils.showToast(err.message || 'Could not remove clip');
-            }
-          });
+          if (!window.confirm('Remove ' + pad.label + '?')) return;
+          if (pad.favorite && window.OutcomeFavorites) {
+            window.OutcomeFavorites.remove(pad.favoriteId).then(() => {
+              if (lastHost) render(lastHost);
+            }).catch((err) => {
+              if (window.UIUtils && window.UIUtils.showToast) {
+                window.UIUtils.showToast(err.message || 'Could not remove favorite');
+              }
+            });
+          } else if (pad.custom && window.SoundboardClips) {
+            window.SoundboardClips.remove(pad.characterId, pad.clipId).then(() => {
+              if (lastHost) render(lastHost);
+            }).catch((err) => {
+              if (window.UIUtils && window.UIUtils.showToast) {
+                window.UIUtils.showToast(err.message || 'Could not remove clip');
+              }
+            });
+          }
+        });
+        const download = el('button', 'soundboard__pad-download', '⬇');
+        download.type = 'button';
+        download.title = 'Download';
+        download.setAttribute('aria-label', 'Download ' + pad.label);
+        download.addEventListener('click', (ev) => {
+          ev.preventDefault();
+          ev.stopPropagation();
+          downloadPad(pad);
         });
         wrap.appendChild(btn);
         wrap.appendChild(remove);
+        wrap.appendChild(download);
         grid.appendChild(wrap);
       });
       card.appendChild(grid);
@@ -341,12 +394,16 @@
       const editor = el('section', 'sheet-card soundboard-clips');
       root.appendChild(editor);
       window.SoundboardClips.mount(editor, {
-        characterId: kitId(),
+        characterId: characterId,
+        categories: clipsData.categories || [],
         onSaved: () => { if (lastHost) render(lastHost); },
       });
     }
 
-    root.appendChild(el('p', 'soundboard__hint', 'Built-in pads stay with the book. Clips you add are saved on this server for this character.'));
+    if (pads().length === 0) {
+      root.appendChild(el('p', 'soundboard__hint', 'No clips yet. Use the form above to add YouTube clips, sound effects, or spoken lines.'));
+    }
+    
     host.appendChild(root);
     syncLoopButtons();
   }
@@ -355,20 +412,35 @@
     if (!host) return;
     const token = ++renderToken;
     lastHost = host;
-    const id = kitId();
+    const characterId = window.BlingusSite?.themeCharacterId?.()
+      || window.BlingusSite?.lockedCharacterId?.()
+      || window.CharacterSheet?.getActiveId?.()
+      || 'blingus';
     host.innerHTML = '';
     host.classList.add('content--soundboard');
-    host.appendChild(el('p', 'soundboard__hint', 'Loading sounds…'));
-    const finish = (clips) => {
+    host.appendChild(el('p', 'soundboard__hint', 'Loading clips…'));
+    
+    const finish = (clips, favorites, clipsData) => {
       if (token !== renderToken) return;
-      customPads = clipsToPads(id, clips);
-      paint(host);
+      categories = clipsData.categories || [];
+      customPads = clipsToPads(characterId, clips);
+      favoritePads = favoritesToPads(favorites);
+      paint(host, clipsData);
     };
-    if (!window.SoundboardClips) {
-      finish([]);
-      return;
-    }
-    window.SoundboardClips.list(id).then(finish).catch(() => finish([]));
+    
+    const loadClips = window.SoundboardClips
+      ? window.SoundboardClips.listWithCategories(characterId).catch(() => ({ clips: [], categories: [] }))
+      : Promise.resolve({ clips: [], categories: [] });
+    
+    const loadFavorites = window.OutcomeFavorites
+      ? window.OutcomeFavorites.list().catch(() => [])
+      : Promise.resolve([]);
+    
+    Promise.all([loadClips, loadFavorites]).then(([clipsData, favorites]) => {
+      finish(clipsData.clips || [], favorites, clipsData);
+    }).catch(() => {
+      finish([], [], { clips: [], categories: [] });
+    });
   }
 
   document.addEventListener('blingus-character-change', () => {
