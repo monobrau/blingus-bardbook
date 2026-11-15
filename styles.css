@@ -3554,6 +3554,46 @@ body.dark-mode .soundboard__pad {
   outline-offset: 2px;
 }
 
+.bulk-category-selector {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 8px;
+}
+
+.bulk-category-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bulk-category-select,
+.category-selector {
+  padding: 6px 12px;
+  border: 1px solid var(--border-color, #ccc);
+  border-radius: 4px;
+  background: var(--bg-color, #fff);
+  color: var(--text-color, #333);
+  font-size: 14px;
+  cursor: pointer;
+  min-width: 150px;
+}
+
+.bulk-category-select:hover,
+.category-selector:hover {
+  border-color: var(--primary-color, #007bff);
+}
+
+.bulk-category-select:focus,
+.category-selector:focus {
+  outline: 2px solid var(--primary-color, #007bff);
+  outline-offset: 2px;
+}
+
+.bulk-category-btn {
+  white-space: nowrap;
+}
+
 .clip-manager__incoming-item {
   display: flex;
   align-items: center;

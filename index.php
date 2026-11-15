@@ -28,6 +28,7 @@ $moduleFiles = [
   'brawn-fx.js',
   'ddb-sheet-import.js',
   'd20-roll.js',
+  'category-selector.js',
   'soundboard-clips.js',
   'soundboard-clip-manager.js', // v1.15.0: App picker, dynamic app ID
   'soundboard-category-manager.js',
@@ -609,6 +610,7 @@ $defaultTab = $showKaraoke ? 'spells' : ($showSongbook ? 'songs' : ($showKit ? '
   <script src="js/brawn-fx.js?v=<?php echo $versions['brawn-fx.js']; ?>"></script>
   <script src="js/d20-roll.js?v=<?php echo $versions['d20-roll.js']; ?>"></script>
   <script>window.SoundboardConfig = {};</script>
+  <script src="js/category-selector.js?v=<?php echo $versions['category-selector.js']; ?>"></script>
   <script src="js/soundboard-clips.js?v=<?php echo $versions['soundboard-clips.js']; ?>"></script>
   <script src="js/soundboard-clip-manager.js?v=<?php echo $versions['soundboard-clip-manager.js']; ?>"></script>
   <script src="js/soundboard-category-manager.js?v=<?php echo $versions['soundboard-category-manager.js']; ?>"></script>

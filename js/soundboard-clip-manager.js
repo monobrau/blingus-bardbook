@@ -473,6 +473,39 @@ window.SoundboardClipManager = (function () {
     importBtn.addEventListener('click', showImportDialog);
     footer.appendChild(importBtn);
 
+    // Bulk category assignment
+    if (window.CategorySelector) {
+      window.CategorySelector.createBulkSelector(characterId, async (category) => {
+        if (selectedClips.size === 0) {
+          toast('Select clips to assign category');
+          return;
+        }
+        
+        const clipIds = Array.from(selectedClips);
+        let assigned = 0;
+        
+        for (const clipId of clipIds) {
+          try {
+            await apiPost({
+              action: 'updateClipCategory',
+              character: characterId,
+              id: clipId,
+              category: category || null,
+            });
+            assigned++;
+          } catch (e) {
+            console.error('Failed to assign category to clip ' + clipId, e);
+          }
+        }
+        
+        toast('Assigned category to ' + assigned + ' clip(s)');
+        selectedClips.clear();
+        render();
+      }).then(bulkSelector => {
+        footer.appendChild(bulkSelector);
+      });
+    }
+
     if (exchangeEnabled && availableApps.length > 0) {
       const copyLabel = el('label', 'clip-manager__copy-label', 'Copy to: ');
       const copySelect = document.createElement('select');
