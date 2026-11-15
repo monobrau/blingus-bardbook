@@ -133,69 +133,17 @@ window.SoundboardClipManager = (function () {
     const favoriteIds = allIds.filter(id => id.startsWith('favorite:')).map(id => id.replace('favorite:', ''));
     
     try {
-      let bundle = null;
-      
-      if (clipIds.length > 0) {
-        const url = ENDPOINT + '?' + withKey({ action: 'export' }).toString();
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: authHeaders(),
-          body: JSON.stringify({ character: characterId, clipIds: clipIds }),
-        });
-
-        if (!res.ok) {
-          throw new Error('Export failed');
-        }
-
-        bundle = await res.json();
-      } else {
-        bundle = {
-          format: 'knospe-soundboard-clips',
-          version: 1,
-          sourceApp: appId,
-          exportedAt: new Date().toISOString(),
-          clips: [],
-        };
+      // The server builds the whole bundle, favorites included (text + any saved audio).
+      const url = ENDPOINT + '?' + withKey({ action: 'export' }).toString();
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ character: characterId, clipIds: clipIds, favoriteIds: favoriteIds }),
+      });
+      if (!res.ok) {
+        throw new Error('Export failed');
       }
-
-      if (favoriteIds.length > 0 && window.OutcomeFavorites) {
-        const favorites = await apiGet({ action: 'listFavorites', character: characterId });
-        const favoritesList = favorites.favorites || [];
-        
-        for (const favId of favoriteIds) {
-          const fav = favoritesList.find(f => f.id === favId);
-          if (!fav) continue;
-          
-          let audioBase64 = null;
-          if (fav.audioUrl) {
-            try {
-              const audioRes = await fetch(fav.audioUrl);
-              const audioBlob = await audioRes.blob();
-              audioBase64 = await new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result.split(',')[1]);
-                reader.onerror = reject;
-                reader.readAsDataURL(audioBlob);
-              });
-            } catch (e) {
-              console.warn('Could not fetch audio for favorite', favId, e);
-            }
-          }
-          
-          bundle.clips.push({
-            type: 'favorite',
-            kind: 'speech',
-            name: fav.displayName || fav.outcomeId || 'Favorite',
-            displayName: fav.displayName || null,
-            text: fav.outcomeId || '',
-            voiceId: null,
-            tags: { icon: '⭐', loop: false, category: 'Favorites' },
-            mime: 'audio/mpeg',
-            audioBase64: audioBase64,
-            sourceId: 'blingus-fav-' + favId,
-          });
-        }
-      }
+      const bundle = await res.json();
 
       const bundleJson = JSON.stringify(bundle, null, 2);
       const blob = new Blob([bundleJson], { type: 'application/json' });
@@ -270,22 +218,19 @@ window.SoundboardClipManager = (function () {
 
     const allIds = Array.from(selectedClips);
     const clipIds = allIds.filter(id => !id.startsWith('favorite:'));
-    
-    if (clipIds.length === 0) {
-      toast('Can only send regular clips between apps (favorites stay per-character)');
-      return;
-    }
+    const favoriteIds = allIds.filter(id => id.startsWith('favorite:')).map(id => id.slice('favorite:'.length));
     
     try {
       await apiPost({
         action: 'sendTo',
         character: characterId,
         clipIds: clipIds,
+        favoriteIds: favoriteIds,
         targetApp: targetApp,
       });
 
       const appName = targetApp.charAt(0).toUpperCase() + targetApp.slice(1);
-      toast('Sent ' + clipIds.length + ' clip(s) to ' + appName);
+      toast('Sent ' + (clipIds.length + favoriteIds.length) + ' item(s) to ' + appName);
       selectedClips.clear();
       render();
     } catch (e) {
@@ -301,13 +246,14 @@ window.SoundboardClipManager = (function () {
         bundleId: bundleId,
       });
 
-      toast('Imported ' + result.imported + ' clip(s)' + 
-            (result.skipped > 0 ? ', skipped ' + result.skipped : ''));
+      const failed = Array.isArray(result.errors) ? result.errors.length : 0;
+      toast('Imported ' + result.imported + ' item(s)' +
+            (result.skipped > 0 ? ', skipped ' + result.skipped : '') +
+            (failed > 0 ? ', ' + failed + ' failed (bundle kept for retry)' : ''));
+      if (failed > 0) console.warn('Import errors:', result.errors);
       
       await checkIncoming();
-      if (result.imported > 0) {
-        render();
-      }
+      render();
     } catch (e) {
       toast(e.message || 'Import failed');
     }
@@ -531,11 +477,11 @@ window.SoundboardClipManager = (function () {
           });
           item.appendChild(checkbox);
           
-          const icon = el('span', 'clip-manager__icon', '⭐');
+          const icon = el('span', 'clip-manager__icon', fav.icon || '⭐');
           item.appendChild(icon);
           
           const info = el('div', 'clip-manager__info');
-          const title = el('div', 'clip-manager__label', fav.displayName || fav.outcomeId || 'Favorite');
+          const title = el('div', 'clip-manager__label', fav.displayName || fav.text || 'Favorite');
           info.appendChild(title);
           
           const meta = el('div', 'clip-manager__meta');
@@ -620,7 +566,12 @@ window.SoundboardClipManager = (function () {
           return;
         }
         
-        const clipIds = Array.from(selectedClips);
+        // Categories apply to clips only; favorites live in their own Favorites group.
+        const clipIds = Array.from(selectedClips).filter(id => !id.startsWith('favorite:'));
+        if (clipIds.length === 0) {
+          toast('Select clips (not favorites) to assign a category');
+          return;
+        }
         let assigned = 0;
         
         for (const clipId of clipIds) {

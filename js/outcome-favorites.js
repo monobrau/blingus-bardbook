@@ -1,101 +1,93 @@
 /**
- * Favorites for generated outcomes.
- * Save outcome text + audio, manage display names, replay from Sound Board.
+ * Favorites for generated outcomes (same record shape as Galen).
+ * Saving never generates speech; audio is attached only when the caller already has it.
  */
 (function () {
   'use strict';
 
-  const ENDPOINT = '/api/soundboard.php';
+  const ENDPOINT = 'api/soundboard.php';
 
   function getCharacter() {
-    return window.BlingusSite?.themeCharacterId?.()
-      || window.BlingusSite?.lockedCharacterId?.()
+    return window.BlingusSite?.lockedCharacterId?.()
       || window.CharacterSheet?.getActiveId?.()
       || 'blingus';
   }
 
-  function getAuthHeaders() {
-    const headers = { 'Content-Type': 'application/json' };
-    const key = window.API_KEY || localStorage.getItem('blingusApiKey');
-    if (key) headers.Authorization = 'Bearer ' + key;
-    return headers;
+  function apiKey() {
+    try {
+      return window.API_KEY || localStorage.getItem('blingusApiKey') || '';
+    } catch (e) {
+      return '';
+    }
   }
 
-  async function save(outcomeId, audioBase64, displayName) {
-    const response = await fetch(ENDPOINT, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({
-        action: 'saveFavorite',
-        character: getCharacter(),
-        outcomeId: outcomeId,
-        audioBase64: audioBase64,
-        displayName: displayName || null,
-      }),
-    });
+  function headers() {
+    const h = { 'Content-Type': 'application/json' };
+    const key = apiKey();
+    if (key) h.Authorization = 'Bearer ' + key;
+    return h;
+  }
 
-    const data = await response.json();
-    if (!data.success) {
-      throw new Error(data.error || 'Could not save favorite');
+  async function post(body) {
+    const response = await fetch(ENDPOINT, { method: 'POST', headers: headers(), body: JSON.stringify(body) });
+    let data = null;
+    try { data = await response.json(); } catch (e) { /* not json */ }
+    if (!response.ok || !data || !data.success) {
+      throw new Error((data && data.error) || 'Favorites request failed');
     }
+    return data;
+  }
 
-    return data.favorite;
+  async function save(text, opts) {
+    const o = opts || {};
+    const data = await post({
+      action: 'saveFavorite',
+      character: getCharacter(),
+      text: String(text || ''),
+      displayName: o.displayName || null,
+      audioBase64: o.audioBase64 || null,
+      mime: o.mime || null,
+      voiceId: window.BlingusSpeak?.voiceId?.() || null,
+    });
+    return { favorite: data.favorite, created: data.created };
   }
 
   async function remove(favoriteId) {
-    const response = await fetch(ENDPOINT, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({
-        action: 'deleteFavorite',
-        character: getCharacter(),
-        id: favoriteId,
-      }),
-    });
-
-    const data = await response.json();
-    if (!data.success) {
-      throw new Error(data.error || 'Could not delete favorite');
-    }
-
+    await post({ action: 'deleteFavorite', character: getCharacter(), id: favoriteId });
     return true;
   }
 
   async function list() {
-    const response = await fetch(ENDPOINT + '?action=listFavorites&character=' + encodeURIComponent(getCharacter()), {
-      headers: getAuthHeaders(),
-    });
-
+    const qs = new URLSearchParams({ action: 'listFavorites', character: getCharacter() });
+    const response = await fetch(ENDPOINT + '?' + qs.toString(), { headers: headers() });
     const data = await response.json();
-    if (!data.success) {
-      throw new Error(data.error || 'Could not list favorites');
+    if (!data || !data.success) {
+      throw new Error((data && data.error) || 'Could not list favorites');
     }
-
     return data.favorites || [];
   }
 
   async function updateDisplayName(favoriteId, displayName) {
-    const response = await fetch(ENDPOINT, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({
-        action: 'updateFavoriteDisplayName',
-        character: getCharacter(),
-        id: favoriteId,
-        displayName: displayName || null,
-      }),
+    await post({
+      action: 'updateFavoriteDisplayName',
+      character: getCharacter(),
+      id: favoriteId,
+      displayName: displayName || '',
     });
-
-    const data = await response.json();
-    if (!data.success) {
-      throw new Error(data.error || 'Could not update display name');
-    }
-
     return true;
   }
 
-  function audioUrl(favoriteId) {
-    return ENDPOINT + '?action=favorite-file&character=' + encodeURIComponent(getCharacter()) + '&id=' + encodeURIComponent(favoriteId);
+  function downloadUrl(favorite) {
+    if (!favorite || !favorite.audioFile) return null;
+    const qs = new URLSearchParams({
+      action: 'favorite-file',
+      character: getCharacter(),
+      file: favorite.audioFile,
+      download: '1',
+    });
+    const key = apiKey();
+    if (key) qs.set('key', key);
+    return ENDPOINT + '?' + qs.toString();
   }
 
   window.OutcomeFavorites = {
@@ -103,6 +95,6 @@
     remove: remove,
     list: list,
     updateDisplayName: updateDisplayName,
-    audioUrl: audioUrl,
+    downloadUrl: downloadUrl,
   };
 })();

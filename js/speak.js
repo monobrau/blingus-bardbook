@@ -7,6 +7,23 @@
   const ENDPOINT = (window.BlingusConstants?.API?.SPEAK_ENDPOINT) || '/api/speak.php';
   const VOICE_KEY = 'elevenLabsVoiceId';
   let current = null;
+  // Audio already generated this session, keyed by text + speaker + voice.
+  // Favorites reuse it; nothing here ever triggers a new TTS request.
+  const recentAudio = new Map();
+  const RECENT_AUDIO_MAX = 30;
+
+  function audioKey(line) {
+    return currentSpeaker() + '|' + voiceId() + '|' + line;
+  }
+
+  function rememberAudio(line, blob) {
+    const key = audioKey(line);
+    recentAudio.delete(key);
+    recentAudio.set(key, blob);
+    while (recentAudio.size > RECENT_AUDIO_MAX) {
+      recentAudio.delete(recentAudio.keys().next().value);
+    }
+  }
 
   function cleanVoiceId(raw) {
     let text = String(raw || '').trim();
@@ -131,6 +148,7 @@
     }
 
     const blob = await response.blob();
+    rememberAudio(line, blob);
     const url = URL.createObjectURL(blob);
     const audio = new Audio(url);
     current = { audio: audio, url: url, button: button || null };
@@ -149,38 +167,15 @@
     }
   }
 
-  async function getAudioBlob(text) {
+  // Returns audio already generated for this exact line in this session, or null.
+  // Never makes a network request.
+  function getCachedAudioBlob(text) {
     const line = String(text || '').trim();
-    if (!line) {
-      throw new Error('Nothing to speak');
-    }
-
-    let response;
-    try {
-      response = await fetch(ENDPOINT, {
-        method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify({ text: line, speaker: currentSpeaker(), voiceId: voiceId() }),
-      });
-    } catch (e) {
-      throw new Error('Speech request failed');
-    }
-    const type = response.headers.get('Content-Type') || '';
-    if (!response.ok || type.indexOf('audio') === -1) {
-      let message = 'Speech failed';
-      try {
-        const data = await response.json();
-        if (data && data.error) message = data.error;
-      } catch (e) {
-        message = 'Speech failed (HTTP ' + response.status + ')';
-      }
-      throw new Error(message);
-    }
-
-    return await response.blob();
+    if (!line) return null;
+    return recentAudio.get(audioKey(line)) || null;
   }
 
-  window.BlingusSpeak = { speak: speak, stop: stop, voiceId: voiceId, getAudioBlob: getAudioBlob };
+  window.BlingusSpeak = { speak: speak, stop: stop, voiceId: voiceId, getCachedAudioBlob: getCachedAudioBlob };
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', bindVoiceSetting);
   } else {

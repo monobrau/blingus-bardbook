@@ -66,18 +66,26 @@ window.CategorySelector = (function () {
     return data.categories || [];
   }
 
-  async function createCategory(character, label, icon) {
+  // Server category records are { id: 8 hex chars, name, order } (see sbSaveCategories).
+  function newCategoryId() {
+    const bytes = new Uint8Array(4);
+    (window.crypto || window.msCrypto).getRandomValues(bytes);
+    return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  async function createCategory(character, name) {
     const categories = await loadCategories(character);
-    const existing = categories.find(c => c.label === label);
+    const clean = String(name || '').trim().slice(0, 50);
+    if (!clean) throw new Error('Category name required');
+    const existing = categories.find(c => (c.name || '').toLowerCase() === clean.toLowerCase());
     if (existing) {
       return existing;
     }
 
     const newCategory = {
-      id: 'cat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-      label: label,
-      icon: icon || '📁',
-      position: categories.length,
+      id: newCategoryId(),
+      name: clean,
+      order: categories.reduce((max, c) => Math.max(max, Number(c.order) || 0), 0) + 1,
     };
 
     const updated = [...categories, newCategory];
@@ -116,9 +124,9 @@ window.CategorySelector = (function () {
       // Existing categories
       categories.forEach(cat => {
         const option = document.createElement('option');
-        option.value = cat.label;
-        option.textContent = (cat.icon || '') + ' ' + cat.label;
-        if (selectedCategory === cat.label) {
+        option.value = cat.name;
+        option.textContent = cat.name;
+        if (selectedCategory === cat.name) {
           option.selected = true;
         }
         select.appendChild(option);
@@ -143,20 +151,18 @@ window.CategorySelector = (function () {
             return;
           }
 
-          const icon = prompt('Enter category icon (optional):') || '📁';
-          
           try {
-            const newCat = await createCategory(character, name.trim(), icon.trim());
+            const newCat = await createCategory(character, name.trim());
             
             // Add new option before "New category..."
             const newCatOption = document.createElement('option');
-            newCatOption.value = newCat.label;
-            newCatOption.textContent = (newCat.icon || '') + ' ' + newCat.label;
+            newCatOption.value = newCat.name;
+            newCatOption.textContent = newCat.name;
             newCatOption.selected = true;
             select.insertBefore(newCatOption, newOption);
             
             if (onChange) {
-              onChange(newCat.label);
+              onChange(newCat.name);
             }
           } catch (err) {
             alert('Failed to create category: ' + err.message);

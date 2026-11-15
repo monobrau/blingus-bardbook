@@ -39,6 +39,47 @@
     }));
   }
 
+  function shortText(text) {
+    const t = String(text || '').trim();
+    return t.length > 40 ? t.slice(0, 39) + '…' : t;
+  }
+
+  // Download through the API (path-validated file / favorite-file actions with download=1).
+  async function downloadPad(pad) {
+    const url = pad.favorite ? pad.downloadUrl : (pad.src ? pad.src + '&download=1' : null);
+    const toast = (msg) => window.UIUtils?.showToast?.(msg);
+    if (!url) {
+      toast('No audio saved for this one yet. Play it first.');
+      return;
+    }
+    try {
+      const response = await fetch(url);
+      const type = response.headers.get('Content-Type') || '';
+      if (!response.ok || type.indexOf('audio') === -1) {
+        toast(response.status === 404 ? 'No audio saved for this one yet. Play it first.' : 'Download failed');
+        return;
+      }
+      const disposition = response.headers.get('Content-Disposition') || '';
+      const star = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+      const plain = disposition.match(/filename="([^"]+)"/);
+      let filename = (pad.label || 'clip') + '.mp3';
+      try {
+        if (star) filename = decodeURIComponent(star[1]);
+        else if (plain) filename = plain[1];
+      } catch (e) { /* keep fallback */ }
+      const blob = await response.blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    } catch (e) {
+      toast('Download failed');
+    }
+  }
+
   function favoritesToPads(favorites) {
     if (!Array.isArray(favorites)) return [];
     return favorites.map((fav) => ({
@@ -49,10 +90,14 @@
         || window.CharacterSheet?.getActiveId?.()
         || 'blingus',
       group: 'Favorites',
-      label: fav.displayName || (fav.outcomeId || 'Favorite'),
-      icon: '⭐',
+      label: fav.displayName || shortText(fav.text) || 'Favorite',
+      icon: fav.icon || '⭐',
       displayName: fav.displayName || null,
+      text: fav.text || '',
+      audioFile: fav.audioFile || null,
       audioUrl: fav.audioUrl || null,
+      downloadUrl: window.OutcomeFavorites?.downloadUrl?.(fav) || null,
+      sourceTitle: fav.text || '',
       favorite: true,
     }));
   }
@@ -120,8 +165,15 @@
     if (!pad) return;
     pruneLive();
     
-    if (pad.favorite && pad.audioUrl) {
-      playSrc(pad.audioUrl);
+    if (pad.favorite) {
+      if (pad.audioUrl) {
+        playSrc(pad.audioUrl);
+      } else if (pad.text && window.BlingusSpeak) {
+        // Text-only favorite: speak it on an explicit tap, like the outcome card's speak button.
+        window.BlingusSpeak.speak(pad.text).catch((err) => {
+          window.UIUtils?.showToast?.(err?.message || 'Speech failed');
+        });
+      }
       return;
     }
     
@@ -279,7 +331,7 @@
             ev.preventDefault();
             ev.stopPropagation();
             const currentName = pad.displayName || '';
-            const newName = prompt('Display name for this favorite (leave blank to show outcome ID):', currentName);
+            const newName = prompt('Display name for this favorite (leave blank to show the line):', currentName);
             if (newName === null) return;
             window.OutcomeFavorites.updateDisplayName(pad.favoriteId, newName.trim()).then(() => {
               if (lastHost) render(lastHost);
@@ -320,8 +372,18 @@
             });
           }
         });
+        const download = el('button', 'soundboard__pad-download', '⬇');
+        download.type = 'button';
+        download.title = 'Download';
+        download.setAttribute('aria-label', 'Download ' + pad.label);
+        download.addEventListener('click', (ev) => {
+          ev.preventDefault();
+          ev.stopPropagation();
+          downloadPad(pad);
+        });
         wrap.appendChild(btn);
         wrap.appendChild(remove);
+        wrap.appendChild(download);
         grid.appendChild(wrap);
       });
       card.appendChild(grid);

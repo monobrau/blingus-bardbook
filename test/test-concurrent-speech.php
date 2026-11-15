@@ -69,7 +69,7 @@ $clips = [
         'createdAt' => gmdate('c'),
     ],
 ];
-file_put_contents($characterDir . 'clips.json', json_encode($clips, JSON_PRETTY_PRINT));
+file_put_contents($characterDir . 'clips.json', json_encode(['clips' => $clips], JSON_PRETTY_PRINT));
 
 echo "Test Setup:\n";
 echo "- Character: blingus\n";
@@ -242,7 +242,7 @@ $clips2 = [
         'createdAt' => gmdate('c'),
     ],
 ];
-file_put_contents($characterDir . 'clips.json', json_encode($clips2, JSON_PRETTY_PRINT));
+file_put_contents($characterDir . 'clips.json', json_encode(['clips' => $clips2], JSON_PRETTY_PRINT));
 
 $GLOBALS['ttsCallCount'] = 0;
 
@@ -305,24 +305,25 @@ $clips3 = [
         'end' => 0,
         'title' => 'Voice test clip',
         'source' => 'speech',
-        'voiceId' => 'original-voice-123',
+        'voiceId' => 'OriginalVoice123',
         'createdAt' => gmdate('c'),
     ],
 ];
-file_put_contents($characterDir . 'clips.json', json_encode($clips3, JSON_PRETTY_PRINT));
+file_put_contents($characterDir . 'clips.json', json_encode(['clips' => $clips3], JSON_PRETTY_PRINT));
 
 $GLOBALS['ttsCallCount'] = 0;
+$GLOBALS['ttsCallArgs'] = [];
 
 // Generate with new voice ID
 $result = sbSaveSpeech([
     'character' => 'blingus',
     'id' => $testClipId3,
     'text' => 'Test',
-    'voiceId' => 'new-voice-456',
+    'voiceId' => 'NewVoice456abc',
 ]);
 
 // Verify voice ID was used
-if (empty($GLOBALS['ttsCallArgs']) || $GLOBALS['ttsCallArgs'][0]['voice'] !== 'new-voice-456') {
+if (empty($GLOBALS['ttsCallArgs']) || $GLOBALS['ttsCallArgs'][0]['voice'] !== 'NewVoice456abc') {
     echo "❌ FAIL: New voice ID not used for generation\n";
     exit(1);
 }
@@ -332,7 +333,7 @@ $clipsAfter3 = sbReadClipsFile($characterDir . 'clips.json');
 $found = false;
 foreach ($clipsAfter3 as $clip) {
     if ($clip['id'] === $testClipId3) {
-        if (($clip['voiceId'] ?? '') === 'new-voice-456') {
+        if (($clip['voiceId'] ?? '') === 'NewVoice456abc') {
             $found = true;
         }
         break;

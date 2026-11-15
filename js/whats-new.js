@@ -244,9 +244,9 @@
       },
       lines: [
         'Per-app clip exchange: Manage clips → select clips → pick destination (Blingus, Vadania, Brawn, Puck, or Galen). Each site has its own inbox.',
-        'Category dropdowns: Select from existing categories when adding/editing clips. No more typo'd category names. Bulk assign in Manage clips.',
-        'Per-character default voices: Vadania (Charlotte), Brawn (Clyde), Puck (Dorothy). Blingus keeps its original voice. Settings voice ID still overrides.',
-        'Favorites: Each generated outcome card now has a favorite (star) button. Tap it to save that line plus its audio. Favorites appear in Sound Board with playback, display-name editing, and delete. Export/import work with the Galen app through Manage clips.',
+        'Category dropdowns: pick an existing category when moving clips (type a name only when creating a new one). Bulk assign in Manage clips.',
+        'Each character now has its own default voice. A voice ID pasted in Settings still overrides it.',
+        'Favorites: each generated outcome card has a star button. It saves the line, plus its audio if you already played it (starring never generates new speech). Favorites appear on the Sound Board with playback, display-name editing, and delete, and can be sent to other apps from Manage clips.',
       ],
     },
   ];

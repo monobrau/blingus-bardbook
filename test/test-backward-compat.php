@@ -93,7 +93,7 @@ $clips = [
     ],
 ];
 
-file_put_contents($blingusDir . 'clips.json', json_encode($clips, JSON_PRETTY_PRINT));
+file_put_contents($blingusDir . 'clips.json', json_encode(['clips' => $clips], JSON_PRETTY_PRINT));
 
 // Create categories
 $categoriesDir = $blingusDir . 'categories/';

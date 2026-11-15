@@ -43,12 +43,17 @@ function sbKnownApps() {
 }
 
 function sbAppIdFromHost() {
+    // Exact host map. Brawn's site id is "brawn" while its character id is "bruck".
     $host = strtolower(preg_replace('/:\d+$/', '', (string) ($_SERVER['HTTP_HOST'] ?? '')));
-    if (strpos($host, 'vadania') !== false) return 'vadania';
-    if (strpos($host, 'brawn') !== false || strpos($host, 'bruck') !== false) return 'brawn';
-    if (strpos($host, 'puck') !== false) return 'puck';
-    if (strpos($host, 'galen') !== false) return 'galen';
-    return 'blingus';
+    $map = [
+        'blingus.knospe.org' => 'blingus',
+        'bardbook.knospe.org' => 'blingus',
+        'vadania.knospe.org' => 'vadania',
+        'brawn.knospe.org' => 'brawn',
+        'bruck.knospe.org' => 'brawn',
+        'puck.knospe.org' => 'puck',
+    ];
+    return $map[$host] ?? 'blingus';
 }
 
 function sbJson($data, $code = 200) {
@@ -841,24 +846,12 @@ function sbCleanServerVoice($raw) {
 }
 
 function sbCharacterVoice($character) {
-    // Per-character default ElevenLabs voices (public premade voice library)
-    // Blingus keeps its original default; others are new additions
-    // Players can override by pasting their preferred voice ID in Settings
+    // Per-character default ElevenLabs voices. A voice ID pasted in Settings still overrides these.
     $voices = [
-        // Blingus: UNCHANGED - keeps original server default
         'blingus' => 'NJf2N7XT2iBE8xJ0XHlo',
-        
-        // Vadania: Elven ranger, observant and cautious ("the one who notices the door")
-        // Voice: Charlotte - Clear, steady female voice with measured tone
-        'vadania' => 'XB0fDUnXU5powFXDhCwa',
-        
-        // Bruck/Brawn: Dwarven monk, disciplined and focused (ki strikes and patience)
-        // Voice: Clyde - Deep, resonant male voice with authority
-        'bruck' => 'iP95p4xoKVk53GoZ742B',
-        
-        // Puck: Fairy wild magic sorcerer, chaotic and mischievous (wild magic surges)
-        // Voice: Dorothy - Light, playful female voice with youthful energy
-        'puck' => 'ThT5KcBeYPX3keUQqHPh',
+        'vadania' => '9O1whMWG8xvHut3tc0HB',
+        'bruck' => 'bEkOilmQ8FPV078ZTGFo',
+        'puck' => 'Bx8c7yYtFWUdHzKnzHgT',
     ];
     if (!empty($voices[$character])) {
         return $voices[$character];
@@ -963,10 +956,12 @@ function sbSaveSpeech(array $input) {
         foreach ($existing as $clip) {
             if (($clip['id'] ?? '') === $providedId && ($clip['source'] ?? '') === 'speech') {
                 $existingAudioPath = sbClipFile($character, $providedId);
-                if ($existingAudioPath === null) {
-                    $existingClip = $clip;
-                    $updateExisting = true;
+                if ($existingAudioPath !== null) {
+                    // Audio already generated for this clip: reuse it, never call TTS again.
+                    return sbPublicClip($clip);
                 }
+                $existingClip = $clip;
+                $updateExisting = true;
                 break;
             }
         }
@@ -1223,6 +1218,20 @@ function sbMediaMime($path) {
     }
 }
 
+/** Content-Disposition: attachment with a safe "<Clip Name>.<ext>" filename. */
+function sbSendDownloadHeaders($label, $filePath) {
+    $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION)) ?: 'mp3';
+    $name = sbCleanText((string) $label, 80, '');
+    $name = preg_replace('/[\\\/:*?"<>|\x00-\x1F\x7F]+/u', '', $name);
+    $name = trim((string) $name, " .");
+    if ($name === '') {
+        $name = 'clip';
+    }
+    $ascii = preg_replace('/[^A-Za-z0-9 ._()\'-]+/', '', $name);
+    $ascii = trim((string) $ascii) !== '' ? trim($ascii) : 'clip';
+    header('Content-Disposition: attachment; filename="' . $ascii . '.' . $ext . '"; filename*=UTF-8\'\'' . rawurlencode($name . '.' . $ext));
+}
+
 function sbStreamMediaFile($filePath) {
     if (!is_file($filePath) || !is_readable($filePath)) {
         http_response_code(404);
@@ -1319,261 +1328,260 @@ function sbInboxDir($app) {
     return $dir;
 }
 
-function sbFavoritesDir($character) {
-    $character = sbRequireCharacter($character);
-    $appId = sbAppIdFromHost();
-    return sbEnsureDir(sbCharacterDir($character) . 'favorites/' . $appId . '/');
-}
+// Favorites for generated outcomes. Same storage layout and record shape as Galen:
+// <character dir>/favorites.json = {"favorites": [...]}, audio in fav-<id>.<ext>.
+// Saving a favorite never calls TTS: audio is optional and only stored when the
+// client already has it.
+const SB_FAVORITE_FILE_RE = '/^fav-[a-f0-9]{12}\.(mp3|m4a|ogg|wav|webm)$/';
 
-function sbFavoritesFile($character) {
-    return sbFavoritesDir($character) . 'favorites.json';
+function sbFavoritesPath($character) {
+    return sbCharacterDir($character) . 'favorites.json';
 }
 
 function sbReadFavorites($character) {
-    $file = sbFavoritesFile($character);
-    if (!is_file($file)) {
+    $path = sbFavoritesPath($character);
+    if (!is_file($path)) {
         return [];
     }
-    $raw = file_get_contents($file);
-    if ($raw === false) {
+    $data = json_decode((string) file_get_contents($path), true);
+    if (!is_array($data) || !isset($data['favorites']) || !is_array($data['favorites'])) {
         return [];
     }
-    $data = json_decode($raw, true);
-    return is_array($data) ? $data : [];
+    return array_values(array_filter($data['favorites'], 'is_array'));
 }
 
-function sbWriteFavorites($character, array $favorites) {
-    $file = sbFavoritesFile($character);
-    $json = json_encode($favorites, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-    if ($json === false) {
-        throw new Exception('Could not encode favorites');
+function sbUpdateFavorites($character, $mutator) {
+    $dir = sbCharacterDir($character);
+    $path = sbFavoritesPath($character);
+    return sbWithLock($dir . 'favorites.lock', function () use ($character, $path, $mutator) {
+        $next = $mutator(sbReadFavorites($character));
+        if (!is_array($next)) {
+            throw new Exception('Could not update favorites.');
+        }
+        $json = json_encode(['favorites' => array_values($next)], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        if ($json === false) {
+            throw new Exception('Could not encode favorites.');
+        }
+        $tmp = $path . '.tmp';
+        if (file_put_contents($tmp, $json) === false || !rename($tmp, $path)) {
+            @unlink($tmp);
+            throw new Exception('Could not save favorites.');
+        }
+        return array_values($next);
+    });
+}
+
+function sbRequireFavoriteId($id) {
+    if (!is_string($id) || !preg_match('/^[a-f0-9]{12}$/', $id)) {
+        throw new Exception('Invalid favorite ID.');
     }
-    if (file_put_contents($file, $json) === false) {
-        throw new Exception('Could not save favorites');
+    return $id;
+}
+
+function sbFavoriteExtForMime($mime) {
+    $mime = strtolower(trim(explode(';', (string) $mime)[0]));
+    $map = [
+        'audio/mpeg' => 'mp3', 'audio/mp3' => 'mp3',
+        'audio/mp4' => 'm4a', 'audio/m4a' => 'm4a', 'audio/x-m4a' => 'm4a',
+        'audio/ogg' => 'ogg', 'audio/wav' => 'wav', 'audio/x-wav' => 'wav', 'audio/webm' => 'webm',
+    ];
+    return $map[$mime] ?? null;
+}
+
+function sbPublicFavorite($character, array $fav) {
+    $audioFile = (isset($fav['audioFile']) && is_string($fav['audioFile']) && preg_match(SB_FAVORITE_FILE_RE, $fav['audioFile']))
+        ? $fav['audioFile'] : null;
+    if ($audioFile !== null && !is_file(sbCharacterDir($character) . $audioFile)) {
+        $audioFile = null;
     }
+    return [
+        'id' => (string) ($fav['id'] ?? ''),
+        'text' => (string) ($fav['text'] ?? ''),
+        'displayName' => isset($fav['displayName']) && is_string($fav['displayName']) && $fav['displayName'] !== '' ? $fav['displayName'] : null,
+        'icon' => sbCleanIcon(is_string($fav['icon'] ?? null) ? $fav['icon'] : '⭐'),
+        'audioFile' => $audioFile,
+        'audioUrl' => $audioFile !== null
+            ? 'api/soundboard.php?action=favorite-file&character=' . rawurlencode($character) . '&file=' . rawurlencode($audioFile)
+            : null,
+        'voiceId' => isset($fav['metadata']['voiceId']) && is_string($fav['metadata']['voiceId']) ? $fav['metadata']['voiceId'] : null,
+        'sourceApp' => isset($fav['metadata']['sourceApp']) && is_string($fav['metadata']['sourceApp']) ? $fav['metadata']['sourceApp'] : null,
+        'createdAt' => $fav['createdAt'] ?? null,
+        'updatedAt' => $fav['updatedAt'] ?? null,
+    ];
+}
+
+/**
+ * Add a favorite. $opts: displayName, icon, voiceId, sourceApp, sourceId, audioBase64, mime.
+ * Text-only favorites are allowed. Returns [publicFavorite, created(bool)].
+ */
+function sbAddFavoriteRecord($character, $text, array $opts = []) {
+    $character = sbRequireCharacter($character);
+    $text = sbCleanText($text, 500, '');
+    if ($text === '') {
+        throw new Exception('Favorite text is required.');
+    }
+    $audioData = null;
+    $ext = null;
+    if (!empty($opts['audioBase64']) && is_string($opts['audioBase64'])) {
+        $ext = sbFavoriteExtForMime($opts['mime'] ?? 'audio/mpeg');
+        $decoded = base64_decode($opts['audioBase64'], true);
+        if ($ext !== null && $decoded !== false && $decoded !== '' && strlen($decoded) <= SB_EXCHANGE_MAX_BUNDLE_BYTES) {
+            $audioData = $decoded;
+        }
+    }
+    $dir = sbCharacterDir($character);
+    $created = false;
+    $result = null;
+    sbUpdateFavorites($character, function ($favorites) use ($text, $opts, $audioData, $ext, $dir, &$created, &$result) {
+        foreach ($favorites as $i => $fav) {
+            if (($fav['text'] ?? '') === $text) {
+                // Already a favorite: attach audio if it had none and we have some now.
+                if ($audioData !== null && empty($fav['audioFile'])) {
+                    $file = 'fav-' . $fav['id'] . '.' . $ext;
+                    if (file_put_contents($dir . $file, $audioData) !== false) {
+                        $favorites[$i]['audioFile'] = $file;
+                        $favorites[$i]['updatedAt'] = gmdate('c');
+                    }
+                }
+                $result = $favorites[$i];
+                return $favorites;
+            }
+        }
+        $id = bin2hex(random_bytes(6));
+        $audioFile = null;
+        if ($audioData !== null) {
+            $file = 'fav-' . $id . '.' . $ext;
+            if (file_put_contents($dir . $file, $audioData) !== false) {
+                $audioFile = $file;
+            }
+        }
+        $metadata = [];
+        foreach (['voiceId', 'sourceApp', 'sourceId'] as $key) {
+            if (isset($opts[$key]) && is_string($opts[$key]) && $opts[$key] !== '') {
+                $metadata[$key] = sbCleanText($opts[$key], 80, '');
+            }
+        }
+        $displayName = isset($opts['displayName']) && is_string($opts['displayName'])
+            ? sbCleanText($opts['displayName'], 100, '') : '';
+        $result = [
+            'id' => $id,
+            'text' => $text,
+            'displayName' => $displayName !== '' ? $displayName : null,
+            'icon' => sbCleanIcon(is_string($opts['icon'] ?? null) && $opts['icon'] !== '' ? $opts['icon'] : '⭐'),
+            'audioFile' => $audioFile,
+            'metadata' => $metadata,
+            'createdAt' => gmdate('c'),
+        ];
+        $favorites[] = $result;
+        $created = true;
+        return $favorites;
+    });
+    return [sbPublicFavorite($character, $result), $created];
 }
 
 function sbSaveFavorite(array $request) {
-    $character = sbRequireCharacter($request['character'] ?? '');
-    $outcomeId = sbCleanText($request['outcomeId'] ?? '', 50, '');
-    if ($outcomeId === '') {
-        throw new Exception('Outcome ID required');
-    }
-    
-    $audioBase64 = $request['audioBase64'] ?? null;
-    if (!is_string($audioBase64) || $audioBase64 === '') {
-        throw new Exception('Audio data required');
-    }
-    
-    $audio = base64_decode($audioBase64, true);
-    if ($audio === false || strlen($audio) < 100) {
-        throw new Exception('Invalid audio data');
-    }
-    
-    $favorites = sbReadFavorites($character);
-    $existing = null;
-    foreach ($favorites as $fav) {
-        if (($fav['outcomeId'] ?? '') === $outcomeId) {
-            $existing = $fav;
-            break;
-        }
-    }
-    
-    $favoriteId = $existing['id'] ?? bin2hex(random_bytes(6));
-    $dir = sbFavoritesDir($character);
-    $audioPath = $dir . $favoriteId . '.mp3';
-    
-    if (file_put_contents($audioPath, $audio) === false) {
-        throw new Exception('Could not save favorite audio');
-    }
-    
-    $displayName = isset($request['displayName']) && is_string($request['displayName'])
-        ? sbCleanText($request['displayName'], 140, '')
-        : null;
-    
-    $favorite = [
-        'id' => $favoriteId,
-        'outcomeId' => $outcomeId,
-        'displayName' => $displayName,
-        'createdAt' => $existing['createdAt'] ?? gmdate('c'),
-        'updatedAt' => gmdate('c'),
-    ];
-    
-    if ($existing) {
-        foreach ($favorites as $i => $fav) {
-            if (($fav['outcomeId'] ?? '') === $outcomeId) {
-                $favorites[$i] = $favorite;
-                break;
-            }
-        }
-    } else {
-        $favorites[] = $favorite;
-    }
-    
-    sbWriteFavorites($character, $favorites);
-    
-    return [
-        'favorite' => $favorite,
-        'audioUrl' => '/api/soundboard.php?action=favorite-file&character=' . rawurlencode($character) . '&id=' . rawurlencode($favoriteId),
-    ];
+    [$favorite, $created] = sbAddFavoriteRecord($request['character'] ?? '', $request['text'] ?? '', [
+        'displayName' => $request['displayName'] ?? null,
+        'icon' => $request['icon'] ?? null,
+        'voiceId' => $request['voiceId'] ?? null,
+        'sourceApp' => sbAppIdFromHost(),
+        'audioBase64' => $request['audioBase64'] ?? null,
+        'mime' => $request['mime'] ?? null,
+    ]);
+    return ['favorite' => $favorite, 'created' => $created];
 }
 
-function sbDeleteFavorite(array $request) {
-    $character = sbRequireCharacter($request['character'] ?? '');
-    $favoriteId = sbRequireClipId($request['id'] ?? '');
-    
-    $favorites = sbReadFavorites($character);
-    $found = false;
-    $filtered = [];
-    
-    foreach ($favorites as $fav) {
-        if (($fav['id'] ?? '') === $favoriteId) {
-            $found = true;
-            $dir = sbFavoritesDir($character);
-            $audioPath = $dir . $favoriteId . '.mp3';
-            if (is_file($audioPath)) {
-                @unlink($audioPath);
-            }
-        } else {
-            $filtered[] = $fav;
+function sbListFavorites($character) {
+    $character = sbRequireCharacter($character);
+    $out = [];
+    foreach (sbReadFavorites($character) as $fav) {
+        if (!empty($fav['id'])) {
+            $out[] = sbPublicFavorite($character, $fav);
         }
     }
-    
-    if (!$found) {
-        throw new Exception('Favorite not found');
-    }
-    
-    sbWriteFavorites($character, $filtered);
-    
-    return ['deleted' => true];
-}
-
-function sbListFavorites(array $request) {
-    $character = sbRequireCharacter($request['character'] ?? '');
-    $favorites = sbReadFavorites($character);
-    
-    $result = [];
-    foreach ($favorites as $fav) {
-        $id = $fav['id'] ?? '';
-        if ($id === '') continue;
-        
-        $result[] = [
-            'id' => $id,
-            'outcomeId' => $fav['outcomeId'] ?? '',
-            'displayName' => $fav['displayName'] ?? null,
-            'createdAt' => $fav['createdAt'] ?? null,
-            'updatedAt' => $fav['updatedAt'] ?? null,
-            'audioUrl' => '/api/soundboard.php?action=favorite-file&character=' . rawurlencode($character) . '&id=' . rawurlencode($id),
-        ];
-    }
-    
-    return ['favorites' => $result];
+    return $out;
 }
 
 function sbUpdateFavoriteDisplayName(array $request) {
     $character = sbRequireCharacter($request['character'] ?? '');
-    $favoriteId = sbRequireClipId($request['id'] ?? '');
-    $displayName = isset($request['displayName']) && is_string($request['displayName'])
-        ? sbCleanText($request['displayName'], 140, '')
-        : null;
-    
-    $favorites = sbReadFavorites($character);
+    $id = sbRequireFavoriteId($request['id'] ?? '');
+    $raw = is_string($request['displayName'] ?? null) ? trim($request['displayName']) : '';
+    $displayName = $raw !== '' ? sbCleanText($raw, 100, '') : null;
     $found = false;
-    
-    foreach ($favorites as $i => $fav) {
-        if (($fav['id'] ?? '') === $favoriteId) {
-            $favorites[$i]['displayName'] = $displayName;
-            $favorites[$i]['updatedAt'] = gmdate('c');
-            $found = true;
-            break;
+    sbUpdateFavorites($character, function ($favorites) use ($id, $displayName, &$found) {
+        foreach ($favorites as $i => $fav) {
+            if (($fav['id'] ?? '') === $id) {
+                $favorites[$i]['displayName'] = $displayName;
+                $favorites[$i]['updatedAt'] = gmdate('c');
+                $found = true;
+            }
         }
-    }
-    
+        return $favorites;
+    });
     if (!$found) {
-        throw new Exception('Favorite not found');
+        throw new Exception('Favorite not found.');
     }
-    
-    sbWriteFavorites($character, $favorites);
-    
     return ['updated' => true];
 }
 
-function sbServeFavoriteFile($request) {
+function sbDeleteFavorite(array $request) {
     $character = sbRequireCharacter($request['character'] ?? '');
-    $favoriteId = sbRequireClipId($request['id'] ?? '');
-    
-    $dir = sbFavoritesDir($character);
-    $filePath = $dir . $favoriteId . '.mp3';
-    
-    if (!is_file($filePath)) {
-        http_response_code(404);
-        echo json_encode(['success' => false, 'error' => 'Favorite audio not found']);
-        exit;
-    }
-    
-    $realPath = realpath($filePath);
-    $realDir = realpath($dir);
-    if ($realPath === false || $realDir === false || strpos($realPath, $realDir . '/') !== 0) {
-        http_response_code(403);
-        echo json_encode(['success' => false, 'error' => 'Invalid path']);
-        exit;
-    }
-    
-    header('Content-Type: audio/mpeg');
-    header('Accept-Ranges: bytes');
-    header('Cache-Control: public, max-age=31536000');
-    
-    $size = filesize($filePath);
-    $start = 0;
-    $end = $size - 1;
-    $isRange = false;
-    
-    if (isset($_SERVER['HTTP_RANGE']) && preg_match('/bytes=(\d*)-(\d*)/', $_SERVER['HTTP_RANGE'], $matches)) {
-        $isRange = true;
-        if ($matches[1] !== '') {
-            $start = (int)$matches[1];
+    $id = sbRequireFavoriteId($request['id'] ?? '');
+    $dir = sbCharacterDir($character);
+    $removedFile = null;
+    $found = false;
+    sbUpdateFavorites($character, function ($favorites) use ($id, &$found, &$removedFile) {
+        $next = [];
+        foreach ($favorites as $fav) {
+            if (($fav['id'] ?? '') === $id) {
+                $found = true;
+                $removedFile = $fav['audioFile'] ?? null;
+                continue;
+            }
+            $next[] = $fav;
         }
-        if ($matches[2] !== '') {
-            $end = (int)$matches[2];
-        }
-        if ($end >= $size) {
-            $end = $size - 1;
-        }
-        if ($start > $end || $start < 0) {
-            http_response_code(416);
-            header("Content-Range: bytes */$size");
-            exit;
-        }
-        http_response_code(206);
-        header("Content-Range: bytes $start-$end/$size");
+        return $next;
+    });
+    if (!$found) {
+        throw new Exception('Favorite not found.');
     }
-    
-    $length = $end - $start + 1;
-    header('Content-Length: ' . $length);
-    
-    $fp = fopen($filePath, 'rb');
-    if (!$fp) {
-        http_response_code(404);
-        exit;
+    if (is_string($removedFile) && preg_match(SB_FAVORITE_FILE_RE, $removedFile) && is_file($dir . $removedFile)) {
+        @unlink($dir . $removedFile);
     }
-    fseek($fp, $start);
-    $bytesLeft = $length;
-    while ($bytesLeft > 0 && !feof($fp)) {
-        $read = ($bytesLeft > 8192) ? 8192 : $bytesLeft;
-        echo fread($fp, $read);
-        $bytesLeft -= $read;
-        if (connection_status() !== CONNECTION_NORMAL) {
-            break;
+    return ['deleted' => true];
+}
+
+function sbServeFavoriteFile($character, $file) {
+    $character = sbRequireCharacter($character);
+    if (!is_string($file) || !preg_match(SB_FAVORITE_FILE_RE, $file)) {
+        sbJson(['success' => false, 'error' => 'Invalid file name.'], 400);
+    }
+    $path = sbCharacterDir($character) . $file;
+    if (!is_file($path)) {
+        sbJson(['success' => false, 'error' => 'File not found.'], 404);
+    }
+    if (!empty($_GET['download'])) {
+        $label = 'Favorite';
+        foreach (sbReadFavorites($character) as $fav) {
+            if (($fav['audioFile'] ?? '') === $file) {
+                $label = (string) (is_string($fav['displayName'] ?? null) && $fav['displayName'] !== '' ? $fav['displayName'] : ($fav['text'] ?? 'Favorite'));
+                break;
+            }
         }
+        sbSendDownloadHeaders($label, $path);
     }
-    fclose($fp);
-    exit;
+    // sbStreamMediaFile sends Cache-Control: private (never public for this authenticated content).
+    sbStreamMediaFile($path);
 }
 
 function sbExportClips(array $request) {
     $character = sbRequireCharacter($request['character'] ?? '');
     $clipIds = $request['clipIds'] ?? [];
-    if (!is_array($clipIds) || empty($clipIds)) {
+    $favoriteIdsIn = $request['favoriteIds'] ?? [];
+    if (!is_array($clipIds)) {
+        $clipIds = [];
+    }
+    if (empty($clipIds) && (!is_array($favoriteIdsIn) || empty($favoriteIdsIn))) {
         throw new Exception('No clips selected for export');
     }
     
@@ -1632,6 +1640,44 @@ function sbExportClips(array $request) {
         $exported[] = $entry;
     }
     
+    $favoriteIds = $request['favoriteIds'] ?? [];
+    if (is_array($favoriteIds) && !empty($favoriteIds)) {
+        $favById = [];
+        foreach (sbReadFavorites($character) as $fav) {
+            if (!empty($fav['id'])) {
+                $favById[$fav['id']] = $fav;
+            }
+        }
+        foreach ($favoriteIds as $favId) {
+            $favId = sbRequireFavoriteId($favId);
+            if (!isset($favById[$favId])) {
+                continue;
+            }
+            $pub = sbPublicFavorite($character, $favById[$favId]);
+            $entry = [
+                'type' => 'favorite',
+                'kind' => 'speech',
+                'name' => sbCleanText($pub['displayName'] ?? $pub['text'], 40, 'Favorite'),
+                'displayName' => $pub['displayName'],
+                'text' => $pub['text'],
+                'voiceId' => $pub['voiceId'],
+                'tags' => ['category' => 'Favorites', 'icon' => $pub['icon']],
+                'mime' => null,
+                'audioBase64' => null,
+                'sourceId' => sbAppIdFromHost() . '-fav-' . $favId,
+            ];
+            if ($pub['audioFile'] !== null) {
+                $audioPath = sbCharacterDir($character) . $pub['audioFile'];
+                $audioData = file_get_contents($audioPath);
+                if ($audioData !== false) {
+                    $entry['audioBase64'] = base64_encode($audioData);
+                    $entry['mime'] = sbMediaMime($audioPath);
+                }
+            }
+            $exported[] = $entry;
+        }
+    }
+    
     return [
         'format' => 'knospe-soundboard-clips',
         'version' => 1,
@@ -1671,6 +1717,7 @@ function sbImportBundle(array $request) {
     }
     
     $imported = [];
+    $importedFavorites = 0;
     $errors = [];
     
     foreach ($clips as $clipIndex => $clipData) {
@@ -1688,8 +1735,10 @@ function sbImportBundle(array $request) {
                 continue;
             }
             
-            if (count($existing) + count($imported) >= SB_MAX_CLIPS) {
-                break;
+            $isFavoriteEntry = (($clipData['type'] ?? '') === 'favorite');
+            if (!$isFavoriteEntry && count($existing) + count($imported) >= SB_MAX_CLIPS) {
+                $errors[] = "Clip $sourceId: board is full (" . SB_MAX_CLIPS . " clips)";
+                continue;
             }
             
             $kind = (string)($clipData['kind'] ?? 'audio');
@@ -1697,7 +1746,7 @@ function sbImportBundle(array $request) {
             $name = sbCleanText($clipData['name'] ?? '', 40, 'Imported Clip');
             $text = $clipData['text'] ?? null;
             $voiceId = $clipData['voiceId'] ?? null;
-            $tags = is_array($clipData['tags']) ? $clipData['tags'] : [];
+            $tags = is_array($clipData['tags'] ?? null) ? $clipData['tags'] : [];
             $icon = sbCleanIcon($tags['icon'] ?? '🔊');
             $loop = !empty($tags['loop']);
             $importCategory = isset($tags['category']) && is_string($tags['category']) 
@@ -1714,51 +1763,18 @@ function sbImportBundle(array $request) {
             $newId = bin2hex(random_bytes(6));
             
             if ($type === 'favorite' && $kind === 'speech' && is_string($text) && $text !== '') {
-                $cleanText = sbCleanText($text, 500, '');
-                if ($cleanText === '') {
-                    $errors[] = "Clip $sourceId: empty text after cleaning";
-                    continue;
-                }
-                
-                if (!empty($clipData['audioBase64'])) {
-                    $audioData = base64_decode($clipData['audioBase64'], true);
-                    if ($audioData === false) {
-                        $errors[] = "Clip $sourceId: invalid base64 audio";
-                        continue;
-                    }
-                    
-                    if (strlen($audioData) > SB_EXCHANGE_MAX_BUNDLE_BYTES) {
-                        $errors[] = "Clip $sourceId: audio too large";
-                        continue;
-                    }
-                    
-                    $dir = sbFavoritesDir($character);
-                    $audioPath = $dir . $newId . '.mp3';
-                    
-                    if (file_put_contents($audioPath, $audioData) === false) {
-                        $errors[] = "Clip $sourceId: could not save favorite audio";
-                        continue;
-                    }
-                    
-                    $displayName = isset($clipData['displayName']) && is_string($clipData['displayName'])
-                        ? sbCleanText($clipData['displayName'], 140, '')
-                        : null;
-                    
-                    $favorite = [
-                        'id' => $newId,
-                        'outcomeId' => 'imported-' . $sourceId,
-                        'displayName' => $displayName,
-                        'createdAt' => gmdate('c'),
-                        'updatedAt' => gmdate('c'),
-                    ];
-                    
-                    $favorites = sbReadFavorites($character);
-                    $favorites[] = $favorite;
-                    sbWriteFavorites($character, $favorites);
-                    
-                    $imported++;
-                }
-                
+                // Text is required; audio is optional (text-only favorites are allowed, no TTS).
+                [, $favCreated] = sbAddFavoriteRecord($character, $text, [
+                    'displayName' => $clipData['displayName'] ?? null,
+                    'icon' => $tags['icon'] ?? null,
+                    'voiceId' => is_string($voiceId) ? sbCleanServerVoice($voiceId) : null,
+                    'sourceApp' => $sourceApp,
+                    'sourceId' => $sourceId,
+                    'audioBase64' => $clipData['audioBase64'] ?? null,
+                    'mime' => $clipData['mime'] ?? null,
+                ]);
+                $importedFavorites++;
+                continue;
             } elseif ($kind === 'speech' && is_string($text) && $text !== '') {
                 $cleanText = sbCleanText($text, 500, '');
                 if ($cleanText === '') {
@@ -1898,8 +1914,9 @@ function sbImportBundle(array $request) {
     }
     
     $result = [
-        'imported' => count($imported),
-        'skipped' => count($clips) - count($imported),
+        'imported' => count($imported) + $importedFavorites,
+        'favorites' => $importedFavorites,
+        'skipped' => count($clips) - count($imported) - $importedFavorites - count($errors),
     ];
     
     if (!empty($errors)) {
@@ -2012,7 +2029,7 @@ function sbImportIncoming(array $request) {
         throw new Exception('Invalid bundle ID');
     }
     
-    $inboxDir = sbInboxDir('blingus');
+    $inboxDir = sbInboxDir(sbAppIdFromHost());
     $bundlePath = $inboxDir . '/' . $bundleId . '.json';
     
     if (!is_file($bundlePath)) {
@@ -2039,7 +2056,13 @@ function sbImportIncoming(array $request) {
         'bundle' => $bundle,
     ]);
     
-    @unlink($bundlePath);
+    // Keep the bundle for a retry unless every clip imported (or was already here).
+    if (empty($result['errors'])) {
+        @unlink($bundlePath);
+        $result['bundleRemoved'] = true;
+    } else {
+        $result['bundleRemoved'] = false;
+    }
     
     return $result;
 }
@@ -2055,7 +2078,7 @@ function sbDiscardIncoming(array $request) {
         throw new Exception('Invalid bundle ID');
     }
     
-    $inboxDir = sbInboxDir('blingus');
+    $inboxDir = sbInboxDir(sbAppIdFromHost());
     $bundlePath = $inboxDir . '/' . $bundleId . '.json';
     
     if (is_file($bundlePath)) {
@@ -2199,6 +2222,16 @@ function sbDispatch($requireAuth, $API_KEY, array $allowedOrigins) {
                 if (!$path) {
                     sbJson(['success' => false, 'error' => 'Clip not found.'], 404);
                 }
+                if (!empty($_GET['download'])) {
+                    $label = '';
+                    foreach (sbReadClipsFile(sbCharacterDir($character) . 'clips.json') as $clip) {
+                        if (($clip['id'] ?? '') === $id) {
+                            $label = (string) ($clip['label'] ?? '');
+                            break;
+                        }
+                    }
+                    sbSendDownloadHeaders($label, $path);
+                }
                 sbStreamMediaFile($path);
 
             case 'export':
@@ -2226,7 +2259,8 @@ function sbDispatch($requireAuth, $API_KEY, array $allowedOrigins) {
                 sbJson(['success' => true] + $result);
 
             case 'incoming':
-                $app = $_GET['app'] ?? ($request['app'] ?? sbAppIdFromHost());
+                // Each site only ever sees its own inbox; any app parameter is ignored.
+                $app = sbAppIdFromHost();
                 sbJson([
                     'success' => true,
                     'exchangeEnabled' => sbExchangeEnabled(),
@@ -2276,8 +2310,8 @@ function sbDispatch($requireAuth, $API_KEY, array $allowedOrigins) {
                 sbJson(['success' => true] + $result);
 
             case 'listFavorites':
-                $result = sbListFavorites($request);
-                sbJson(['success' => true] + $result);
+                $character = $_GET['character'] ?? ($request['character'] ?? '');
+                sbJson(['success' => true, 'favorites' => sbListFavorites($character)]);
 
             case 'updateFavoriteDisplayName':
                 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
@@ -2287,7 +2321,7 @@ function sbDispatch($requireAuth, $API_KEY, array $allowedOrigins) {
                 sbJson(['success' => true] + $result);
 
             case 'favorite-file':
-                sbServeFavoriteFile($request);
+                sbServeFavoriteFile($_GET['character'] ?? '', $_GET['file'] ?? '');
 
             default:
                 throw new Exception('Invalid action. Use: ping, search, prepare, preview, list, listWithCategories, save, effect, speak, delete, file, export, import, sendTo, incoming, importIncoming, discardIncoming, saveCategories, updateClipCategory, saveFavorite, deleteFavorite, listFavorites, updateFavoriteDisplayName, favorite-file');

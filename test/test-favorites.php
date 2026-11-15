@@ -1,256 +1,128 @@
 <?php
 /**
- * Test favorites feature: save, list, update display name, delete, and favorite-file action.
- * Uses temp dirs only - no touching real data.
+ * Favorites + per-app exchange tests. Temp dirs only; TTS is mocked and must never be called.
+ * Run: php test/test-favorites.php
  */
+$root = sys_get_temp_dir() . '/sb-fav-test-' . bin2hex(random_bytes(4));
+$exchange = $root . '-exchange';
+mkdir($root, 0755, true);
+foreach (['blingus', 'galen', 'vadania', 'brawn', 'puck'] as $app) {
+    mkdir($exchange . '/inbox/' . $app, 0770, true);
+}
+putenv('SOUNDBOARD_DIR=' . $root);
+putenv('SOUNDBOARD_EXCHANGE_DIR=' . $exchange);
+$_SERVER['HTTP_HOST'] = 'puck.knospe.org';
 
-// Setup test environment BEFORE loading production code
-$testRoot = sys_get_temp_dir() . '/favorites-test-' . bin2hex(random_bytes(4));
-mkdir($testRoot, 0755, true);
-putenv('SOUNDBOARD_DIR=' . $testRoot);
-
-$_SERVER['HTTP_HOST'] = 'blingus.knospe.org';
-
-echo "Test environment: $testRoot\n\n";
-
-// Load production code
+$GLOBALS['ttsCalls'] = 0;
+function sbGenerateSpeech($text, $voice) {
+    $GLOBALS['ttsCalls']++;
+    throw new Exception('TTS must not be called in these tests');
+}
 require_once __DIR__ . '/../api/soundboard.php';
 
-function cleanup() {
-    global $testRoot;
-    if (is_dir($testRoot)) {
-        $files = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($testRoot, RecursiveDirectoryIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::CHILD_FIRST
-        );
-        foreach ($files as $file) {
-            $file->isDir() ? rmdir($file->getRealPath()) : unlink($file->getRealPath());
-        }
-        rmdir($testRoot);
+register_shutdown_function(function () use ($root, $exchange) {
+    foreach ([$root, $exchange] as $dir) {
+        if (!is_dir($dir)) continue;
+        $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::CHILD_FIRST);
+        foreach ($it as $f) { $f->isDir() ? rmdir($f->getPathname()) : unlink($f->getPathname()); }
+        rmdir($dir);
     }
+});
+
+$fail = 0;
+function check($cond, $msg) {
+    global $fail;
+    echo ($cond ? "  ok   " : "  FAIL ") . $msg . "\n";
+    if (!$cond) $fail++;
 }
-register_shutdown_function('cleanup');
+function throws($fn) { try { $fn(); return false; } catch (Throwable $e) { return true; } }
 
-// Test 1: Save a favorite
-echo "Test 1: Save a Favorite\n";
-echo "------------------------\n";
-
-$audioData = hex2bin('494433040000000000');
-$audioBase64 = base64_encode($audioData);
-
-try {
-    $result = sbSaveFavorite([
-        'character' => 'blingus',
-        'outcomeId' => 'test-outcome-123',
-        'audioBase64' => $audioBase64,
-        'displayName' => 'My Test Favorite',
-    ]);
-    
-    if (!isset($result['favorite']) || !isset($result['favorite']['id'])) {
-        echo "❌ FAIL: No favorite ID returned\n";
-        exit(1);
-    }
-    
-    $favoriteId = $result['favorite']['id'];
-    
-    if ($result['favorite']['displayName'] !== 'My Test Favorite') {
-        echo "❌ FAIL: Display name not saved\n";
-        exit(1);
-    }
-    
-    echo "✅ PASS: Favorite saved with ID: $favoriteId\n";
-    echo "  - Display name: {$result['favorite']['displayName']}\n";
-    echo "  - Audio URL: {$result['audioUrl']}\n";
-} catch (Exception $e) {
-    echo "❌ FAIL: " . $e->getMessage() . "\n";
-    exit(1);
+echo "Host -> app id\n";
+foreach (['blingus.knospe.org' => 'blingus', 'vadania.knospe.org' => 'vadania', 'brawn.knospe.org' => 'brawn',
+          'bruck.knospe.org' => 'brawn', 'puck.knospe.org:443' => 'puck', 'evil-puck.example' => 'blingus', '' => 'blingus'] as $h => $want) {
+    $_SERVER['HTTP_HOST'] = $h;
+    check(sbAppIdFromHost() === $want, "$h -> $want");
 }
+$_SERVER['HTTP_HOST'] = 'puck.knospe.org';
 
-// Test 2: List favorites
-echo "\nTest 2: List Favorites\n";
-echo "-----------------------\n";
+echo "Default voices\n";
+check(sbCharacterVoice('blingus') === 'NJf2N7XT2iBE8xJ0XHlo', 'blingus unchanged');
+check(sbCharacterVoice('vadania') === '9O1whMWG8xvHut3tc0HB', 'vadania');
+check(sbCharacterVoice('bruck') === 'bEkOilmQ8FPV078ZTGFo', 'bruck (brawn)');
+check(sbCharacterVoice('puck') === 'Bx8c7yYtFWUdHzKnzHgT', 'puck');
 
-try {
-    $result = sbListFavorites(['character' => 'blingus']);
-    
-    if (count($result['favorites']) !== 1) {
-        echo "❌ FAIL: Expected 1 favorite, got " . count($result['favorites']) . "\n";
-        exit(1);
-    }
-    
-    $fav = $result['favorites'][0];
-    if ($fav['outcomeId'] !== 'test-outcome-123') {
-        echo "❌ FAIL: Outcome ID mismatch\n";
-        exit(1);
-    }
-    
-    echo "✅ PASS: Favorite listed correctly\n";
-    echo "  - ID: {$fav['id']}\n";
-    echo "  - Outcome ID: {$fav['outcomeId']}\n";
-    echo "  - Display name: {$fav['displayName']}\n";
-} catch (Exception $e) {
-    echo "❌ FAIL: " . $e->getMessage() . "\n";
-    exit(1);
-}
+echo "Inbox allowlist, no auto-create\n";
+check(throws(fn() => sbInboxDir('evil')), 'unknown app rejected');
+check(throws(fn() => sbInboxDir('../x')), 'path app rejected');
+rmdir($exchange . '/inbox/vadania');
+check(throws(fn() => sbInboxDir('vadania')) && !is_dir($exchange . '/inbox/vadania'), 'missing inbox not created');
+mkdir($exchange . '/inbox/vadania', 0770);
 
-// Test 3: Update display name
-echo "\nTest 3: Update Display Name\n";
-echo "----------------------------\n";
+echo "Text-only favorite (no audio, no TTS)\n";
+$r = sbSaveFavorite(['character' => 'puck', 'text' => 'Glitter is a lifestyle.']);
+check($r['created'] === true && $r['favorite']['audioFile'] === null && $r['favorite']['text'] === 'Glitter is a lifestyle.', 'saved text-only');
+$id = $r['favorite']['id'];
+$r2 = sbSaveFavorite(['character' => 'puck', 'text' => 'Glitter is a lifestyle.']);
+check($r2['created'] === false && $r2['favorite']['id'] === $id, 'duplicate text returns existing');
+check(count(sbListFavorites('puck')) === 1, 'list has 1');
 
-try {
-    $result = sbUpdateFavoriteDisplayName([
-        'character' => 'blingus',
-        'id' => $favoriteId,
-        'displayName' => 'Updated Name',
-    ]);
-    
-    if (!$result['updated']) {
-        echo "❌ FAIL: Update failed\n";
-        exit(1);
-    }
-    
-    $list = sbListFavorites(['character' => 'blingus']);
-    $fav = $list['favorites'][0];
-    
-    if ($fav['displayName'] !== 'Updated Name') {
-        echo "❌ FAIL: Display name not updated\n";
-        exit(1);
-    }
-    
-    echo "✅ PASS: Display name updated\n";
-    echo "  - New name: {$fav['displayName']}\n";
-} catch (Exception $e) {
-    echo "❌ FAIL: " . $e->getMessage() . "\n";
-    exit(1);
-}
+echo "Favorite with cached audio attaches later\n";
+$mp3 = str_repeat("\xFF\xFB\x90\x00", 10);
+$r3 = sbSaveFavorite(['character' => 'puck', 'text' => 'Glitter is a lifestyle.', 'audioBase64' => base64_encode($mp3), 'mime' => 'audio/mpeg']);
+check($r3['favorite']['audioFile'] === 'fav-' . $id . '.mp3' && is_file($root . '/puck/fav-' . $id . '.mp3'), 'audio attached to existing favorite (small audio allowed)');
 
-// Test 4: Audio file exists and is accessible
-echo "\nTest 4: Audio File Access\n";
-echo "--------------------------\n";
+echo "Rename / delete\n";
+sbUpdateFavoriteDisplayName(['character' => 'puck', 'id' => $id, 'displayName' => 'Sparkle']);
+check(sbListFavorites('puck')[0]['displayName'] === 'Sparkle', 'renamed');
+sbUpdateFavoriteDisplayName(['character' => 'puck', 'id' => $id, 'displayName' => '']);
+check(sbListFavorites('puck')[0]['displayName'] === null, 'cleared name');
+check(throws(fn() => sbUpdateFavoriteDisplayName(['character' => 'puck', 'id' => '../../etc', 'displayName' => 'x'])), 'bad id rejected');
 
-$dir = sbFavoritesDir('blingus');
-$audioPath = $dir . $favoriteId . '.mp3';
+echo "Export favorites + clip into bundle, send to galen\n";
+$res = sbSendToApp(['character' => 'puck', 'clipIds' => [], 'favoriteIds' => [$id], 'targetApp' => 'galen']);
+$bundle = json_decode(file_get_contents($exchange . '/inbox/galen/' . $res['bundleId'] . '.json'), true);
+check($bundle['sourceApp'] === 'puck', 'sourceApp puck');
+$c = $bundle['clips'][0];
+check($c['type'] === 'favorite' && $c['kind'] === 'speech' && $c['text'] === 'Glitter is a lifestyle.' && $c['audioBase64'] === base64_encode($mp3), 'Galen-compatible favorite entry with audio');
+check(throws(fn() => sbSendToApp(['character' => 'puck', 'favoriteIds' => [$id], 'targetApp' => 'nope'])), 'unknown target rejected');
 
-if (!is_file($audioPath)) {
-    echo "❌ FAIL: Audio file not found at $audioPath\n";
-    exit(1);
-}
+sbDeleteFavorite(['character' => 'puck', 'id' => $id]);
+check(count(sbListFavorites('puck')) === 0 && !is_file($root . '/puck/fav-' . $id . '.mp3'), 'deleted with audio');
 
-$savedAudio = file_get_contents($audioPath);
-if ($savedAudio !== $audioData) {
-    echo "❌ FAIL: Audio data mismatch\n";
-    exit(1);
-}
+echo "Import Galen bundle into this site's inbox (vadania host)\n";
+$_SERVER['HTTP_HOST'] = 'vadania.knospe.org';
+$galen = ['format' => 'knospe-soundboard-clips', 'version' => 1, 'sourceApp' => 'galen', 'clips' => [
+    ['type' => 'favorite', 'kind' => 'speech', 'name' => 'Oath', 'displayName' => 'Oath', 'text' => 'By the light!', 'voiceId' => null,
+     'tags' => ['category' => 'Favorites', 'icon' => '⭐'], 'mime' => null, 'audioBase64' => null, 'sourceId' => 'galen-fav-aaaaaaaaaaaa'],
+    ['type' => 'custom', 'kind' => 'audio', 'name' => 'Bell', 'tags' => ['category' => 'Your clips', 'icon' => '🔔'],
+     'mime' => 'audio/mpeg', 'audioBase64' => base64_encode($mp3), 'sourceId' => 'galen-clip-bbbbbbbbbbbb'],
+]];
+$bid = str_repeat('a', 32);
+file_put_contents($exchange . '/inbox/vadania/' . $bid . '.json', json_encode($galen));
+file_put_contents($exchange . '/inbox/blingus/' . str_repeat('b', 32) . '.json', json_encode($galen));
+$inc = sbListIncoming(sbAppIdFromHost());
+check(count($inc) === 1 && $inc[0]['bundleId'] === $bid, 'vadania sees only its own inbox');
+$imp = sbImportIncoming(['character' => 'vadania', 'bundleId' => $bid]);
+check($imp['imported'] === 2 && $imp['favorites'] === 1 && empty($imp['errors']), 'imported favorite (text-only) + audio clip');
+check(!is_file($exchange . '/inbox/vadania/' . $bid . '.json'), 'bundle removed after full success');
+check(is_file($exchange . '/inbox/blingus/' . str_repeat('b', 32) . '.json'), 'blingus inbox untouched');
+check(throws(fn() => sbImportIncoming(['character' => 'vadania', 'bundleId' => str_repeat('b', 32)])), 'cannot import another site\'s bundle');
+$favs = sbListFavorites('vadania');
+check(count($favs) === 1 && $favs[0]['text'] === 'By the light!' && $favs[0]['sourceApp'] === 'galen', 'favorite stored with text');
+$clips = sbListClips('vadania');
+check(count($clips) === 1 && $clips[0]['icon'] === '🔔', 'audio clip stored with icon');
 
-echo "✅ PASS: Audio file saved correctly\n";
-echo "  - Path: $audioPath\n";
-echo "  - Size: " . strlen($savedAudio) . " bytes\n";
+echo "Bundle kept when a clip fails\n";
+$bad = $galen;
+$bad['clips'] = [['type' => 'custom', 'kind' => 'audio', 'name' => 'Broken', 'mime' => 'audio/mpeg', 'audioBase64' => '!!notbase64', 'sourceId' => 'x1']];
+$bid2 = str_repeat('c', 32);
+file_put_contents($exchange . '/inbox/vadania/' . $bid2 . '.json', json_encode($bad));
+$imp2 = sbImportIncoming(['character' => 'vadania', 'bundleId' => $bid2]);
+check(!empty($imp2['errors']) && is_file($exchange . '/inbox/vadania/' . $bid2 . '.json'), 'failed bundle kept for retry');
 
-// Test 5: Favorite-file action (path validation)
-echo "\nTest 5: Favorite File Action\n";
-echo "-----------------------------\n";
+echo "Download filename header helper\n";
+check(function_exists('sbSendDownloadHeaders'), 'sbSendDownloadHeaders exists');
 
-try {
-    $_GET = [
-        'action' => 'favorite-file',
-        'character' => 'blingus',
-        'id' => $favoriteId,
-    ];
-    
-    ob_start();
-    sbServeFavoriteFile($_GET);
-    $output = ob_get_clean();
-    
-    echo "✅ PASS: Favorite file action executed (output captured)\n";
-} catch (Exception $e) {
-    echo "❌ FAIL: " . $e->getMessage() . "\n";
-    exit(1);
-}
-
-// Test 6: Delete favorite
-echo "\nTest 6: Delete Favorite\n";
-echo "------------------------\n";
-
-try {
-    $result = sbDeleteFavorite([
-        'character' => 'blingus',
-        'id' => $favoriteId,
-    ]);
-    
-    if (!$result['deleted']) {
-        echo "❌ FAIL: Delete failed\n";
-        exit(1);
-    }
-    
-    $list = sbListFavorites(['character' => 'blingus']);
-    if (count($list['favorites']) !== 0) {
-        echo "❌ FAIL: Favorite still exists after delete\n";
-        exit(1);
-    }
-    
-    if (is_file($audioPath)) {
-        echo "❌ FAIL: Audio file still exists after delete\n";
-        exit(1);
-    }
-    
-    echo "✅ PASS: Favorite deleted successfully\n";
-    echo "  - Audio file removed\n";
-} catch (Exception $e) {
-    echo "❌ FAIL: " . $e->getMessage() . "\n";
-    exit(1);
-}
-
-// Test 7: Per-app storage isolation
-echo "\nTest 7: Per-App Storage\n";
-echo "------------------------\n";
-
-try {
-    sbSaveFavorite([
-        'character' => 'blingus',
-        'outcomeId' => 'blingus-outcome',
-        'audioBase64' => $audioBase64,
-    ]);
-    
-    $_SERVER['HTTP_HOST'] = 'vadania.knospe.org';
-    
-    sbSaveFavorite([
-        'character' => 'vadania',
-        'outcomeId' => 'vadania-outcome',
-        'audioBase64' => $audioBase64,
-    ]);
-    
-    $_SERVER['HTTP_HOST'] = 'blingus.knospe.org';
-    
-    $blingusDir = sbFavoritesDir('blingus');
-    $vadaniaDir = sbFavoritesDir('vadania');
-    
-    if ($blingusDir === $vadaniaDir) {
-        echo "❌ FAIL: Same favorites directory for different apps\n";
-        exit(1);
-    }
-    
-    if (strpos($blingusDir, '/blingus/') === false) {
-        echo "❌ FAIL: Blingus dir doesn't contain app ID path segment\n";
-        exit(1);
-    }
-    
-    echo "✅ PASS: Per-app storage isolation works\n";
-    echo "  - Blingus dir: $blingusDir\n";
-    echo "  - Vadania dir: $vadaniaDir\n";
-} catch (Exception $e) {
-    echo "❌ FAIL: " . $e->getMessage() . "\n";
-    exit(1);
-}
-
-// Summary
-echo "\n========================================\n";
-echo "All Favorites Tests Passed! ✅\n";
-echo "========================================\n";
-echo "Summary:\n";
-echo "- Save favorite with audio ✅\n";
-echo "- List favorites ✅\n";
-echo "- Update display name ✅\n";
-echo "- Audio file stored correctly ✅\n";
-echo "- Favorite-file action works ✅\n";
-echo "- Delete removes favorite and audio ✅\n";
-echo "- Per-app storage isolation ✅\n";
+check($GLOBALS['ttsCalls'] === 0, 'no TTS calls');
+echo $fail === 0 ? "\nALL PASSED\n" : "\n$fail FAILED\n";
+exit($fail === 0 ? 0 : 1);

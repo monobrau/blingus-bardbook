@@ -4149,7 +4149,7 @@
   }
 
   async function saveOutcomeFavorite(text, btn) {
-    if (!window.OutcomeFavorites || !window.BlingusSpeak) {
+    if (!window.OutcomeFavorites) {
       showToast('Favorites feature not available');
       return;
     }
@@ -4159,34 +4159,30 @@
     btn.disabled = true;
 
     try {
-      const outcomeId = 'outcome-' + Date.now() + '-' + Math.random().toString(36).slice(2, 11);
-      
+      // Reuse audio only if this line was already spoken this session.
+      // Starring never requests new speech; otherwise the favorite is saved as text only.
       let audioBase64 = null;
-      try {
-        const audioBlob = await window.BlingusSpeak.getAudioBlob(text);
-        if (audioBlob) {
-          audioBase64 = await blobToBase64(audioBlob);
-        }
-      } catch (audioErr) {
-        console.warn('Could not get audio for favorite:', audioErr);
+      let mime = null;
+      const cached = window.BlingusSpeak?.getCachedAudioBlob?.(text) || null;
+      if (cached) {
+        audioBase64 = await blobToBase64(cached);
+        mime = cached.type || 'audio/mpeg';
       }
 
-      await window.OutcomeFavorites.save(outcomeId, audioBase64, null);
-      
+      const result = await window.OutcomeFavorites.save(text, { audioBase64: audioBase64, mime: mime });
+
       btn.textContent = '★';
-      btn.title = 'Favorited!';
+      btn.title = 'Favorited';
       setTimeout(() => {
         btn.textContent = origText;
         btn.title = 'Save as favorite';
       }, 2000);
-      
-      showToast('Added to favorites');
-      
-      if (window.Soundboard && document.querySelector('[data-section="soundboard"]')) {
-        const sbHost = document.querySelector('[data-section="soundboard"]');
-        if (sbHost && sbHost.classList.contains('content--active')) {
-          window.Soundboard.render(sbHost);
-        }
+
+      showToast(result && result.created === false ? 'Already in favorites' : 'Added to favorites');
+
+      const sbHost = document.querySelector('[data-section="soundboard"]');
+      if (window.Soundboard && sbHost && sbHost.classList.contains('content--active')) {
+        window.Soundboard.render(sbHost);
       }
     } catch (err) {
       btn.textContent = origText;
