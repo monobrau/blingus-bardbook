@@ -3862,3 +3862,8 @@ body.dark-mode .soundboard__pad {
     flex: 1 1 100%;
   }
 }
+
+/* Clip manager footer: wrap buttons instead of pushing them off-screen. */
+.modal__footer {
+  flex-wrap: wrap;
+}
