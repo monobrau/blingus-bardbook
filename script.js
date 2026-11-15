@@ -2785,6 +2785,17 @@
         speakGenerated(item, speakBtn);
       });
 
+      const favoriteBtn = document.createElement('button');
+      favoriteBtn.type = 'button';
+      favoriteBtn.className = 'card__favorite';
+      favoriteBtn.textContent = '☆';
+      favoriteBtn.title = 'Save as favorite';
+      favoriteBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        await saveOutcomeFavorite(item, favoriteBtn);
+      });
+
       card.addEventListener('click', () => {
         content.querySelectorAll(`.${cardClass}`).forEach((c) => c.classList.remove('highlighted'));
         copyToClipboard(item, section || 'outcomes', category || selection.detail || selection.outcome);
@@ -2825,8 +2836,9 @@
         : `${modalPrefix || '🎲'} ${metaLabel || 'Outcome'} — ${selection.summary}`;
 
       card.appendChild(speakBtn);
+      card.appendChild(favoriteBtn);
       card.appendChild(copyBtn);
-      p.style.paddingRight = '128px';
+      p.style.paddingRight = '176px';
       card.appendChild(p);
       card.appendChild(meta);
       content.appendChild(card);
@@ -4134,6 +4146,67 @@
     } catch (err) {
       showToast(err?.message || 'Speech failed');
     }
+  }
+
+  async function saveOutcomeFavorite(text, btn) {
+    if (!window.OutcomeFavorites || !window.BlingusSpeak) {
+      showToast('Favorites feature not available');
+      return;
+    }
+
+    const origText = btn.textContent;
+    btn.textContent = '...';
+    btn.disabled = true;
+
+    try {
+      const outcomeId = 'outcome-' + Date.now() + '-' + Math.random().toString(36).slice(2, 11);
+      
+      let audioBase64 = null;
+      try {
+        const audioBlob = await window.BlingusSpeak.getAudioBlob(text);
+        if (audioBlob) {
+          audioBase64 = await blobToBase64(audioBlob);
+        }
+      } catch (audioErr) {
+        console.warn('Could not get audio for favorite:', audioErr);
+      }
+
+      await window.OutcomeFavorites.save(outcomeId, audioBase64, null);
+      
+      btn.textContent = '★';
+      btn.title = 'Favorited!';
+      setTimeout(() => {
+        btn.textContent = origText;
+        btn.title = 'Save as favorite';
+      }, 2000);
+      
+      showToast('Added to favorites');
+      
+      if (window.Soundboard && document.querySelector('[data-section="soundboard"]')) {
+        const sbHost = document.querySelector('[data-section="soundboard"]');
+        if (sbHost && sbHost.classList.contains('content--active')) {
+          window.Soundboard.render(sbHost);
+        }
+      }
+    } catch (err) {
+      btn.textContent = origText;
+      showToast(err?.message || 'Could not save favorite');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function blobToBase64(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const dataUrl = reader.result;
+        const base64 = dataUrl.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
   }
 
   // Modal functions

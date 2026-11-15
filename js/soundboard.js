@@ -12,11 +12,12 @@
   let lastHost = null;
 
   let customPads = [];
+  let favoritePads = [];
   let renderToken = 0;
   let categories = [];
 
   function pads() {
-    return customPads;
+    return favoritePads.concat(customPads);
   }
 
   function clipsToPads(characterId, clips) {
@@ -35,6 +36,24 @@
       clipSource: clip.source || '',
       clipText: clip.title || '',
       clipVoiceId: clip.voiceId || '',
+    }));
+  }
+
+  function favoritesToPads(favorites) {
+    if (!Array.isArray(favorites)) return [];
+    return favorites.map((fav) => ({
+      id: 'favorite:' + fav.id,
+      favoriteId: fav.id,
+      characterId: window.BlingusSite?.themeCharacterId?.()
+        || window.BlingusSite?.lockedCharacterId?.()
+        || window.CharacterSheet?.getActiveId?.()
+        || 'blingus',
+      group: 'Favorites',
+      label: fav.displayName || (fav.outcomeId || 'Favorite'),
+      icon: '⭐',
+      displayName: fav.displayName || null,
+      audioUrl: fav.audioUrl || null,
+      favorite: true,
     }));
   }
 
@@ -100,6 +119,11 @@
     const pad = pads().find((p) => p.id === id);
     if (!pad) return;
     pruneLive();
+    
+    if (pad.favorite && pad.audioUrl) {
+      playSrc(pad.audioUrl);
+      return;
+    }
     
     if (pad.clipSource === 'speech' && pad.clipText && window.SoundboardClips) {
       try {
@@ -240,25 +264,61 @@
           setTimeout(() => btn.classList.remove('is-on'), 160);
           if (pad.loop) btn.setAttribute('aria-pressed', loops[pad.id] ? 'true' : 'false');
         });
-        if (!pad.custom) {
+        if (!pad.custom && !pad.favorite) {
           grid.appendChild(btn);
           return;
         }
         const wrap = el('div', 'soundboard__pad-wrap');
+        
+        if (pad.favorite && window.OutcomeFavorites) {
+          const edit = el('button', 'soundboard__pad-edit', '✏️');
+          edit.type = 'button';
+          edit.setAttribute('aria-label', 'Edit ' + pad.label);
+          edit.title = 'Edit display name';
+          edit.addEventListener('click', (ev) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            const currentName = pad.displayName || '';
+            const newName = prompt('Display name for this favorite (leave blank to show outcome ID):', currentName);
+            if (newName === null) return;
+            window.OutcomeFavorites.updateDisplayName(pad.favoriteId, newName.trim()).then(() => {
+              if (lastHost) render(lastHost);
+              if (window.UIUtils && window.UIUtils.showToast) {
+                window.UIUtils.showToast(newName.trim() ? 'Display name updated' : 'Display name cleared');
+              }
+            }).catch((err) => {
+              if (window.UIUtils && window.UIUtils.showToast) {
+                window.UIUtils.showToast(err.message || 'Could not update favorite');
+              }
+            });
+          });
+          wrap.appendChild(edit);
+        }
+        
         const remove = el('button', 'soundboard__pad-remove', '×');
         remove.type = 'button';
         remove.setAttribute('aria-label', 'Remove ' + pad.label);
         remove.addEventListener('click', (ev) => {
           ev.preventDefault();
           ev.stopPropagation();
-          if (!window.confirm('Remove ' + pad.label + ' from this board?')) return;
-          window.SoundboardClips.remove(pad.characterId, pad.clipId).then(() => {
-            if (lastHost) render(lastHost);
-          }).catch((err) => {
-            if (window.UIUtils && window.UIUtils.showToast) {
-              window.UIUtils.showToast(err.message || 'Could not remove clip');
-            }
-          });
+          if (!window.confirm('Remove ' + pad.label + '?')) return;
+          if (pad.favorite && window.OutcomeFavorites) {
+            window.OutcomeFavorites.remove(pad.favoriteId).then(() => {
+              if (lastHost) render(lastHost);
+            }).catch((err) => {
+              if (window.UIUtils && window.UIUtils.showToast) {
+                window.UIUtils.showToast(err.message || 'Could not remove favorite');
+              }
+            });
+          } else if (pad.custom && window.SoundboardClips) {
+            window.SoundboardClips.remove(pad.characterId, pad.clipId).then(() => {
+              if (lastHost) render(lastHost);
+            }).catch((err) => {
+              if (window.UIUtils && window.UIUtils.showToast) {
+                window.UIUtils.showToast(err.message || 'Could not remove clip');
+              }
+            });
+          }
         });
         wrap.appendChild(btn);
         wrap.appendChild(remove);
@@ -297,17 +357,28 @@
     host.innerHTML = '';
     host.classList.add('content--soundboard');
     host.appendChild(el('p', 'soundboard__hint', 'Loading clips…'));
-    const finish = (clipsData) => {
+    
+    const finish = (clips, favorites, clipsData) => {
       if (token !== renderToken) return;
       categories = clipsData.categories || [];
-      customPads = clipsToPads(characterId, clipsData.clips || []);
+      customPads = clipsToPads(characterId, clips);
+      favoritePads = favoritesToPads(favorites);
       paint(host, clipsData);
     };
-    if (!window.SoundboardClips) {
-      finish({clips: [], categories: []});
-      return;
-    }
-    window.SoundboardClips.listWithCategories(characterId).then(finish).catch(() => finish({clips: [], categories: []}));
+    
+    const loadClips = window.SoundboardClips
+      ? window.SoundboardClips.listWithCategories(characterId).catch(() => ({ clips: [], categories: [] }))
+      : Promise.resolve({ clips: [], categories: [] });
+    
+    const loadFavorites = window.OutcomeFavorites
+      ? window.OutcomeFavorites.list().catch(() => [])
+      : Promise.resolve([]);
+    
+    Promise.all([loadClips, loadFavorites]).then(([clipsData, favorites]) => {
+      finish(clipsData.clips || [], favorites, clipsData);
+    }).catch(() => {
+      finish([], [], { clips: [], categories: [] });
+    });
   }
 
   document.addEventListener('blingus-character-change', () => {

@@ -149,7 +149,38 @@
     }
   }
 
-  window.BlingusSpeak = { speak: speak, stop: stop, voiceId: voiceId };
+  async function getAudioBlob(text) {
+    const line = String(text || '').trim();
+    if (!line) {
+      throw new Error('Nothing to speak');
+    }
+
+    let response;
+    try {
+      response = await fetch(ENDPOINT, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ text: line, speaker: currentSpeaker(), voiceId: voiceId() }),
+      });
+    } catch (e) {
+      throw new Error('Speech request failed');
+    }
+    const type = response.headers.get('Content-Type') || '';
+    if (!response.ok || type.indexOf('audio') === -1) {
+      let message = 'Speech failed';
+      try {
+        const data = await response.json();
+        if (data && data.error) message = data.error;
+      } catch (e) {
+        message = 'Speech failed (HTTP ' + response.status + ')';
+      }
+      throw new Error(message);
+    }
+
+    return await response.blob();
+  }
+
+  window.BlingusSpeak = { speak: speak, stop: stop, voiceId: voiceId, getAudioBlob: getAudioBlob };
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', bindVoiceSetting);
   } else {

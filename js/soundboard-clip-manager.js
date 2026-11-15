@@ -91,6 +91,15 @@ window.SoundboardClipManager = (function () {
     return data.clips || [];
   }
 
+  async function loadFavorites() {
+    try {
+      const data = await apiGet({ action: 'listFavorites', character: characterId });
+      return data.favorites || [];
+    } catch (e) {
+      return [];
+    }
+  }
+
   async function fetchAppInfo() {
     try {
       const data = await apiGet({ action: 'ping', character: characterId });
@@ -119,21 +128,77 @@ window.SoundboardClipManager = (function () {
       return;
     }
 
-    const clipIds = Array.from(selectedClips);
-    const url = ENDPOINT + '?' + withKey({ action: 'export' }).toString();
+    const allIds = Array.from(selectedClips);
+    const clipIds = allIds.filter(id => !id.startsWith('favorite:'));
+    const favoriteIds = allIds.filter(id => id.startsWith('favorite:')).map(id => id.replace('favorite:', ''));
     
     try {
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify({ character: characterId, clipIds: clipIds }),
-      });
+      let bundle = null;
+      
+      if (clipIds.length > 0) {
+        const url = ENDPOINT + '?' + withKey({ action: 'export' }).toString();
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ character: characterId, clipIds: clipIds }),
+        });
 
-      if (!res.ok) {
-        throw new Error('Export failed');
+        if (!res.ok) {
+          throw new Error('Export failed');
+        }
+
+        bundle = await res.json();
+      } else {
+        bundle = {
+          format: 'knospe-soundboard-clips',
+          version: 1,
+          sourceApp: appId,
+          exportedAt: new Date().toISOString(),
+          clips: [],
+        };
       }
 
-      const blob = await res.blob();
+      if (favoriteIds.length > 0 && window.OutcomeFavorites) {
+        const favorites = await apiGet({ action: 'listFavorites', character: characterId });
+        const favoritesList = favorites.favorites || [];
+        
+        for (const favId of favoriteIds) {
+          const fav = favoritesList.find(f => f.id === favId);
+          if (!fav) continue;
+          
+          let audioBase64 = null;
+          if (fav.audioUrl) {
+            try {
+              const audioRes = await fetch(fav.audioUrl);
+              const audioBlob = await audioRes.blob();
+              audioBase64 = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = reject;
+                reader.readAsDataURL(audioBlob);
+              });
+            } catch (e) {
+              console.warn('Could not fetch audio for favorite', favId, e);
+            }
+          }
+          
+          bundle.clips.push({
+            type: 'favorite',
+            kind: 'speech',
+            name: fav.displayName || fav.outcomeId || 'Favorite',
+            displayName: fav.displayName || null,
+            text: fav.outcomeId || '',
+            voiceId: null,
+            tags: { icon: '⭐', loop: false, category: 'Favorites' },
+            mime: 'audio/mpeg',
+            audioBase64: audioBase64,
+            sourceId: 'blingus-fav-' + favId,
+          });
+        }
+      }
+
+      const bundleJson = JSON.stringify(bundle, null, 2);
+      const blob = new Blob([bundleJson], { type: 'application/json' });
       const downloadUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = downloadUrl;
@@ -143,7 +208,7 @@ window.SoundboardClipManager = (function () {
       document.body.removeChild(a);
       URL.revokeObjectURL(downloadUrl);
       
-      toast('Exported ' + clipIds.length + ' clip(s)');
+      toast('Exported ' + (clipIds.length + favoriteIds.length) + ' item(s)');
       selectedClips.clear();
     } catch (e) {
       toast(e.message || 'Export failed');
@@ -203,7 +268,13 @@ window.SoundboardClipManager = (function () {
       return;
     }
 
-    const clipIds = Array.from(selectedClips);
+    const allIds = Array.from(selectedClips);
+    const clipIds = allIds.filter(id => !id.startsWith('favorite:'));
+    
+    if (clipIds.length === 0) {
+      toast('Can only send regular clips between apps (favorites stay per-character)');
+      return;
+    }
     
     try {
       await apiPost({
@@ -314,7 +385,7 @@ window.SoundboardClipManager = (function () {
     body.appendChild(status);
 
     try {
-      const clips = await loadClips();
+      const [clips, favorites] = await Promise.all([loadClips(), loadFavorites()]);
       body.innerHTML = '';
 
       if (incomingBundles.length > 0) {
@@ -414,6 +485,74 @@ window.SoundboardClipManager = (function () {
       }
 
       body.appendChild(section);
+
+      if (favorites.length > 0) {
+        const favSection = el('section', 'clip-manager__section');
+        const favHeader = el('div', 'clip-manager__header');
+        favHeader.appendChild(el('h3', 'clip-manager__title', 'Favorites'));
+        
+        const favSelectionBar = el('div', 'clip-manager__selection-bar');
+        const favSelectAllBtn = el('button', 'btn btn--ghost btn--compact', 'Select all');
+        favSelectAllBtn.type = 'button';
+        favSelectAllBtn.addEventListener('click', () => {
+          favorites.forEach(fav => selectedClips.add('favorite:' + fav.id));
+          render();
+        });
+        favSelectionBar.appendChild(favSelectAllBtn);
+        
+        const favSelectNoneBtn = el('button', 'btn btn--ghost btn--compact', 'Clear');
+        favSelectNoneBtn.type = 'button';
+        favSelectNoneBtn.addEventListener('click', () => {
+          favorites.forEach(fav => selectedClips.delete('favorite:' + fav.id));
+          render();
+        });
+        favSelectionBar.appendChild(favSelectNoneBtn);
+        
+        favHeader.appendChild(favSelectionBar);
+        favSection.appendChild(favHeader);
+        
+        const favList = el('div', 'clip-manager__list');
+        
+        favorites.forEach((fav) => {
+          const item = el('div', 'clip-manager__clip');
+          const favKey = 'favorite:' + fav.id;
+          item.setAttribute('data-clip-id', favKey);
+          
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.checked = selectedClips.has(favKey);
+          checkbox.addEventListener('change', () => {
+            if (selectedClips.has(favKey)) {
+              selectedClips.delete(favKey);
+            } else {
+              selectedClips.add(favKey);
+            }
+            updateSelectionUI();
+          });
+          item.appendChild(checkbox);
+          
+          const icon = el('span', 'clip-manager__icon', '⭐');
+          item.appendChild(icon);
+          
+          const info = el('div', 'clip-manager__info');
+          const title = el('div', 'clip-manager__label', fav.displayName || fav.outcomeId || 'Favorite');
+          info.appendChild(title);
+          
+          const meta = el('div', 'clip-manager__meta');
+          if (fav.createdAt) {
+            const date = new Date(fav.createdAt);
+            meta.textContent = 'Created ' + date.toLocaleDateString();
+          }
+          info.appendChild(meta);
+          
+          item.appendChild(info);
+          favList.appendChild(item);
+        });
+        
+        favSection.appendChild(favList);
+        body.appendChild(favSection);
+      }
+
       updateSelectionUI();
 
     } catch (e) {

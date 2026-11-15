@@ -1277,7 +1277,7 @@ body.dark-mode .card__chip {
 }
 .card__speak {
   position: absolute;
-  right: 64px;
+  right: 112px;
   top: 10px;
   font-size: 12px;
   border: 1px solid var(--accent);
@@ -1294,6 +1294,28 @@ body.dark-mode .card__chip {
 }
 .card__speak.is-speaking {
   filter: brightness(1.15);
+}
+.card__favorite {
+  position: absolute;
+  right: 64px;
+  top: 10px;
+  font-size: 16px;
+  border: 1px solid var(--accent);
+  color: #fff;
+  background: var(--accent);
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+.card__favorite:hover {
+  filter: brightness(1.2);
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.card__favorite:active {
+  transform: scale(0.98);
 }
 .card__youtube {
   position: absolute;
@@ -2121,6 +2143,13 @@ body.dark-mode .parody-ai {
     min-height: 36px;
     padding: 6px 10px;
     font-size: 14px;
+    right: 120px;
+  }
+
+  .card__favorite {
+    min-height: 36px;
+    padding: 6px 10px;
+    font-size: 16px;
   }
 
   .card__youtube {
@@ -2246,10 +2275,17 @@ body.dark-mode .parody-ai {
   }
 
   .card__speak {
-    right: 72px;
+    right: 128px;
     top: 5px;
     min-height: 44px;
     min-width: 64px;
+  }
+
+  .card__favorite {
+    right: 72px;
+    top: 5px;
+    min-height: 44px;
+    min-width: 48px;
   }
 
   .card__youtube {
@@ -3291,6 +3327,23 @@ body.dark-mode .soundboard__pad {
   color: #fff;
   line-height: 1;
   cursor: pointer;
+}
+
+.soundboard__pad-edit {
+  position: absolute;
+  top: 4px;
+  right: 30px;
+  z-index: 1;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  line-height: 1;
+  cursor: pointer;
+  font-size: 12px;
 }
 
 .soundboard-clips__effect {

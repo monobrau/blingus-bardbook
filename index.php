@@ -15,12 +15,13 @@ $moduleFiles = [
   'storage-utils.js',
   'ui-utils.js',
   'site-identity.js',
-  'whats-new.js', // v1.15.0: Multi-site enhancements entry
+  'whats-new.js', // v1.16.0: Favorites feature entry
   'tab-navigation.js',
   'keyboard-shortcuts.js',
   'action-workflow.js',
   'outcome-generate.js',
-  'speak.js',
+  'outcome-favorites.js', // v1.16.0: Favorites API client
+  'speak.js', // v1.16.0: Added getAudioBlob for favorites
   'sheet-clips.js',
   'character-sheet.js',
   'puck-fx.js',
@@ -30,9 +31,9 @@ $moduleFiles = [
   'd20-roll.js',
   'category-selector.js',
   'soundboard-clips.js',
-  'soundboard-clip-manager.js', // v1.15.0: App picker, dynamic app ID
+  'soundboard-clip-manager.js', // v1.16.0: Favorites export/import
   'soundboard-category-manager.js',
-  'soundboard.js',
+  'soundboard.js', // v1.16.0: Favorites section
   'workflow-catalog.js',
   'karaoke-manager.js',
   'data/spells-data.js',
@@ -44,8 +45,8 @@ $moduleFiles = [
   'data/criticals-data.js',
   'data/skillchecks-data.js',
   'data/scene-outcomes.js',
-  'script.js',
-  'styles.css' // v1.15.0: App picker dropdown styles
+  'script.js', // v1.16.0: Favorite button on outcome cards
+  'styles.css' // v1.16.0: Favorite button styles, mobile-friendly at 390px
 ];
 
 $versions = [];
@@ -619,6 +620,7 @@ $defaultTab = $showKaraoke ? 'spells' : ($showSongbook ? 'songs' : ($showKit ? '
   <script src="js/workflow-catalog.js?v=<?php echo $versions['workflow-catalog.js']; ?>"></script>
   <script src="js/action-workflow.js?v=<?php echo $versions['action-workflow.js']; ?>"></script>
   <script src="js/outcome-generate.js?v=<?php echo $versions['outcome-generate.js']; ?>"></script>
+  <script src="js/outcome-favorites.js?v=<?php echo $versions['outcome-favorites.js']; ?>"></script>
   <script src="js/speak.js?v=<?php echo $versions['speak.js']; ?>"></script>
 
   <!-- Main application script -->

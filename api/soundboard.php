@@ -1693,6 +1693,7 @@ function sbImportBundle(array $request) {
             }
             
             $kind = (string)($clipData['kind'] ?? 'audio');
+            $type = (string)($clipData['type'] ?? '');
             $name = sbCleanText($clipData['name'] ?? '', 40, 'Imported Clip');
             $text = $clipData['text'] ?? null;
             $voiceId = $clipData['voiceId'] ?? null;
@@ -1712,7 +1713,53 @@ function sbImportBundle(array $request) {
             
             $newId = bin2hex(random_bytes(6));
             
-            if ($kind === 'speech' && is_string($text) && $text !== '') {
+            if ($type === 'favorite' && $kind === 'speech' && is_string($text) && $text !== '') {
+                $cleanText = sbCleanText($text, 500, '');
+                if ($cleanText === '') {
+                    $errors[] = "Clip $sourceId: empty text after cleaning";
+                    continue;
+                }
+                
+                if (!empty($clipData['audioBase64'])) {
+                    $audioData = base64_decode($clipData['audioBase64'], true);
+                    if ($audioData === false) {
+                        $errors[] = "Clip $sourceId: invalid base64 audio";
+                        continue;
+                    }
+                    
+                    if (strlen($audioData) > SB_EXCHANGE_MAX_BUNDLE_BYTES) {
+                        $errors[] = "Clip $sourceId: audio too large";
+                        continue;
+                    }
+                    
+                    $dir = sbFavoritesDir($character);
+                    $audioPath = $dir . $newId . '.mp3';
+                    
+                    if (file_put_contents($audioPath, $audioData) === false) {
+                        $errors[] = "Clip $sourceId: could not save favorite audio";
+                        continue;
+                    }
+                    
+                    $displayName = isset($clipData['displayName']) && is_string($clipData['displayName'])
+                        ? sbCleanText($clipData['displayName'], 140, '')
+                        : null;
+                    
+                    $favorite = [
+                        'id' => $newId,
+                        'outcomeId' => 'imported-' . $sourceId,
+                        'displayName' => $displayName,
+                        'createdAt' => gmdate('c'),
+                        'updatedAt' => gmdate('c'),
+                    ];
+                    
+                    $favorites = sbReadFavorites($character);
+                    $favorites[] = $favorite;
+                    sbWriteFavorites($character, $favorites);
+                    
+                    $imported++;
+                }
+                
+            } elseif ($kind === 'speech' && is_string($text) && $text !== '') {
                 $cleanText = sbCleanText($text, 500, '');
                 if ($cleanText === '') {
                     $errors[] = "Clip $sourceId: empty text after cleaning";
