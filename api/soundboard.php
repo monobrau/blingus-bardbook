@@ -872,7 +872,7 @@ function sbGenerateSpeech($text, $voice, $model = '') {
     }
     $payload = json_encode([
         'text' => $text,
-        'model_id' => (is_string($model) && preg_match('/^[A-Za-z0-9_]{3,64}$/', $model)) ? $model : 'eleven_multilingual_v2',
+        'model_id' => (is_string($model) && preg_match('/^[A-Za-z0-9_]{3,64}$/', $model)) ? $model : 'eleven_v4',
     ]);
     if ($payload === false) {
         throw new Exception('Could not build the speech request.');

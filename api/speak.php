@@ -128,12 +128,12 @@ if ($voice === '') {
     $voice = 'JBFqnCBsd6RMkjVDRZzb';
     $voiceSource = 'stock-fallback';
 }
-$model = getenv('ELEVENLABS_MODEL') ?: 'eleven_multilingual_v2';
+$model = getenv('ELEVENLABS_MODEL') ?: 'eleven_v4';
 if ($voiceSource === 'character-map' && knospeCharacterModel($speaker) !== '') {
     $model = knospeCharacterModel($speaker);
 }
 if (!preg_match('/^[A-Za-z0-9_]{3,64}$/', $model)) {
-    $model = 'eleven_multilingual_v2';
+    $model = 'eleven_v4';
 }
 header('X-Speak-Model: ' . $model);
 
