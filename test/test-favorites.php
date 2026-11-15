@@ -50,6 +50,17 @@ check(sbCharacterVoice('blingus') === 'NJf2N7XT2iBE8xJ0XHlo', 'blingus unchanged
 check(sbCharacterVoice('vadania') === '9O1whMWG8xvHut3tc0HB', 'vadania');
 check(sbCharacterVoice('bruck') === 'bEkOilmQ8FPV078ZTGFo', 'bruck (brawn)');
 check(sbCharacterVoice('puck') === 'Bx8c7yYtFWUdHzKnzHgT', 'puck');
+check(sbCharacterVoice('brawn') === 'bEkOilmQ8FPV078ZTGFo', 'brawn alias');
+// speak.php shares the same map and locks the speaker to the host's character
+check(knospeHostCharacter('puck.knospe.org') === 'puck', 'host puck');
+check(knospeHostCharacter('brawn.knospe.org:443') === 'bruck', 'host brawn -> bruck');
+check(knospeHostCharacter('bruck.knospe.org') === 'bruck', 'host bruck');
+check(knospeHostCharacter('vadania.knospe.org') === 'vadania', 'host vadania');
+check(knospeHostCharacter('blingus.knospe.org') === 'blingus', 'host blingus');
+check(knospeHostCharacter('bardbook.knospe.org') === '', 'bardbook unlocked');
+foreach (['vadania' => '9O1whMWG8xvHut3tc0HB', 'bruck' => 'bEkOilmQ8FPV078ZTGFo', 'puck' => 'Bx8c7yYtFWUdHzKnzHgT', 'blingus' => 'NJf2N7XT2iBE8xJ0XHlo'] as $c => $v) { check(knospeCharacterVoice(knospeHostCharacter($c . '.knospe.org')) === $v, 'speak voice for ' . $c . ' host'); }
+$speakSrc = file_get_contents(__DIR__ . '/../api/speak.php');
+check(strpos($speakSrc, "require_once __DIR__ . '/character-voices.php'") !== false && strpos($speakSrc, 'knospeCharacterVoice($speaker)') !== false && strpos($speakSrc, "'blingus' => ") === false, 'speak.php uses shared map, no local map');
 
 echo "Inbox allowlist, no auto-create\n";
 check(throws(fn() => sbInboxDir('evil')), 'unknown app rejected');

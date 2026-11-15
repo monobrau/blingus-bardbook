@@ -845,16 +845,13 @@ function sbCleanServerVoice($raw) {
     return '';
 }
 
+require_once __DIR__ . '/character-voices.php';
+
 function sbCharacterVoice($character) {
     // Per-character default ElevenLabs voices. A voice ID pasted in Settings still overrides these.
-    $voices = [
-        'blingus' => 'NJf2N7XT2iBE8xJ0XHlo',
-        'vadania' => '9O1whMWG8xvHut3tc0HB',
-        'bruck' => 'bEkOilmQ8FPV078ZTGFo',
-        'puck' => 'Bx8c7yYtFWUdHzKnzHgT',
-    ];
-    if (!empty($voices[$character])) {
-        return $voices[$character];
+    $voice = knospeCharacterVoice($character);
+    if ($voice !== '') {
+        return $voice;
     }
     $override = sbCleanServerVoice(sbLoadKeyFile('ELEVENLABS_VOICE_ID', [
         '/etc/blingus/elevenlabs_voice',

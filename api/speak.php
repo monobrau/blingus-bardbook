@@ -36,6 +36,8 @@ function jsonFail($message, $code = 400) {
     exit;
 }
 
+require_once __DIR__ . '/character-voices.php';
+
 function cleanVoiceId($raw) {
     $raw = trim((string) $raw);
     $raw = preg_replace('/^["\']|["\']$/', '', $raw);
@@ -104,14 +106,16 @@ if (strlen($text) > 5000) {
 
 $voice = cleanVoiceId($body['voiceId'] ?? '');
 if ($voice === '') {
-    $characterVoices = [
-        'blingus' => 'NJf2N7XT2iBE8xJ0XHlo',
-    ];
-    $speaker = strtolower(trim((string) ($body['speaker'] ?? '')));
-    if (!preg_match('/^[a-z0-9]{0,32}$/', $speaker)) {
-        $speaker = '';
+    // A host locked to one character always speaks as that character;
+    // unlocked hosts use the speaker the page sends.
+    $speaker = knospeHostCharacter();
+    if ($speaker === '') {
+        $speaker = strtolower(trim((string) ($body['speaker'] ?? '')));
+        if (!preg_match('/^[a-z0-9]{0,32}$/', $speaker)) {
+            $speaker = '';
+        }
     }
-    $voice = $characterVoices[$speaker] ?? '';
+    $voice = knospeCharacterVoice($speaker);
 }
 if ($voice === '') {
     $voice = loadSecret('ELEVENLABS_VOICE_ID', __DIR__ . '/.elevenlabs_voice');
