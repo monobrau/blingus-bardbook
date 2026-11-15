@@ -246,6 +246,7 @@
         'Per-app clip exchange: Manage clips → select clips → pick destination (Blingus, Vadania, Brawn, Puck, or Galen). Each site has its own inbox.',
         'Category dropdowns: pick an existing category when moving clips (type a name only when creating a new one). Bulk assign in Manage clips.',
         'Each character now has its own default voice. A voice ID pasted in Settings still overrides it.',
+        'Download: every clip and favorite with saved audio on the Sound Board has a small ⬇ button that saves it as an audio file named after the clip.',
         'Favorites: each generated outcome card has a star button. It saves the line, plus its audio if you already played it (starring never generates new speech). Favorites appear on the Sound Board with playback, display-name editing, and delete, and can be sent to other apps from Manage clips.',
       ],
     },
