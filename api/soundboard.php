@@ -1218,18 +1218,26 @@ function sbMediaMime($path) {
     }
 }
 
-/** Content-Disposition: attachment with a safe "<Clip Name>.<ext>" filename. */
-function sbSendDownloadHeaders($label, $filePath) {
+/** Safe download names for "<Clip Name>.<ext>": [ascii fallback, utf-8 name]. */
+function sbDownloadFileName($label, $filePath) {
     $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION)) ?: 'mp3';
     $name = sbCleanText((string) $label, 80, '');
-    $name = preg_replace('/[\\\/:*?"<>|\x00-\x1F\x7F]+/u', '', $name);
+    $name = preg_replace('~[\\\\/:*?"<>|\x00-\x1F\x7F]+~u', '', $name);
     $name = trim((string) $name, " .");
     if ($name === '') {
         $name = 'clip';
     }
-    $ascii = preg_replace('/[^A-Za-z0-9 ._()\'-]+/', '', $name);
-    $ascii = trim((string) $ascii) !== '' ? trim($ascii) : 'clip';
-    header('Content-Disposition: attachment; filename="' . $ascii . '.' . $ext . '"; filename*=UTF-8\'\'' . rawurlencode($name . '.' . $ext));
+    $ascii = trim((string) preg_replace('~[^A-Za-z0-9 ._()\'-]+~', '', $name), " .");
+    if ($ascii === '') {
+        $ascii = 'clip';
+    }
+    return [$ascii . '.' . $ext, $name . '.' . $ext];
+}
+
+/** Content-Disposition: attachment with a safe "<Clip Name>.<ext>" filename. */
+function sbSendDownloadHeaders($label, $filePath) {
+    [$ascii, $utf8] = sbDownloadFileName($label, $filePath);
+    header('Content-Disposition: attachment; filename="' . $ascii . '"; filename*=UTF-8\'\'' . rawurlencode($utf8));
 }
 
 function sbStreamMediaFile($filePath) {

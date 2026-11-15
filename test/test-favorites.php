@@ -121,7 +121,10 @@ $imp2 = sbImportIncoming(['character' => 'vadania', 'bundleId' => $bid2]);
 check(!empty($imp2['errors']) && is_file($exchange . '/inbox/vadania/' . $bid2 . '.json'), 'failed bundle kept for retry');
 
 echo "Download filename header helper\n";
-check(function_exists('sbSendDownloadHeaders'), 'sbSendDownloadHeaders exists');
+check(sbDownloadFileName('Sad Trombone', '/x/abc.mp3') === ['Sad Trombone.mp3', 'Sad Trombone.mp3'], 'plain name');
+check(sbDownloadFileName('../../etc/pa"ss\\wd', '/x/a.m4a')[0] === '....etcpasswd.m4a' || strpos(sbDownloadFileName('../../etc/pa"ss\\wd', '/x/a.m4a')[0], '/') === false, 'no slashes/quotes');
+check(sbDownloadFileName('Blade ⚔️', '/x/a.mp3') === ['Blade.mp3', 'Blade ⚔️.mp3'], 'emoji kept in utf-8 name only');
+check(sbDownloadFileName('', '/x/a.mp3')[0] === 'clip.mp3', 'empty -> clip');
 
 check($GLOBALS['ttsCalls'] === 0, 'no TTS calls');
 echo $fail === 0 ? "\nALL PASSED\n" : "\n$fail FAILED\n";
